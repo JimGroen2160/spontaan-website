@@ -2,28 +2,76 @@
 <html lang="nl">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Zangkoor Spontaan</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="css/style.css">
 
 </head>
 
+
 <body>
 
-<iframe src="components/nav.html" class="nav-frame"></iframe>
+<!-- ===== NAVIGATIE ===== -->
+
+<nav class="main-nav">
+
+<div class="nav-container">
+
+<div class="logo">
+<a href="index.html">Spontaan</a>
+</div>
+
+<div class="hamburger" id="hamburger">
+<span></span>
+<span></span>
+<span></span>
+</div>
+
+<ul class="nav-menu" id="navMenu">
+
+<li><a href="index.html">Home</a></li>
+<li><a href="pages/over.html">Over Spontaan</a></li>
+<li><a href="pages/agenda.html">Agenda</a></li>
+<li><a href="pages/media.html">Beeld en Geluid</a></li>
+<li><a href="pages/repertoire.html">Muziek en repertoire</a></li>
+<li><a href="pages/historie.html">Korte historie</a></li>
+<li><a href="pages/vrienden.html">Vrienden van Spontaan</a></li>
+<li><a href="pages/links.html">Links</a></li>
+<li><a href="pages/contact.html">Contact</a></li>
+<li><a href="leden/login.html">Leden</a></li>
+
+</ul>
+
+</div>
+
+</nav>
+
+
+<!-- ===== HERO ===== -->
 
 <header class="hero">
 
+<div class="hero-content">
+
 <h1>Zangkoor Spontaan</h1>
+
 <p>Samen zingen met plezier</p>
 
 <a href="pages/contact.html" class="btn">Kom eens luisteren</a>
 
+</div>
+
 </header>
+
+
+<!-- ===== OVER ONS ===== -->
+
 <section>
 
 <h2>Over ons koor</h2>
@@ -34,12 +82,46 @@ Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat.
 We zingen een breed repertoire en treden regelmatig op tijdens concerten
 en evenementen.
 
-Nieuwe leden zijn altijd welkom om eens vrijblijvend te komen luisteren
-tijdens een repetitie.
+Nieuwe leden zijn altijd welkom om vrijblijvend een repetitie bij te wonen.
 
 </p>
 
 </section>
+
+
+<!-- ===== REPETITIES ===== -->
+
+<section id="repetities">
+
+<h2>Repetities</h2>
+
+<p class="optreden">
+
+Wij repeteren iedere week op woensdagavond.  
+Nieuwe leden zijn van harte welkom om eens vrijblijvend mee te zingen.
+
+</p>
+
+</section>
+
+
+<!-- ===== AGENDA ===== -->
+
+<section id="agenda">
+
+<h2>Agenda</h2>
+
+<p class="optreden">
+
+Binnenkort volgen hier de geplande optredens en concerten van Zangkoor Spontaan.
+
+</p>
+
+</section>
+
+
+<!-- ===== FOOTER ===== -->
+
 <footer>
 
 <p><strong>Zangkoor Spontaan</strong></p>
@@ -54,5 +136,23 @@ Contact:
 <p>© 2026 Zangkoor Spontaan</p>
 
 </footer>
+
+
+<!-- ===== MENU SCRIPT ===== -->
+
+<script>
+
+const hamburger = document.getElementById("hamburger");
+const navMenu = document.getElementById("navMenu");
+
+hamburger.addEventListener("click", () => {
+
+navMenu.classList.toggle("active");
+
+});
+
+</script>
+
+
 </body>
 </html>
