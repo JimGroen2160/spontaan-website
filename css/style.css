@@ -1,3 +1,5 @@
+/* ===== BASIS ===== */
+
 body {
     margin: 0;
     font-family: 'Montserrat', sans-serif;
@@ -6,9 +8,73 @@ body {
     line-height: 1.6;
 }
 
+/* ===== NAVIGATIE ===== */
+
+.main-nav {
+    background: #1f1f1f;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    width: 90%;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.logo a {
+    color: white;
+    text-decoration: none;
+}
+
+.nav-menu {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu li a {
+    text-decoration: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    transition: color 0.3s ease;
+}
+
+.nav-menu li a:hover {
+    color: #d4af37;
+}
+
+/* ===== NAV IFRAME ===== */
+
+.nav-frame {
+    width: 100%;
+    height: 80px;
+    border: none;
+    display: block;
+}
+
+/* ===== HEADER / HERO ===== */
+
 header {
-    background: linear-gradient(rgba(60,0,30,0.7), rgba(60,0,30,0.7)),
-    url('https://images.unsplash.com/photo-1511379938547-c1f69419868d') no-repeat center center/cover;
+    background:
+        linear-gradient(rgba(60,0,30,0.7), rgba(60,0,30,0.7)),
+        url('https://images.unsplash.com/photo-1511379938547-c1f69419868d')
+        no-repeat center center/cover;
+
     height: 90vh;
     display: flex;
     align-items: center;
@@ -29,6 +95,8 @@ header {
     margin-bottom: 20px;
 }
 
+/* ===== BUTTON ===== */
+
 .btn {
     display: inline-block;
     padding: 12px 28px;
@@ -37,40 +105,14 @@ header {
     text-decoration: none;
     font-weight: 500;
     border-radius: 30px;
-    transition: 0.3s ease;
+    transition: background 0.3s ease;
 }
 
 .btn:hover {
     background: #d4b85f;
 }
 
-nav {
-    background: #2c0018;
-    padding: 15px 0;
-}
-
-nav ul {
-    list-style: none;
-    display: flex;
-    justify-content: center;
-    padding: 0;
-    margin: 0;
-}
-
-nav ul li {
-    margin: 0 20px;
-}
-
-nav ul li a {
-    color: #f8f6f2;
-    text-decoration: none;
-    font-weight: 400;
-    transition: 0.3s;
-}
-
-nav ul li a:hover {
-    color: #bfa046;
-}
+/* ===== CONTENT SECTIONS ===== */
 
 section {
     padding: 70px 20px;
@@ -86,7 +128,8 @@ h2 {
     color: #2c0018;
 }
 
-#repetities, #agenda {
+#repetities,
+#agenda {
     background: white;
     border-radius: 12px;
     padding: 40px;
@@ -94,57 +137,16 @@ h2 {
     margin-bottom: 40px;
 }
 
+.optreden {
+    text-align: center;
+}
+
+/* ===== FOOTER ===== */
+
 footer {
     background: #2c0018;
     color: #f8f6f2;
     text-align: center;
     padding: 25px;
     margin-top: 60px;
-}
-.main-nav {
-    background: #1f1f1f;
-    padding: 15px 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.nav-container {
-    width: 90%;
-    margin: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.logo {
-    color: white;
-    font-family: 'Playfair Display', serif;
-    font-size: 24px;
-}
-
-.nav-menu {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-}
-
-.nav-menu li a {
-    text-decoration: none;
-    color: white;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 15px;
-}
-
-.nav-menu li a:hover {
-    color: #d4af37;
-}
-.optreden {
-    text-align: center;
-}
-.nav-frame {
-     width: 100%;
-     height: 80px;
-     border: none;
-     display: block;
 }
