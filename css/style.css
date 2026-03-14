@@ -58,7 +58,7 @@ body {
     color: #d4af37;
 }
 
-/* ===== HAMBURGER MENU ===== */
+/* ===== HAMBURGER ===== */
 
 .hamburger {
     display: none;
@@ -103,31 +103,36 @@ body {
 
 }
 
-/* ===== HEADER / HERO ===== */
+/* ===== HERO ===== */
 
-header {
+.hero {
     background:
         linear-gradient(rgba(60,0,30,0.7), rgba(60,0,30,0.7)),
         url('https://images.unsplash.com/photo-1511379938547-c1f69419868d')
         no-repeat center center/cover;
 
-    height: 90vh;
+    min-height: 70vh;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: white;
+    padding: 60px 20px;
+}
+
+.hero-content {
+    max-width: 700px;
 }
 
 .hero h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
+    font-size: 3rem;
     margin-bottom: 10px;
     letter-spacing: 1px;
 }
 
 .hero p {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     margin-bottom: 20px;
 }
 
@@ -148,7 +153,7 @@ header {
     background: #d4b85f;
 }
 
-/* ===== CONTENT SECTIONS ===== */
+/* ===== CONTENT ===== */
 
 section {
     padding: 70px 20px;
@@ -185,7 +190,4 @@ footer {
     text-align: center;
     padding: 25px;
     margin-top: 60px;
-}
-.hero-content {
-    max-width: 700px;
 }
