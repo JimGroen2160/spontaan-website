@@ -39,7 +39,7 @@ export default defineConfig({
   webServer: {
     command: 'npx serve . -l 5500',
     port: 5500,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120 * 1000,
   },
 });
