@@ -1,0 +1,18 @@
+backend:
+  name: github
+  repo: JimGroen2160/spontaan-website
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "pages"
+    label: "Pagina's"
+    files:
+      - file: "index.html"
+        label: "Homepage"
+        name: "homepage"
+        fields:
+          - { label: "Titel", name: "title", widget: "string" }
+          - { label: "Intro tekst", name: "intro", widget: "text" }
