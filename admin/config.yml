@@ -17,8 +17,12 @@ collections:
     name: "home"
     fields:
 
-    * { label: "Titel", name: "title", widget: "string" }
-    * { label: "Intro tekst", name: "intro", widget: "text" }
+    * label: "Titel"
+      name: "title"
+      widget: "string"
+    * label: "Intro tekst"
+      name: "intro"
+      widget: "text"
 
 * name: "agenda"
   label: "Agenda"
@@ -27,9 +31,15 @@ collections:
   slug: "{{slug}}"
   fields:
 
-  * { label: "Titel", name: "title", widget: "string" }
-  * { label: "Datum", name: "date", widget: "datetime" }
-  * { label: "Beschrijving", name: "body", widget: "markdown" }
+  * label: "Titel"
+    name: "title"
+    widget: "string"
+  * label: "Datum"
+    name: "date"
+    widget: "datetime"
+  * label: "Beschrijving"
+    name: "body"
+    widget: "markdown"
 
 * name: "media"
   label: "Beeld en Geluid"
@@ -38,6 +48,12 @@ collections:
   slug: "{{slug}}"
   fields:
 
-  * { label: "Titel", name: "title", widget: "string" }
-  * { label: "Afbeelding", name: "image", widget: "image" }
-  * { label: "Beschrijving", name: "body", widget: "markdown" }
+  * label: "Titel"
+    name: "title"
+    widget: "string"
+  * label: "Afbeelding"
+    name: "image"
+    widget: "image"
+  * label: "Beschrijving"
+    name: "body"
+    widget: "markdown"
