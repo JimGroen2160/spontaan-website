@@ -8,18 +8,18 @@ public_folder: "/assets/images"
 
 collections:
 
-* name: "pagina"
+- name: "pagina"
   label: "Pagina's"
   files:
 
-  * file: "index.html"
+  - file: "index.html"
     label: "Home"
     name: "home"
     fields:
 
-    * label: "Titel"
+    - label: "Titel"
       name: "title"
       widget: "string"
-    * label: "Intro tekst"
+    - label: "Intro tekst"
       name: "intro"
       widget: "text"
