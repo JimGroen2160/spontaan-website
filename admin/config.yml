@@ -7,19 +7,12 @@ media_folder: "assets/images"
 public_folder: "/assets/images"
 
 collections:
-
-- name: "pagina"
-  label: "Pagina's"
-  files:
-
-  - file: "index.html"
-    label: "Home"
-    name: "home"
-    fields:
-
-    - label: "Titel"
-      name: "title"
-      widget: "string"
-    - label: "Intro tekst"
-      name: "intro"
-      widget: "text"
+  - name: "pagina"
+    label: "Pagina's"
+    files:
+      - file: "index.html"
+        label: "Home"
+        name: "home"
+        fields:
+          - { label: "Titel", name: "title", widget: "string" }
+          - { label: "Intro tekst", name: "intro", widget: "text" }
