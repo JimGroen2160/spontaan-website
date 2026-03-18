@@ -1,19 +1,43 @@
 backend:
-  name: git-gateway
-  branch: main
+name: github
+repo: JimGroen2160/spontaan-website
+branch: main
 
-media_folder: "images/uploads"
-public_folder: "/images/uploads"
-
-publish_mode: editorial_workflow
+media_folder: "assets/images"
+public_folder: "/assets/images"
 
 collections:
-  - name: "pages"
-    label: "Pagina's"
-    files:
-      - file: "index.html"
-        label: "Homepage"
-        name: "homepage"
-        fields:
-          - { label: "Titel", name: "title", widget: "string" }
-          - { label: "Intro tekst", name: "intro", widget: "text" }
+
+* name: "pagina"
+  label: "Pagina's"
+  files:
+
+  * file: "index.html"
+    label: "Home"
+    name: "home"
+    fields:
+
+    * { label: "Titel", name: "title", widget: "string" }
+    * { label: "Intro tekst", name: "intro", widget: "text" }
+
+* name: "agenda"
+  label: "Agenda"
+  folder: "agenda"
+  create: true
+  slug: "{{slug}}"
+  fields:
+
+  * { label: "Titel", name: "title", widget: "string" }
+  * { label: "Datum", name: "date", widget: "datetime" }
+  * { label: "Beschrijving", name: "body", widget: "markdown" }
+
+* name: "media"
+  label: "Beeld en Geluid"
+  folder: "media"
+  create: true
+  slug: "{{slug}}"
+  fields:
+
+  * { label: "Titel", name: "title", widget: "string" }
+  * { label: "Afbeelding", name: "image", widget: "image" }
+  * { label: "Beschrijving", name: "body", widget: "markdown" }
