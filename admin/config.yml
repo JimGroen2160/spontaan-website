@@ -2,8 +2,8 @@ backend:
   name: github
   repo: JimGroen2160/spontaan-website
   branch: main
-  base_url: https://spontaan-website.pages.dev
-  auth_endpoint: /auth
+  base_url: https://plain-morning-bab6.jim-groen14.workers.dev
+  auth_endpoint: auth
 
 media_folder: "assets/images"
 public_folder: "/assets/images"
