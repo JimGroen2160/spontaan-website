@@ -1,5 +1,6 @@
 backend:
   name: github
+  repo: JimGroen2160/spontaan-website
   branch: main
 
 media_folder: "assets/images"
