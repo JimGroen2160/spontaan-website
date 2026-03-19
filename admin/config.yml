@@ -3,6 +3,7 @@ backend:
   repo: JimGroen2160/spontaan-website
   branch: main
   base_url: https://spontaan-website.pages.dev
+  auth_endpoint: /auth
 
 media_folder: "assets/images"
 public_folder: "/assets/images"
