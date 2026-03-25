@@ -3,6 +3,9 @@ backend:
   repo: JimGroen2160/spontaan-website
   branch: main
 
+  base_url: https://plain-morning-bab6.jim-groen14.workers.dev
+  auth_endpoint: auth
+
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
