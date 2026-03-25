@@ -5,7 +5,6 @@ backend:
 
   base_url: https://plain-morning-bab6.jim-groen14.workers.dev
   auth_endpoint: /auth
-  client_id: Ov23liHdWIbwafcfH5yu
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
@@ -17,6 +16,12 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Titel", name: "title", widget: "string" }
-      - { label: "Datum", name: "date", widget: "datetime" }
-      - { label: "Inhoud", name: "body", widget: "markdown" }
+      - label: "Titel"
+        name: "title"
+        widget: "string"
+      - label: "Datum"
+        name: "date"
+        widget: "datetime"
+      - label: "Inhoud"
+        name: "body"
+        widget: "markdown"
