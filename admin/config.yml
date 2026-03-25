@@ -10,7 +10,7 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: pagina
+  - name: "pagina"
     label: "Pagina's"
     folder: "content"
     create: true
