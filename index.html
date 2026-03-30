@@ -2,124 +2,104 @@
 <html lang="nl">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zangkoor Spontaan - Home</title>
 
-<title>Zangkoor Spontaan</title>
+  <meta name="description" content="Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat. Bekijk onze agenda en kom eens luisteren.">
 
-<meta name="description" content="Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat. Bekijk onze agenda en kom eens luisteren.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="images/hero.webp">
 
-<link rel="preload" as="image" href="images/hero.webp">
-
-<link rel="stylesheet" href="css/style.css">
-
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-<!-- NAVIGATIE -->
+  <!-- NAVIGATIE -->
+  <nav class="main-nav" aria-label="Hoofdmenu">
+    <div class="nav-container">
 
-<nav class="main-nav" aria-label="Hoofdmenu">
+      <div class="logo">
+        <a href="index.html">Spontaan</a>
+      </div>
 
-<div class="nav-container">
+      <button class="hamburger" id="hamburger" aria-label="Menu openen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
 
-<div class="logo">
-<a href="index.html">Spontaan</a>
-</div>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="pages/over.html">Over Spontaan</a></li>
+        <li><a href="pages/agenda.html">Agenda</a></li>
+        <li><a href="pages/media.html">Beeld en Geluid</a></li>
+        <li><a href="pages/repertoire.html">Muziek en repertoire</a></li>
+        <li><a href="pages/historie.html">Korte historie</a></li>
+        <li><a href="pages/vrienden.html">Vrienden van Spontaan</a></li>
+        <li><a href="pages/links.html">Links</a></li>
+        <li><a href="pages/contact.html">Contact</a></li>
+        <li><a href="leden/login.html">Leden</a></li>
+      </ul>
 
-<div class="hamburger" id="hamburger">
-<span></span>
-<span></span>
-<span></span>
-</div>
+    </div>
+  </nav>
 
-<ul class="nav-menu" id="navMenu">
+  <!-- HOOFDCONTENT -->
+  <main>
 
-<li><a href="index.html">Home</a></li>
-<li><a href="pages/over.html">Over Spontaan</a></li>
-<li><a href="pages/agenda.html">Agenda</a></li>
-<li><a href="pages/media.html">Beeld en Geluid</a></li>
-<li><a href="pages/repertoire.html">Muziek en repertoire</a></li>
-<li><a href="pages/historie.html">Korte historie</a></li>
-<li><a href="pages/vrienden.html">Vrienden van Spontaan</a></li>
-<li><a href="pages/links.html">Links</a></li>
-<li><a href="pages/contact.html">Contact</a></li>
-<li><a href="leden/login.html">Leden</a></li>
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-content">
+        <h1>Zangkoor Spontaan</h1>
+        <p>Samen zingen met plezier</p>
+        <a href="pages/contact.html" class="btn">Kom eens luisteren</a>
+      </div>
+    </header>
 
-</ul>
+    <!-- CONTENT -->
+    <section>
+      <h2>Over ons koor</h2>
 
-</div>
+      <p class="intro-text">
+        Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat.
+        We zingen een breed repertoire en treden regelmatig op tijdens concerten
+        en evenementen.
 
-</nav>
+        Nieuwe leden zijn altijd welkom om vrijblijvend een repetitie bij te wonen.
+      </p>
 
+    </section>
 
-<header class="hero">
+  </main>
 
-<div class="hero-content">
+  <!-- FOOTER -->
+  <footer>
+    <p><strong>Zangkoor Spontaan</strong></p>
+    <p>Repetitieavond: woensdag</p>
 
-<h1>Zangkoor Spontaan</h1>
+    <p>
+      Contact:
+      <a href="mailto:info@spontaan.nl">info@spontaan.nl</a>
+    </p>
 
-<p>Samen zingen met plezier</p>
+    <p>© 2026 Zangkoor Spontaan</p>
+  </footer>
 
-<a href="pages/contact.html" class="btn">Kom eens luisteren</a>
+  <script defer>
+    const hamburger = document.getElementById("hamburger");
+    const navMenu = document.getElementById("navMenu");
 
-</div>
-
-</header>
-
-
-<main>
-
-<section>
-
-<h2>Over ons koor</h2>
-
-<p style="text-align:center; max-width:700px; margin:auto;">
-
-Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat.
-We zingen een breed repertoire en treden regelmatig op tijdens concerten
-en evenementen.
-
-Nieuwe leden zijn altijd welkom om vrijblijvend een repetitie bij te wonen.
-
-</p>
-
-</section>
-
-</main>
-
-
-<footer>
-
-<p><strong>Zangkoor Spontaan</strong></p>
-
-<p>Repetitieavond: woensdag</p>
-
-<p>
-Contact:
-<a href="mailto:info@spontaan.nl">info@spontaan.nl</a>
-</p>
-
-<p>© 2026 Zangkoor Spontaan</p>
-
-</footer>
-
-<script defer>
-
-const hamburger = document.getElementById("hamburger");
-const navMenu = document.getElementById("navMenu");
-
-hamburger.addEventListener("click", () => {
-navMenu.classList.toggle("active");
-});
-
-</script>
+    hamburger.addEventListener("click", () => {
+      navMenu.classList.toggle("active");
+    });
+  </script>
 
 </body>
 </html>

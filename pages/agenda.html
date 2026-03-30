@@ -2,39 +2,46 @@
 <html lang="nl">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Agenda | Zangkoor Spontaan</title>
+  <title>Agenda - Zangkoor Spontaan</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
+  <meta name="description" content="Bekijk de agenda van Zangkoor Spontaan en kom luisteren bij onze optredens.">
 
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
 
-<div id="nav-placeholder"></div>
-<section id="agenda">
+  <!-- NAV COMPONENT -->
+  <div id="nav"></div>
 
-<h2>Agenda</h2>
+  <main>
 
-<ul>
+    <section id="agenda">
 
-<li>12 juni – Zomerconcert</li>
-<li>5 oktober – Herfstoptreden</li>
-<li>15 december – Kerstconcert</li>
+      <h1>Agenda</h1>
 
-</ul>
+      <ul>
+        <li>12 juni – Zomerconcert</li>
+        <li>5 oktober – Herfstoptreden</li>
+        <li>15 december – Kerstconcert</li>
+      </ul>
 
-</section>
-<script>
-fetch("../components/nav.html")
-.then(response => response.text())
-.then(data => {
-document.getElementById("nav-placeholder").innerHTML = data;
-});
-</script>
+    </section>
+
+  </main>
+
+  <footer>
+    <p><strong>Zangkoor Spontaan</strong></p>
+    <p>© 2026</p>
+  </footer>
+
+  <!-- SCRIPT (CENTRAAL) -->
+  <script src="../components/menu.js"></script>
+
 </body>
 
 </html>

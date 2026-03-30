@@ -33,3 +33,8 @@ test('homepage screenshot', async ({ page }) => {
   await page.goto('http://localhost:5500');
   await expect(page).toHaveScreenshot();
 });
+
+test('title bevat Zangkoor Spontaan', async ({ page }) => {
+  await page.goto('http://localhost:5500');
+  await expect(page).toHaveTitle(/Zangkoor Spontaan/);
+});
