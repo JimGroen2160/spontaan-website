@@ -2,7 +2,7 @@ const basePath = window.location.pathname.includes('/pages/') ? '../' : './';
 
 console.log("Nav wordt geladen vanaf:", basePath + 'components/nav.html');
 
-fetch(basePath + 'nav.html')
+fetch(basePath + 'components/nav.html')
   .then(res => {
     if (!res.ok) throw new Error('Nav laden mislukt');
     return res.text();
