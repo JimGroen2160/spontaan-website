@@ -3,8 +3,11 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('WCAG scan voor alle pagina’s', async ({ page }) => {
 
-  // Start op homepage
-  await page.goto('http://localhost:5500');
+  // Start op homepage (CI-proof)
+  await page.goto('/');
+
+  // Wacht op navigatie (component!)
+  await page.waitForSelector('#nav a');
 
   // Alle links ophalen
   const links = await page.$$eval('a', anchors =>
@@ -34,15 +37,14 @@ test('WCAG scan voor alle pagina’s', async ({ page }) => {
   // Loop door alle pagina's
   for (const url of uniquePages) {
 
-    const fullUrl = url.startsWith('http')
-      ? url
-      : `http://localhost:5500${url.startsWith('/') ? url : '/' + url}`;
+    await page.goto(url);
 
-    await page.goto(fullUrl);
+    // Wacht opnieuw op nav (BELANGRIJK!)
+    await page.waitForSelector('#nav a');
 
     const results = await new AxeBuilder({ page }).analyze();
 
-    console.log(`WCAG check voor ${fullUrl}`);
+    console.log(`WCAG check voor ${url}`);
     console.log(results.violations);
 
     totalViolations += results.violations.length;
@@ -51,10 +53,10 @@ test('WCAG scan voor alle pagina’s', async ({ page }) => {
   console.log("Totaal aantal WCAG violations:", totalViolations);
 
   if (totalViolations > 0) {
-    console.log("⚠️ Accessibility issues gevonden — verbetering nodig");
+    console.warn("⚠️ Accessibility issues gevonden — verbetering nodig");
   }
 
-  // Pipeline regel (niet te streng)
+  // Pipeline regel (bewust niet streng)
   expect(totalViolations).toBeLessThan(50);
 
 });
