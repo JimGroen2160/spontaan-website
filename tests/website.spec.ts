@@ -39,15 +39,29 @@ test('navigatie component werkt correct', async ({ page }) => {
 
   const nav = page.locator('#nav');
 
-  // Stap 1: nav moet zichtbaar zijn
-  await expect(nav).toBeVisible();
+  // 1. BESTAAT nav?
+  const count = await nav.count();
+  console.log('nav count:', count);
 
-  // Stap 2: wacht tot component geladen is (BELANGRIJK)
-  await page.waitForSelector('#nav a');
+  expect(count).toBeGreaterThan(0);
 
-  // Stap 3: fail-fast check → moet links bevatten
-  await expect(nav.locator('a')).toHaveCountGreaterThan(0);
+  // 2. DEBUG: wat zit erin?
+  const html = await nav.innerHTML();
+  console.log('nav content:', html);
 
-  // Stap 4: concrete check
+  // 3. wacht tot links er zijn (max 5 sec)
+  await page.waitForFunction(() => {
+    const el = document.querySelector('#nav');
+    return el && el.querySelectorAll('a').length > 0;
+  }, { timeout: 5000 });
+
+  // 4. check links
+  const links = nav.locator('a');
+  const linkCount = await links.count();
+  console.log('aantal links:', linkCount);
+
+  expect(linkCount).toBeGreaterThan(0);
+
+  // 5. check specifieke link
   await expect(nav.locator('text=Home')).toBeVisible();
 });
