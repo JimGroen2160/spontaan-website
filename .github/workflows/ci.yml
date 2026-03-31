@@ -7,12 +7,10 @@ on:
     branches: [ main ]
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -27,24 +25,31 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests (FAIL-FAST)
+      - name: Run Playwright tests
         run: npx playwright test
 
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-
   deploy:
+    needs: test
     runs-on: ubuntu-latest
-    needs: test   # 🔥 BELANGRIJK → blokkeert deploy bij fouten
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy (placeholder)
-        run: echo "Deploy alleen uitgevoerd na succesvolle tests"
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
