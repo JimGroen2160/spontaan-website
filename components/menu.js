@@ -1,39 +1,29 @@
-// menu.js
+const basePath = window.location.pathname.includes('/pages/') ? '../' : './';
 
-// Bepaal juiste pad (homepage vs /pages/)
-const isSubPage = window.location.pathname.includes('/pages/');
-const navPath = isSubPage ? '../components/nav.html' : './components/nav.html';
+console.log("Nav wordt geladen vanaf:", basePath + 'components/nav.html');
 
-// Debug (mag je later verwijderen)
-console.log('Nav wordt geladen vanaf:', navPath);
-
-fetch(navPath)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Nav laden mislukt: ' + response.status);
-    }
-    return response.text();
+fetch(basePath + 'nav.html')
+  .then(res => {
+    if (!res.ok) throw new Error('Nav laden mislukt');
+    return res.text();
   })
   .then(data => {
     const navContainer = document.getElementById('nav');
 
     if (!navContainer) {
-      console.error('❌ Element met id="nav" niet gevonden');
+      console.error('Element met id="nav" niet gevonden');
       return;
     }
 
     navContainer.innerHTML = data;
 
-    // Hamburger menu (indien aanwezig)
-    const hamburger = document.getElementById('hamburger');
-    const navMenu = document.getElementById('navMenu');
+    const hamburger = document.getElementById("hamburger");
+    const navMenu = document.getElementById("navMenu");
 
     if (hamburger && navMenu) {
-      hamburger.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
+      hamburger.addEventListener("click", () => {
+        navMenu.classList.toggle("active");
       });
     }
   })
-  .catch(error => {
-    console.error('❌ Fout bij laden van navigatie:', error);
-  });
+  .catch(err => console.error(err));
