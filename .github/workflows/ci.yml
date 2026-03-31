@@ -8,11 +8,9 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
     steps:
-
     - name: Checkout repository
       uses: actions/checkout@v4
 
@@ -26,15 +24,6 @@ jobs:
 
     - name: Install Playwright browsers
       run: npx playwright install --with-deps
-
-    - name: Install static server
-      run: npm install -g serve
-
-    - name: Start website
-      run: serve . -l 5500 &
-
-    - name: Wait for server
-      run: sleep 5
 
     - name: Run Playwright tests
       run: npx playwright test
