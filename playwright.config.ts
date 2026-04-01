@@ -15,7 +15,6 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:5500',
-
     trace: 'on-first-retry',
   },
 
@@ -24,12 +23,10 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
@@ -37,7 +34,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npx serve . -l 5500',
+    command: 'npx http-server . -p 5500',
     port: 5500,
     reuseExistingServer: true,
     timeout: 120 * 1000,
