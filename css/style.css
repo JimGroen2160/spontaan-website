@@ -84,6 +84,15 @@
     padding: 30px 20px;
     margin-top: 40px;
   }
+
+  footer a {
+    color: #ffd166;
+  }
+
+  footer a:hover,
+  footer a:focus {
+    color: #ffffff;
+  }
   
   /* ===============================
      HERO (voor homepage)
