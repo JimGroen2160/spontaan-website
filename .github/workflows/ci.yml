@@ -7,6 +7,7 @@ on:
     branches: [main]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
 
@@ -28,8 +29,56 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
 
-  deploy:
+  lighthouse:
     needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Start server
+        run: npx http-server . -p 5500 &
+
+      - name: Wait for server
+        run: sleep 5
+
+      - name: Run Lighthouse
+        run: |
+          npx lighthouse http://localhost:5500 \
+          --quiet \
+          --chrome-flags="--headless" \
+          --only-categories=performance \
+          --output=json \
+          --output-path=./lighthouse.json
+
+      - name: Check performance score
+        run: |
+          SCORE=$(cat lighthouse.json | jq '.categories.performance.score * 100')
+          echo "Performance score: $SCORE"
+          if (( $(echo "$SCORE < 80" | bc -l) )); then
+            echo "Performance below threshold"
+            exit 1
+          fi
+
+  security:
+    needs: lighthouse
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+  deploy:
+    needs: security
     runs-on: ubuntu-latest
 
     permissions:
