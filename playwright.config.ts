@@ -14,7 +14,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    baseURL: 'http://localhost:5500',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
 
@@ -34,8 +34,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npx http-server . -p 5500',
-    port: 5500,
+    command: 'npx serve .',
+    port: 3000,
     reuseExistingServer: true,
     timeout: 120 * 1000,
   },
