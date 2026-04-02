@@ -167,3 +167,8 @@
     }
   
   }
+  nav a.active {
+    color: #d4af37; /* goud */
+    font-weight: 600;
+    border-bottom: 2px solid #d4af37;
+  }

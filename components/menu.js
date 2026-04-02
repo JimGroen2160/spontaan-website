@@ -27,3 +27,22 @@ fetch(basePath + 'components/nav.html')
     }
   })
   .catch(err => console.error(err));
+  // ACTIVE MENU ITEM
+const currentPath = window.location.pathname;
+
+document.querySelectorAll('nav a').forEach(link => {
+  const linkPath = link.getAttribute('href');
+
+  if (currentPath.includes(linkPath)) {
+    link.classList.add('active');
+  }
+});
+// FOOTER LOAD
+fetch(basePath + 'components/footer.html')
+  .then(res => res.text())
+  .then(data => {
+    const footer = document.getElementById('footer');
+    if (footer) {
+      footer.innerHTML = data;
+    }
+  });
