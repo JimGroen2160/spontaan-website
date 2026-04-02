@@ -5,102 +5,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Zangkoor Spontaan - Home</title>
+  <title>Zangkoor Spontaan</title>
 
-  <meta name="description" content="Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat. Bekijk onze agenda en kom eens luisteren.">
+  <meta name="description" content="Welkom bij zangkoor Spontaan uit Angerlo. Bekijk onze optredens, muziek en historie.">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 
-  <link rel="preload" as="image" href="images/hero.webp">
-
+  <!-- CSS -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
   <!-- NAVIGATIE -->
-  <nav class="main-nav" aria-label="Hoofdmenu">
-    <div class="nav-container">
+  <div id="nav-placeholder"></div>
 
-      <div class="logo">
-        <a href="index.html">Spontaan</a>
-      </div>
-
-      <button class="hamburger" id="hamburger" aria-label="Menu openen">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
-      <ul class="nav-menu" id="navMenu">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="pages/over.html">Over Spontaan</a></li>
-        <li><a href="pages/agenda.html">Agenda</a></li>
-        <li><a href="pages/media.html">Beeld en Geluid</a></li>
-        <li><a href="pages/repertoire.html">Muziek en repertoire</a></li>
-        <li><a href="pages/historie.html">Korte historie</a></li>
-        <li><a href="pages/vrienden.html">Vrienden van Spontaan</a></li>
-        <li><a href="pages/links.html">Links</a></li>
-        <li><a href="pages/contact.html">Contact</a></li>
-        <li><a href="leden/login.html">Leden</a></li>
-      </ul>
-
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-content">
+      <h1>Zangkoor Spontaan</h1>
+      <p>Samen zingen, samen beleven</p>
     </div>
-  </nav>
+  </header>
 
-  <!-- HOOFDCONTENT -->
+  <!-- HOOFDINHOUD -->
   <main>
 
-    <!-- HERO -->
-    <header class="hero">
-      <div class="hero-content">
-        <h1>Zangkoor Spontaan</h1>
-        <p>Samen zingen met plezier</p>
-        <a href="pages/contact.html" class="btn">Kom eens luisteren</a>
+    <!-- INTRO -->
+    <section class="intro">
+      <div class="container">
+        <h2>Welkom</h2>
+        <p>
+          Zangkoor Spontaan is een enthousiast koor uit Angerlo.
+          Wij brengen een gevarieerd repertoire en treden regelmatig op.
+        </p>
       </div>
-    </header>
+    </section>
 
-    <!-- CONTENT -->
-    <section>
-      <h2>Over ons koor</h2>
+    <!-- SNEL NAAR -->
+    <section class="quick-links">
+      <div class="container">
 
-      <p class="intro-text">
-        Zangkoor Spontaan is een enthousiast koor waar zangplezier centraal staat.
-        We zingen een breed repertoire en treden regelmatig op tijdens concerten
-        en evenementen.
+        <div class="cards">
 
-        Nieuwe leden zijn altijd welkom om vrijblijvend een repetitie bij te wonen.
-      </p>
+          <a href="pages/agenda.html" class="card">
+            <h3>Agenda</h3>
+            <p>Bekijk onze komende optredens</p>
+          </a>
 
+          <a href="pages/repertoire.html" class="card">
+            <h3>Repertoire</h3>
+            <p>Ontdek onze muziek</p>
+          </a>
+
+          <a href="pages/media.html" class="card">
+            <h3>Beeld & Geluid</h3>
+            <p>Luister en kijk naar ons koor</p>
+          </a>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- OVER KORT -->
+    <section class="about-preview">
+      <div class="container">
+        <h2>Over ons</h2>
+        <p>
+          Sinds de oprichting is zangkoor Spontaan uitgegroeid tot een hechte groep zangers
+          met passie voor muziek en gezelligheid.
+        </p>
+        <a href="pages/over.html" class="btn">Lees meer</a>
+      </div>
     </section>
 
   </main>
 
   <!-- FOOTER -->
-  <footer>
-    <p><strong>Zangkoor Spontaan</strong></p>
-    <p>Repetitieavond: woensdag</p>
+  <div id="footer-placeholder"></div>
 
-    <p>
-      Contact:
-      <a href="mailto:info@spontaan.nl">info@spontaan.nl</a>
-    </p>
-
-    <p>© 2026 Zangkoor Spontaan</p>
-  </footer>
-
-  <script defer>
-    const hamburger = document.getElementById("hamburger");
-    const navMenu = document.getElementById("navMenu");
-
-    hamburger.addEventListener("click", () => {
-      navMenu.classList.toggle("active");
-    });
-  </script>
+  <!-- SCRIPTS -->
+  <script src="js/main.js"></script>
 
 </body>
+
 </html>
-<!-- test vercel -->
