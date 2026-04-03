@@ -68,3 +68,12 @@ jobs:
 
       - name: Run npm audit
         run: npm audit --audit-level=high
+
+
+  deploy:
+    needs: security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger deployment (Vercel)
+        run: echo "Deploy wordt uitgevoerd via Vercel integratie"
