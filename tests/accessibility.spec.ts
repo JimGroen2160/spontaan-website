@@ -5,8 +5,8 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
   await page.goto('/');
 
-  // kleine stabilisatie (BELANGRIJK voor Firefox)
-  await page.waitForLoadState('networkidle');
+  // wacht tot DOM stabiel is (betrouwbaarder dan networkidle)
+  await page.waitForLoadState('domcontentloaded');
 
   const links = await page.$$eval('a', anchors =>
     anchors.map(a => a.getAttribute('href'))
@@ -32,11 +32,11 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
     await page.goto(url);
 
-    // 🔥 STABILISATIE (cruciaal voor Firefox)
-    await page.waitForLoadState('networkidle');
+    // stabieler load moment
+    await page.waitForLoadState('domcontentloaded');
 
-    // wacht kort extra (voorkomt flakiness)
-    await page.waitForTimeout(300);
+    // wacht tot menu geladen is (cruciaal)
+    await page.waitForSelector('#nav');
 
     const results = await new AxeBuilder({ page }).analyze();
 
@@ -48,6 +48,5 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
   console.log("\nTotaal violations:", totalViolations);
 
-  // bewust iets ruimer voor stabiliteit
   expect(totalViolations).toBeLessThan(25);
 });
