@@ -3,172 +3,178 @@
 ================================ */
 
 * {
-    box-sizing: border-box;
-  }
-  
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #f8f6f2;
-    color: #333;
-    line-height: 1.6;
-  }
-  
-  img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-  }
-  
-  /* ===============================
-     NAVIGATIE
-  ================================ */
-  
-  .main-nav {
-    background-color: #1f1f1f;
-    padding: 15px 20px;
-  }
-  
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f8f6f2;
+  color: #333;
+  line-height: 1.6;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ===============================
+   NAVIGATIE
+================================ */
+
+.main-nav {
+  background-color: #1f1f1f;
+  padding: 15px 20px;
+}
+
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.main-nav li {
+  list-style: none;
+}
+
+.main-nav a {
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 15px;
+  transition: color 0.2s ease, border-bottom 0.2s ease;
+}
+
+/* Hover */
+.main-nav a:hover {
+  color: #ffd166;
+}
+
+/* ACTIVE MENU ITEM */
+.main-nav a.active {
+  color: #d4af37;
+  font-weight: 600;
+  border-bottom: 2px solid #d4af37;
+}
+
+/* ===============================
+   CONTENT
+================================ */
+
+main {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+p {
+  margin-bottom: 15px;
+}
+
+/* ===============================
+   HERO (homepage)
+================================ */
+
+.hero {
+  height: 70vh;
+  background-image: linear-gradient(
+    rgba(90, 0, 30, 0.5),
+    rgba(90, 0, 30, 0.5)
+  ), url("../images/hero.webp");
+
+  background-size: cover;
+  background-position: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero-content {
+  color: #ffffff;
+}
+
+.hero h1 {
+  font-size: 48px;
+}
+
+.hero p {
+  font-size: 20px;
+}
+
+/* ===============================
+   BUTTON
+================================ */
+
+.btn {
+  background: #ffd166;
+  color: #333;
+  padding: 12px 25px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: #f2c14e;
+}
+
+/* ===============================
+   FOOTER
+================================ */
+
+footer {
+  background-color: #1f1f1f;
+  color: #ffffff;
+  text-align: center;
+  padding: 30px 20px;
+  margin-top: 40px;
+}
+
+footer a {
+  color: #ffd166;
+}
+
+footer a:hover,
+footer a:focus {
+  color: #ffffff;
+}
+
+/* ===============================
+   MOBILE
+================================ */
+
+@media (max-width: 768px) {
+
   .main-nav ul {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap; /* voorkomt breken */
-    gap: 20px;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .main-nav li {
-    list-style: none;
-  }
-  
-  .main-nav a {
-    text-decoration: none;
-    color: #ffffff;
-    font-weight: 500;
-    font-size: 15px;
-  }
-  
-  .main-nav a:hover {
-    color: #ffd166;
-  }
-  
-  /* ===============================
-     CONTENT
-  ================================ */
-  
-  main {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 0 20px;
-  }
-  
-  h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 36px;
-    margin-bottom: 20px;
-  }
-  
-  p {
-    margin-bottom: 15px;
-  }
-  
-  /* ===============================
-     FOOTER
-  ================================ */
-  
-  footer {
-    background-color: #1f1f1f;
-    color: #ffffff;
-    text-align: center;
-    padding: 30px 20px;
-    margin-top: 40px;
-  }
-
-  footer a {
-    color: #ffd166;
-  }
-
-  footer a:hover,
-  footer a:focus {
-    color: #ffffff;
-  }
-  
-  /* ===============================
-     HERO (voor homepage)
-  ================================ */
-  
-  .hero {
-    height: 70vh;
-    background-image: linear-gradient(
-      rgba(90, 0, 30, 0.5),
-      rgba(90, 0, 30, 0.5)
-    ), url("../images/hero.webp");
-  
-    background-size: cover;
-    background-position: center;
-  
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    text-align: center;
   }
-  
-  .hero-content {
-    color: white;
+
+  main {
+    margin: 20px auto;
   }
-  
+
+  .hero {
+    height: 50vh;
+  }
+
   .hero h1 {
-    font-size: 48px;
+    font-size: 32px;
   }
-  
-  .hero p {
-    font-size: 20px;
-  }
-  
-  /* ===============================
-     BUTTON
-  ================================ */
-  
-  .btn {
-    background: #ffd166;
-    color: #333;
-    padding: 12px 25px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  
-  .btn:hover {
-    background: #f2c14e;
-  }
-  
-  /* ===============================
-     MOBILE
-  ================================ */
-  
-  @media (max-width: 768px) {
-  
-    .main-nav ul {
-      flex-direction: column;
-      align-items: center;
-    }
-  
-    main {
-      margin: 20px auto;
-    }
-  
-    .hero {
-      height: 50vh;
-    }
-  
-    .hero h1 {
-      font-size: 32px;
-    }
-  
-  }
-  nav a.active {
-    color: #d4af37; /* goud */
-    font-weight: 600;
-    border-bottom: 2px solid #d4af37;
-  }
+
+}
