@@ -9,6 +9,7 @@ on:
 jobs:
 
   playwright:
+    name: playwright
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +32,7 @@ jobs:
 
 
   lighthouse:
+    name: lighthouse
     needs: playwright
     runs-on: ubuntu-latest
 
@@ -63,6 +65,7 @@ jobs:
 
 
   security:
+    name: security
     needs: lighthouse
     runs-on: ubuntu-latest
 
