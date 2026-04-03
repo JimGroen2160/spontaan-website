@@ -75,5 +75,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger deployment (Vercel)
-        run: echo "Deploy wordt uitgevoerd via Vercel integratie"
+      - name: Deploy via Vercel (pass-through)
+        run: echo "Deployment wordt uitgevoerd door Vercel na succesvolle pipeline"
