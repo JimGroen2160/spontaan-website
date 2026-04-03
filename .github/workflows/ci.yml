@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  test:
+  playwright:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,7 +31,7 @@ jobs:
 
 
   lighthouse:
-    needs: test
+    needs: playwright
     runs-on: ubuntu-latest
 
     steps:
