@@ -5,7 +5,6 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
   await page.goto('/');
 
-  // wacht tot DOM stabiel is (betrouwbaarder dan networkidle)
   await page.waitForLoadState('domcontentloaded');
 
   const links = await page.$$eval('a', anchors =>
@@ -32,11 +31,10 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
     await page.goto(url);
 
-    // stabieler load moment
     await page.waitForLoadState('domcontentloaded');
 
-    // wacht tot menu geladen is (cruciaal)
-    await page.waitForSelector('#nav');
+    // 🔥 WACHT OP ECHTE MENU CONTENT (niet alleen container)
+    await page.waitForSelector('#nav a', { timeout: 5000 });
 
     const results = await new AxeBuilder({ page }).analyze();
 
