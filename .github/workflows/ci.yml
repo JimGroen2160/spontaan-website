@@ -72,12 +72,3 @@ jobs:
 
       - name: Run npm audit (blocking)
         run: npm audit --audit-level=high
-
-
-  deploy:
-    needs: security
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy via Vercel (pass-through)
-        run: echo "Deployment wordt uitgevoerd door Vercel na succesvolle pipeline"
