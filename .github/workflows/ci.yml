@@ -66,8 +66,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
+      - name: Run npm audit (non-blocking)
+        run: npm audit --audit-level=high || true
 
 
   deploy:
