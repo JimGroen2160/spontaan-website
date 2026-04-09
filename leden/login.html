@@ -2,93 +2,57 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inloggen</title>
-
   <link rel="stylesheet" href="../css/style.css">
-
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Jouw auth script -->
-  <script src="../js/auth.js" defer></script>
-
-  <!-- Menu script -->
-  <script src="../components/menu.js" defer></script>
 </head>
 
 <body>
 
-  <!-- NAV -->
-  <div id="nav-placeholder"></div>
+<div id="nav-placeholder"></div>
 
-  <main style="text-align:center; padding:50px;">
+<main style="text-align:center; margin-top:100px;">
+  <h1>Inloggen</h1>
 
-    <h1>Inloggen</h1>
+  <form id="login-form" style="max-width:400px; margin:auto;">
+    <input type="email" id="email" placeholder="E-mailadres" required><br><br>
+    <input type="password" id="password" placeholder="Wachtwoord" required><br><br>
+    <button type="submit">Login</button>
+  </form>
 
-    <form id="login-form" style="max-width:400px; margin:auto;">
-      <input type="email" placeholder="E-mailadres" required style="width:100%; padding:10px; margin:10px 0;">
-      <input type="password" placeholder="Wachtwoord" required style="width:100%; padding:10px; margin:10px 0;">
-      <button type="submit" style="width:100%; padding:12px; background:#f4c542; border:none; border-radius:25px;">
-        Login
-      </button>
-    </form>
+  <p id="error" style="color:red;"></p>
+</main>
 
-    <div id="login-error" style="color:red; margin-top:15px;"></div>
+<div id="footer-placeholder"></div>
 
-  </main>
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <!-- FOOTER -->
-  <div id="footer-placeholder"></div>
+<script>
+const supabase = window.supabase.createClient(
+  "https://wqtpngqematpnswetxxj.supabase.co",
+  "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL"
+);
 
-  <!-- LOGIN SCRIPT -->
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    console.log("Login pagina geladen");
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    const form = document.getElementById("login-form");
-    const errorDiv = document.getElementById("login-error");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const email = form.querySelector("input[type='email']").value;
-      const password = form.querySelector("input[type='password']").value;
-
-      console.log("Login poging:", email);
-
-      if (!window.supabaseClient) {
-        console.error("Supabase client ontbreekt");
-        errorDiv.innerText = "Supabase niet geladen";
-        return;
-      }
-
-      try {
-        const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-        if (error) {
-          console.error(error.message);
-          errorDiv.innerText = error.message;
-          return;
-        }
-
-        console.log("Login succesvol", data);
-
-        // Redirect bij succes
-        window.location.href = "/leden/dashboard.html";
-
-      } catch (err) {
-        console.error(err);
-        errorDiv.innerText = "Onverwachte fout";
-      }
-    });
-
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password
   });
-  </script>
+
+  if (error) {
+    document.getElementById("error").innerText = error.message;
+  } else {
+    window.location.href = "/leden/dashboard.html";
+  }
+});
+</script>
+
+<script src="../components/menu.js"></script>
 
 </body>
 </html>

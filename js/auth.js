@@ -1,44 +1,27 @@
-// Supabase client
+// ✅ Supabase client (definitief correct)
 
 const SUPABASE_URL = 'https://wqtpngqematpnswetxxj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL';
 
-const { createClient } = window.supabase;
+// Wachten tot pagina volledig geladen is
+window.addEventListener("load", () => {
+  console.log("Auth.js geladen");
 
-const supabaseClient = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+  if (!window.supabase) {
+    console.error("Supabase library niet geladen");
+    return;
+  }
 
-console.log('Supabase client succesvol geïnitialiseerd');
+  try {
+    const { createClient } = window.supabase;
 
-// LOGIN LOGICA
+    window.supabaseClient = createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('loginForm');
-
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const errorEl = document.getElementById('error');
-
-    errorEl.textContent = '';
-
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      errorEl.textContent = error.message;
-      return;
-    }
-
-    // Succes → redirect
-    window.location.href = '../index.html';
-  });
+    console.log("✅ Supabase client succesvol geïnitialiseerd");
+  } catch (e) {
+    console.error("Fout bij initialiseren Supabase:", e);
+  }
 });
