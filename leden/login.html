@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Login | Zangkoor Spontaan</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <div id="nav"></div>
+
+  <main class="container" style="max-width:400px; margin:80px auto; text-align:center;">
+
+    <h1>Inloggen</h1>
+
+    <form id="loginForm">
+
+      <input 
+        type="email" 
+        id="email" 
+        placeholder="E-mailadres" 
+        required 
+        style="width:100%; padding:10px; margin-bottom:10px;"
+      >
+
+      <input 
+        type="password" 
+        id="password" 
+        placeholder="Wachtwoord" 
+        required 
+        style="width:100%; padding:10px; margin-bottom:10px;"
+      >
+
+      <button type="submit" class="btn" style="width:100%;">
+        Login
+      </button>
+
+    </form>
+
+    <p id="error" style="color:red; margin-top:10px;"></p>
+
+  </main>
+
+  <!-- FOOTER -->
+  <div id="footer"></div>
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- AUTH -->
+  <script src="../js/auth.js" defer></script>
+
+  <!-- NAV -->
+  <script src="../components/menu.js" defer></script>
+
+</body>
+
+</html>
