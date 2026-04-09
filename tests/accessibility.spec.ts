@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
-  test.setTimeout(120000); // 🔥 verhoog timeout naar 2 minuten
+  test.setTimeout(120000);
 
   await page.goto('/');
 
@@ -14,7 +14,8 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
   );
 
   const pages = links
-    .filter(link => link && link.endsWith('.html'))
+    .filter((link): link is string => link !== null) // 🔥 fix
+    .filter(link => link.endsWith('.html'))
     .filter(link => !link.includes('login'));
 
   pages.push('/');
