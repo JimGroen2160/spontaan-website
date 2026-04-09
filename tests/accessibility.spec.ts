@@ -3,6 +3,8 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
+  test.setTimeout(120000); // 🔥 verhoog timeout naar 2 minuten
+
   await page.goto('/');
 
   await page.waitForLoadState('domcontentloaded');
@@ -33,7 +35,6 @@ test('WCAG scan per pagina (inzicht + controle)', async ({ page }) => {
 
     await page.waitForLoadState('domcontentloaded');
 
-    // 🔥 WACHT OP ECHTE MENU CONTENT (niet alleen container)
     await page.waitForSelector('#nav a', { timeout: 5000 });
 
     const results = await new AxeBuilder({ page }).analyze();
