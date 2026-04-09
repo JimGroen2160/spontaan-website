@@ -1,65 +1,43 @@
-const path = window.location.pathname;
+document.addEventListener("DOMContentLoaded", async () => {
 
-// Bepaal niveau (root vs subfolder)
-let basePath = './';
+  console.log("Menu laden gestart");
 
-if (path.includes('/pages/') || path.includes('/leden/')) {
-  basePath = '../';
-}
+  // Bepaal pad afhankelijk van pagina
+  const path = window.location.pathname;
 
-console.log("Huidig pad:", path);
-console.log("Nav wordt geladen vanaf:", basePath + 'components/nav.html');
+  let basePath = "";
 
-// NAV
-fetch(basePath + 'components/nav.html')
-  .then(res => {
-    if (!res.ok) throw new Error(`Nav laden mislukt (${res.status})`);
-    return res.text();
-  })
-  .then(data => {
-    const navContainer = document.getElementById('nav');
+  if (path.includes("/leden/") || path.includes("/pages/")) {
+    basePath = "../";
+  }
 
-    if (!navContainer) {
-      console.error('Element met id="nav" niet gevonden');
-      return;
+  try {
+    // NAV laden
+    const navResponse = await fetch(basePath + "components/nav.html");
+    const navHtml = await navResponse.text();
+
+    const navContainer = document.getElementById("nav-placeholder");
+    if (navContainer) {
+      navContainer.innerHTML = navHtml;
+      console.log("Nav geladen");
+    } else {
+      console.warn("nav-placeholder niet gevonden");
     }
 
-    navContainer.innerHTML = data;
+    // FOOTER laden
+    const footerResponse = await fetch(basePath + "components/footer.html");
+    const footerHtml = await footerResponse.text();
 
-    // Hamburger
-    const hamburger = document.getElementById("hamburger");
-    const navMenu = document.getElementById("navMenu");
-
-    if (hamburger && navMenu) {
-      hamburger.addEventListener("click", () => {
-        navMenu.classList.toggle("active");
-      });
+    const footerContainer = document.getElementById("footer-placeholder");
+    if (footerContainer) {
+      footerContainer.innerHTML = footerHtml;
+      console.log("Footer geladen");
+    } else {
+      console.warn("footer-placeholder niet gevonden");
     }
 
-    // Active link
-    const currentPath = window.location.pathname;
+  } catch (error) {
+    console.error("Fout bij laden menu:", error);
+  }
 
-    document.querySelectorAll('nav a').forEach(link => {
-      const linkPath = link.getAttribute('href');
-
-      if (linkPath && currentPath.includes(linkPath)) {
-        link.classList.add('active');
-      }
-    });
-  })
-  .catch(err => console.error(err));
-
-
-// FOOTER
-fetch(basePath + 'components/footer.html')
-  .then(res => {
-    if (!res.ok) throw new Error(`Footer laden mislukt (${res.status})`);
-    return res.text();
-  })
-  .then(data => {
-    const footer = document.getElementById('footer');
-    if (footer) {
-      footer.innerHTML = data;
-    }
-  })
-  .catch(err => console.error(err));
+});
