@@ -2,7 +2,7 @@
 
 // ⚠️ Vul jouw eigen waarden in
 const SUPABASE_URL = 'https://wqtpngqematpnswetxxj.supabase.co';
-const SUPABASE_KEY = 'JOUW_PUBLISHABLE_KEY_HIER';
+const SUPABASE_KEY = 'sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL';
 
 // Controle of Supabase library geladen is
 if (!window.supabase) {
