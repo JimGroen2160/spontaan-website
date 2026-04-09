@@ -1,11 +1,19 @@
-const basePath = window.location.pathname.includes('/pages/') ? '../' : './';
+const path = window.location.pathname;
 
+// Bepaal niveau (root vs subfolder)
+let basePath = './';
+
+if (path.includes('/pages/') || path.includes('/leden/')) {
+  basePath = '../';
+}
+
+console.log("Huidig pad:", path);
 console.log("Nav wordt geladen vanaf:", basePath + 'components/nav.html');
 
-// NAV + LOGICA SAMEN (BELANGRIJK: alles in dezelfde flow)
+// NAV
 fetch(basePath + 'components/nav.html')
   .then(res => {
-    if (!res.ok) throw new Error('Nav laden mislukt');
+    if (!res.ok) throw new Error(`Nav laden mislukt (${res.status})`);
     return res.text();
   })
   .then(data => {
@@ -16,10 +24,9 @@ fetch(basePath + 'components/nav.html')
       return;
     }
 
-    // 1. Inject nav
     navContainer.innerHTML = data;
 
-    // 2. Hamburger menu
+    // Hamburger
     const hamburger = document.getElementById("hamburger");
     const navMenu = document.getElementById("navMenu");
 
@@ -29,7 +36,7 @@ fetch(basePath + 'components/nav.html')
       });
     }
 
-    // 3. ACTIVE MENU ITEM (NU PAS NA LOAD)
+    // Active link
     const currentPath = window.location.pathname;
 
     document.querySelectorAll('nav a').forEach(link => {
@@ -43,12 +50,16 @@ fetch(basePath + 'components/nav.html')
   .catch(err => console.error(err));
 
 
-// FOOTER (apart maar geen impact op nav timing)
+// FOOTER
 fetch(basePath + 'components/footer.html')
-  .then(res => res.text())
+  .then(res => {
+    if (!res.ok) throw new Error(`Footer laden mislukt (${res.status})`);
+    return res.text();
+  })
   .then(data => {
     const footer = document.getElementById('footer');
     if (footer) {
       footer.innerHTML = data;
     }
-  });
+  })
+  .catch(err => console.error(err));
