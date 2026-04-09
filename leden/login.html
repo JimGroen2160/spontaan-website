@@ -10,13 +10,19 @@
 
 <div id="nav-placeholder"></div>
 
-<main style="text-align:center; margin-top:100px;">
+<main>
   <h1>Inloggen</h1>
 
-  <form id="login-form" style="max-width:400px; margin:auto;">
-    <input type="email" id="email" placeholder="E-mailadres" required><br><br>
-    <input type="password" id="password" placeholder="Wachtwoord" required><br><br>
+  <form id="login-form" class="login-form">
+
+    <label for="email">E-mailadres</label>
+    <input type="email" id="email" required>
+
+    <label for="password">Wachtwoord</label>
+    <input type="password" id="password" required>
+
     <button type="submit">Login</button>
+
   </form>
 
   <p id="error" style="color:red;"></p>
@@ -24,31 +30,35 @@
 
 <div id="footer-placeholder"></div>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<!-- ✅ SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const supabase = window.supabase.createClient(
-  "https://wqtpngqematpnswetxxj.supabase.co",
-  "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL"
-);
+document.addEventListener("DOMContentLoaded", () => {
 
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+  const SUPABASE_URL = "https://wqtpngqematpnswetxxj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL";
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      document.getElementById("error").innerText = error.message;
+    } else {
+      window.location.href = "/leden/dashboard.html";
+    }
   });
 
-  if (error) {
-    document.getElementById("error").innerText = error.message;
-  } else {
-    window.location.href = "/leden/dashboard.html";
-  }
 });
 </script>
 

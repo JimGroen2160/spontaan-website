@@ -10,35 +10,40 @@
 
 <div id="nav-placeholder"></div>
 
-<main style="text-align:center; margin-top:100px;">
+<main>
   <h1>Welkom in het ledenportaal</h1>
-  <p>Je bent succesvol ingelogd.</p>
+  <p id="status">Controleren...</p>
 
   <button id="logout">Uitloggen</button>
 </main>
 
 <div id="footer-placeholder"></div>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const supabase = window.supabase.createClient(
-  "https://wqtpngqematpnswetxxj.supabase.co",
-  "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL"
-);
+const SUPABASE_URL = "https://jouw-project-id.supabase.co";
+const SUPABASE_ANON_KEY = "jouw-anon-key";
 
-// 🔐 check of user ingelogd is
-supabase.auth.getUser().then(({ data: { user } }) => {
-  if (!user) {
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (!session) {
     window.location.href = "/leden/login.html";
+    return;
   }
-});
 
-// 🚪 logout
-document.getElementById("logout").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  window.location.href = "/leden/login.html";
+  document.getElementById("status").innerText = "Je bent succesvol ingelogd.";
+
+  document.getElementById("logout").addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = "/leden/login.html";
+  });
+
 });
 </script>
 
