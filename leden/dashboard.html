@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main style="text-align:center; margin-top:100px;">
+  <h1>Welkom in het ledenportaal</h1>
+  <p>Je bent succesvol ingelogd.</p>
+
+  <button id="logout">Uitloggen</button>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://wqtpngqematpnswetxxj.supabase.co",
+  "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL"
+);
+
+// 🔐 check of user ingelogd is
+supabase.auth.getUser().then(({ data: { user } }) => {
+  if (!user) {
+    window.location.href = "/leden/login.html";
+  }
+});
+
+// 🚪 logout
+document.getElementById("logout").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.href = "/leden/login.html";
+});
+</script>
+
+<script src="../components/menu.js"></script>
+
+</body>
+</html>
