@@ -12,6 +12,7 @@
 
 <main>
   <h1>Welkom in het ledenportaal</h1>
+
   <p id="status">Controleren...</p>
 
   <button id="logout">Uitloggen</button>
@@ -22,26 +23,38 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const SUPABASE_URL = "https://jouw-project-id.supabase.co";
-const SUPABASE_ANON_KEY = "jouw-anon-key";
+window.addEventListener("load", async () => {
 
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log("Dashboard gestart");
 
-document.addEventListener("DOMContentLoaded", async () => {
+  const SUPABASE_URL = "https://wqtpngqematpnswetxxj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL";
 
-  const { data: { session } } = await supabaseClient.auth.getSession();
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const { data: { session } } = await client.auth.getSession();
 
   if (!session) {
-    window.location.href = "/leden/login.html";
+    console.log("Geen session → redirect");
+    window.location.href = "login.html";
     return;
   }
 
-  document.getElementById("status").innerText = "Je bent succesvol ingelogd.";
+  console.log("Session OK");
 
-  document.getElementById("logout").addEventListener("click", async () => {
-    await supabaseClient.auth.signOut();
-    window.location.href = "/leden/login.html";
+  const statusEl = document.getElementById("status");
+  const logoutBtn = document.getElementById("logout");
+
+  if (!statusEl || !logoutBtn) {
+    console.error("Dashboard elementen niet gevonden");
+    return;
+  }
+
+  statusEl.innerText = "Je bent succesvol ingelogd.";
+
+  logoutBtn.addEventListener("click", async () => {
+    await client.auth.signOut();
+    window.location.href = "login.html";
   });
 
 });
