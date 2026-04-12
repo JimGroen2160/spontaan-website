@@ -1,21 +1,20 @@
 import { test, expect } from '@playwright/test';
 
+const EMAIL = 'jim.groen14@gmail.com';
+const PASSWORD = 'Spontaan2026';
+
+// ✅ 1. HAPPY FLOW
 test('Login → Dashboard → Logout flow (robuust)', async ({ page }) => {
 
-  // 1. Ga naar login
   await page.goto('http://localhost:5500/leden/login.html');
 
-  // 2. Vul juiste gegevens in
-  await page.fill('#email', 'jim.groen14@gmail.com');
-  await page.fill('#password', 'Spontaan2026');
+  await page.fill('#email', EMAIL);
+  await page.fill('#password', PASSWORD);
 
-  // 3. Klik login
   await page.click('button[type="submit"]');
 
-  // 4. Wacht kort
   await page.waitForTimeout(2000);
 
-  // 5. Check foutmelding
   const errorVisible = await page.locator('#error').isVisible().catch(() => false);
 
   if (errorVisible) {
@@ -23,21 +22,36 @@ test('Login → Dashboard → Logout flow (robuust)', async ({ page }) => {
     throw new Error('Login mislukt: ' + errorText);
   }
 
-  // 6. Check dashboard
-  const statusVisible = await page.locator('#status').isVisible().catch(() => false);
-
-  if (!statusVisible) {
-    throw new Error('Geen dashboard en geen foutmelding → onduidelijke status');
-  }
-
-  // 7. Controle tekst
   await expect(page.locator('#status')).toHaveText('Je bent succesvol ingelogd.');
 
-  // 8. Logout
   await page.click('#logout');
 
-  // 9. Controle redirect
-  await page.waitForTimeout(1000);
   await expect(page).toHaveURL(/login\.html/);
+});
 
+
+// ❌ 2. FOUTE LOGIN
+test('Login met fout wachtwoord → foutmelding zichtbaar', async ({ page }) => {
+
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', EMAIL);
+  await page.fill('#password', 'FOUT_WACHTWOORD');
+
+  await page.click('button[type="submit"]');
+
+  await page.waitForTimeout(2000);
+
+  await expect(page.locator('#error')).toBeVisible();
+});
+
+
+// 🔐 3. DIRECT DASHBOARD BLOKKEREN
+test('Direct naar dashboard zonder login → redirect naar login', async ({ page }) => {
+
+  await page.goto('http://localhost:5500/leden/dashboard.html');
+
+  await page.waitForTimeout(2000);
+
+  await expect(page).toHaveURL(/login\.html/);
 });
