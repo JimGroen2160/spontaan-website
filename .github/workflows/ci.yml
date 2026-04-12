@@ -27,6 +27,12 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      # 🔥 NIEUW: server starten (exact zoals Lighthouse)
+      - name: Start local server
+        run: |
+          npx http-server . -p 5500 &
+          npx wait-on http://localhost:5500
+
       - name: Run Playwright tests
         run: npx playwright test
 
