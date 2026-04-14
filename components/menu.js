@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", async () => {
-
   console.log("Menu laden gestart");
 
   // Bepaal pad afhankelijk van pagina
@@ -7,13 +6,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let basePath = "";
 
-  if (path.includes("/leden/") || path.includes("/pages/")) {
+  if (
+    path.includes("/leden/") ||
+    path.includes("/pages/") ||
+    path.includes("/admin/")
+  ) {
     basePath = "../";
   }
 
   try {
     // NAV laden
     const navResponse = await fetch(basePath + "components/nav.html");
+    if (!navResponse.ok) {
+      throw new Error(`Nav kon niet geladen worden: ${navResponse.status} ${navResponse.statusText}`);
+    }
     const navHtml = await navResponse.text();
 
     const navContainer = document.getElementById("nav-placeholder");
@@ -26,6 +32,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // FOOTER laden
     const footerResponse = await fetch(basePath + "components/footer.html");
+    if (!footerResponse.ok) {
+      throw new Error(`Footer kon niet geladen worden: ${footerResponse.status} ${footerResponse.statusText}`);
+    }
     const footerHtml = await footerResponse.text();
 
     const footerContainer = document.getElementById("footer-placeholder");
@@ -39,5 +48,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     console.error("Fout bij laden menu:", error);
   }
-
 });
