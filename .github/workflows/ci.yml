@@ -12,8 +12,8 @@ jobs:
     name: playwright
     runs-on: ubuntu-latest
     env:
-      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
 
     steps:
       - name: Checkout repository
@@ -37,7 +37,6 @@ jobs:
 
       - name: Run Playwright tests
         run: npx playwright test
-
 
   lighthouse:
     name: lighthouse
@@ -70,7 +69,6 @@ jobs:
           --assert.assertions.categories:accessibility=0.9 \
           --assert.assertions.categories:seo=0.9 \
           --assert.assertions.categories:best-practices=0.9
-
 
   security:
     name: security
