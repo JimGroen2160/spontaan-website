@@ -12,8 +12,8 @@ jobs:
     name: playwright
     runs-on: ubuntu-latest
     env:
-      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
-      TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
+      TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+      TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
 
     steps:
       - name: Checkout repository
