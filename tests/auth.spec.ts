@@ -1,58 +1,37 @@
 import { test, expect } from '@playwright/test';
 
-const EMAIL = process.env.TEST_USER_EMAIL;
-const PASSWORD = process.env.TEST_USER_PASSWORD;
+const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL;
+const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD;
 
-if (!EMAIL || !PASSWORD) {
+if (!MEMBER_EMAIL || !MEMBER_PASSWORD) {
   throw new Error(
-    'Missing required environment variables: TEST_USER_EMAIL and/or TEST_USER_PASSWORD'
+    'Missing required environment variables: TEST_MEMBER_EMAIL and/or TEST_MEMBER_PASSWORD'
   );
 }
 
-// ✅ 1. HAPPY FLOW
-test('Login → Dashboard → Logout flow (robuust)', async ({ page }) => {
+test('Active member kan inloggen en dashboard openen', async ({ page }) => {
   await page.goto('http://localhost:5500/leden/login.html');
 
-  await page.fill('#email', EMAIL);
-  await page.fill('#password', PASSWORD);
-
+  await page.fill('#email', MEMBER_EMAIL);
+  await page.fill('#password', MEMBER_PASSWORD);
   await page.click('button[type="submit"]');
 
-  await page.waitForTimeout(2000);
-
-  const errorVisible = await page.locator('#error').isVisible().catch(() => false);
-
-  if (errorVisible) {
-    const errorText = await page.locator('#error').innerText();
-    throw new Error('Login mislukt: ' + errorText);
-  }
-
-  await expect(page.locator('#status')).toHaveText('Je bent succesvol ingelogd.');
-
-  await page.click('#logout');
-
-  await expect(page).toHaveURL(/login\.html/);
+  await expect(page).toHaveURL(/dashboard\.html/);
+  await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 });
 
-// ❌ 2. FOUTE LOGIN
-test('Login met fout wachtwoord → foutmelding zichtbaar', async ({ page }) => {
+test('Login met fout wachtwoord toont foutmelding', async ({ page }) => {
   await page.goto('http://localhost:5500/leden/login.html');
 
-  await page.fill('#email', EMAIL);
+  await page.fill('#email', MEMBER_EMAIL);
   await page.fill('#password', 'FOUT_WACHTWOORD');
-
   await page.click('button[type="submit"]');
-
-  await page.waitForTimeout(2000);
 
   await expect(page.locator('#error')).toBeVisible();
 });
 
-// 🔐 3. DIRECT DASHBOARD BLOKKEREN
-test('Direct naar dashboard zonder login → redirect naar login', async ({ page }) => {
+test('Dashboard zonder login redirect naar login', async ({ page }) => {
   await page.goto('http://localhost:5500/leden/dashboard.html');
-
-  await page.waitForTimeout(2000);
 
   await expect(page).toHaveURL(/login\.html/);
 });

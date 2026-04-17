@@ -34,6 +34,7 @@
 <div id="footer-placeholder"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/auth.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -44,11 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("FORM NIET GEVONDEN");
     return;
   }
-
-  const SUPABASE_URL = "https://wqtpngqematpnswetxxj.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL";
-
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   function getReadableLoginError(error) {
     const msg = (error?.message || "").toLowerCase();
@@ -70,23 +66,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
     errorEl.innerText = "";
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+    try {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
-    const { data, error } = await client.auth.signInWithPassword({
-      email,
-      password
-    });
+      const { data, error } = await window.authHelpers.login(email, password);
 
-    if (error || !data.session) {
-      errorEl.innerText = getReadableLoginError(error);
-      return;
+      if (error || !data.session) {
+        errorEl.innerText = getReadableLoginError(error);
+        return;
+      }
+
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      console.error("Loginfout:", error);
+      errorEl.innerText = "Inloggen is niet gelukt. Probeer het opnieuw.";
     }
-
-    window.location.href = "dashboard.html";
   });
 });
 </script>

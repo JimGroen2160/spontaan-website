@@ -1,27 +1,75 @@
-// ✅ Supabase client (definitief correct)
-
 const SUPABASE_URL = 'https://wqtpngqematpnswetxxj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL';
 
-// Wachten tot pagina volledig geladen is
-window.addEventListener("load", () => {
-  console.log("Auth.js geladen");
-
+function ensureSupabaseClient() {
   if (!window.supabase) {
-    console.error("Supabase library niet geladen");
-    return;
+    throw new Error("Supabase library niet geladen");
   }
 
-  try {
+  if (!window.supabaseClient) {
     const { createClient } = window.supabase;
+    window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
 
-    window.supabaseClient = createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+  return window.supabaseClient;
+}
 
-    console.log("✅ Supabase client succesvol geïnitialiseerd");
-  } catch (e) {
-    console.error("Fout bij initialiseren Supabase:", e);
+async function getCurrentSession() {
+  const client = ensureSupabaseClient();
+  const { data, error } = await client.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.session;
+}
+
+async function getCurrentProfile() {
+  const client = ensureSupabaseClient();
+  const session = await getCurrentSession();
+
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const { data, error } = await client
+    .from('profiles')
+    .select('*')
+    .eq('auth_user_id', session.user.id)
+    .single();
+
+  if (error) {
+    console.warn("Profiel niet gevonden of niet leesbaar:", error.message);
+    return null;
+  }
+
+  return data;
+}
+
+async function login(email, password) {
+  const client = ensureSupabaseClient();
+  return await client.auth.signInWithPassword({ email, password });
+}
+
+async function logout() {
+  const client = ensureSupabaseClient();
+  return await client.auth.signOut();
+}
+
+window.authHelpers = {
+  ensureSupabaseClient,
+  getCurrentSession,
+  getCurrentProfile,
+  login,
+  logout
+};
+
+window.addEventListener("load", () => {
+  try {
+    ensureSupabaseClient();
+    console.log("Auth centralisatie actief");
+  } catch (error) {
+    console.error("Fout bij initialiseren auth:", error);
   }
 });
