@@ -35,3 +35,18 @@ test('Dashboard zonder login redirect naar login', async ({ page }) => {
 
   await expect(page).toHaveURL(/login\.html/);
 });
+
+test('Ingelogde admin kan adminpagina openen', async ({ page }) => {
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', VALID_EMAIL);
+  await page.fill('#password', VALID_PASSWORD);
+  await page.click('button[type="submit"]');
+
+  await expect(page).toHaveURL(/dashboard\.html/);
+
+  await page.goto('http://localhost:5500/admin/index.html');
+
+  await expect(page).toHaveURL(/admin\/index\.html/);
+  await expect(page.locator('main')).toContainText('Welkom (Admin)');
+});

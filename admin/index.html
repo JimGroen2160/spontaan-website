@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zangkoor Spontaan - Admin</title>
 
-  <!-- 🔥 FIX -->
   <link rel="stylesheet" href="../css/style.css">
+
+  <style>
+    #admin-content {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -20,7 +25,7 @@
   </div>
 </header>
 
-<main>
+<main id="admin-content">
   <section>
     <h2>Welkom (Admin)</h2>
     <p>
@@ -31,8 +36,44 @@
 
 <div id="footer-placeholder"></div>
 
-<!-- 🔥 FIX -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/auth.js"></script>
 <script src="../components/menu.js"></script>
+
+<script>
+  window.addEventListener("load", async () => {
+    const loginPath = "../leden/login.html";
+    const adminContent = document.getElementById("admin-content");
+
+    try {
+      const session = await window.authHelpers.getCurrentSession();
+
+      if (!session) {
+        window.location.href = loginPath;
+        return;
+      }
+
+      const profile = await window.authHelpers.getCurrentProfile();
+
+      if (!profile) {
+        window.location.href = loginPath;
+        return;
+      }
+
+      if (profile.role !== "admin" || profile.status !== "active") {
+        window.location.href = loginPath;
+        return;
+      }
+
+      if (adminContent) {
+        adminContent.style.display = "block";
+      }
+    } catch (error) {
+      console.error("Fout bij admin-autorisatie:", error);
+      window.location.href = loginPath;
+    }
+  });
+</script>
 
 </body>
 </html>
