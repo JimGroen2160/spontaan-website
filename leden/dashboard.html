@@ -21,26 +21,11 @@
 <div id="footer-placeholder"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/auth.js"></script>
 
 <script>
 window.addEventListener("load", async () => {
-
   console.log("Dashboard gestart");
-
-  const SUPABASE_URL = "https://wqtpngqematpnswetxxj.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL";
-
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const { data: { session } } = await client.auth.getSession();
-
-  if (!session) {
-    console.log("Geen session → redirect");
-    window.location.href = "login.html";
-    return;
-  }
-
-  console.log("Session OK");
 
   const statusEl = document.getElementById("status");
   const logoutBtn = document.getElementById("logout");
@@ -50,13 +35,26 @@ window.addEventListener("load", async () => {
     return;
   }
 
-  statusEl.innerText = "Je bent succesvol ingelogd.";
+  try {
+    const session = await window.authHelpers.getCurrentSession();
 
-  logoutBtn.addEventListener("click", async () => {
-    await client.auth.signOut();
+    if (!session) {
+      console.log("Geen session → redirect");
+      window.location.href = "login.html";
+      return;
+    }
+
+    console.log("Session OK");
+    statusEl.innerText = "Je bent succesvol ingelogd.";
+
+    logoutBtn.addEventListener("click", async () => {
+      await window.authHelpers.logout();
+      window.location.href = "login.html";
+    });
+  } catch (error) {
+    console.error("Dashboardfout:", error);
     window.location.href = "login.html";
-  });
-
+  }
 });
 </script>
 

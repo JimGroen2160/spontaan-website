@@ -74,3 +74,18 @@ test('Ingelogde member kan adminpagina niet openen', async ({ page }) => {
 
   await expect(page).toHaveURL(/login\.html/);
 });
+
+test('Ingelogde gebruiker kan uitloggen vanaf dashboard', async ({ page }) => {
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', VALID_EMAIL);
+  await page.fill('#password', VALID_PASSWORD);
+  await page.click('button[type="submit"]');
+
+  await expect(page).toHaveURL(/dashboard\.html/);
+  await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
+
+  await page.click('#logout');
+
+  await expect(page).toHaveURL(/login\.html/);
+});
