@@ -4,76 +4,297 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zangkoor Spontaan - Admin</title>
-
   <link rel="stylesheet" href="../css/style.css">
-
   <style>
     #admin-content {
       display: none;
     }
+
+    #ledenbeheer {
+      margin-top: 2rem;
+    }
+
+    #ledenbeheer-melding {
+      display: none;
+      margin: 1rem 0;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      background: #f4f4f4;
+    }
+
+    #ledenbeheer-formulier,
+    #ledenbeheer-lijst {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .ledenbeheer-form {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .ledenbeheer-form-row {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .ledenbeheer-form-row label {
+      font-weight: 600;
+    }
+
+    .ledenbeheer-form-row input {
+      padding: 0.7rem 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    .ledenbeheer-form-row input.field-error {
+      border-color: #c0392b;
+      background: #fff8f8;
+    }
+
+    .ledenbeheer-field-error {
+      display: none;
+      color: #8a1f1f;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .ledenbeheer-actions {
+      margin-top: 0.5rem;
+    }
+
+    .ledenbeheer-actions button {
+      padding: 0.8rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      background: #d4af37;
+      color: #111;
+      font-weight: 600;
+    }
+
+    .ledenbeheer-actions button:hover {
+      opacity: 0.95;
+    }
+
+    .ledenbeheer-uitleg {
+      margin-top: 0.25rem;
+      color: #555;
+    }
+
+    .ledenbeheer-table-wrapper {
+      margin-top: 1rem;
+      overflow-x: auto;
+    }
+
+    .ledenbeheer-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    .ledenbeheer-table th,
+    .ledenbeheer-table td {
+      padding: 0.85rem 0.75rem;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .ledenbeheer-table th {
+      background: #f7f7f7;
+      font-weight: 700;
+    }
+
+    .ledenbeheer-empty-row td {
+      color: #555;
+      font-style: italic;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: #eee;
+      color: #333;
+    }
+
+    .status-badge.pending {
+      background: #fff4d6;
+      color: #7a5d00;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: #eef3ff;
+      color: #294a8d;
+    }
   </style>
 </head>
-
 <body>
+  <div id="nav-placeholder"></div>
 
-<div id="nav-placeholder"></div>
+  <header class="hero">
+    <div class="hero-content">
+      <h1>Zangkoor Spontaan</h1>
+      <p>Admin omgeving</p>
+    </div>
+  </header>
 
-<header class="hero">
-  <div class="hero-content">
-    <h1>Zangkoor Spontaan</h1>
-    <p>Admin omgeving</p>
-  </div>
-</header>
+  <main id="admin-content">
+    <section>
+      <h2>Welkom (Admin)</h2>
+      <p>Dit is de admin omgeving van Zangkoor Spontaan.</p>
+    </section>
 
-<main id="admin-content">
-  <section>
-    <h2>Welkom (Admin)</h2>
-    <p>
-      Dit is de admin omgeving van Zangkoor Spontaan.
-    </p>
-  </section>
-</main>
+    <section id="ledenbeheer">
+      <h2>Ledenbeheer</h2>
+      <p>Hier komt het beheer voor leden toevoegen, bekijken en bijwerken.</p>
 
-<div id="footer-placeholder"></div>
+      <div id="ledenbeheer-melding" aria-live="polite"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/auth.js"></script>
-<script src="../components/menu.js"></script>
+      <div id="ledenbeheer-formulier">
+        <h3>Nieuw lid toevoegen</h3>
+        <p class="ledenbeheer-uitleg">
+          Dit is de eerste formulierstap. Opslaan is nog niet gekoppeld aan backendlogica.
+        </p>
 
-<script>
-  window.addEventListener("load", async () => {
-    const loginPath = "../leden/login.html";
-    const adminContent = document.getElementById("admin-content");
+        <form id="nieuw-lid-form" class="ledenbeheer-form" novalidate>
+          <div class="ledenbeheer-form-row">
+            <label for="full_name">Volledige naam</label>
+            <input type="text" id="full_name" name="full_name" autocomplete="name">
+            <p id="full_name_error" class="ledenbeheer-field-error"></p>
+          </div>
 
-    try {
-      const session = await window.authHelpers.getCurrentSession();
+          <div class="ledenbeheer-form-row">
+            <label for="street">Straat</label>
+            <input type="text" id="street" name="street" autocomplete="address-line1">
+            <p id="street_error" class="ledenbeheer-field-error"></p>
+          </div>
 
-      if (!session) {
+          <div class="ledenbeheer-form-row">
+            <label for="house_number">Huisnummer</label>
+            <input type="text" id="house_number" name="house_number">
+            <p id="house_number_error" class="ledenbeheer-field-error"></p>
+          </div>
+
+          <div class="ledenbeheer-form-row">
+            <label for="postal_code">Postcode</label>
+            <input type="text" id="postal_code" name="postal_code" autocomplete="postal-code">
+            <p id="postal_code_error" class="ledenbeheer-field-error"></p>
+          </div>
+
+          <div class="ledenbeheer-form-row">
+            <label for="city">Plaats</label>
+            <input type="text" id="city" name="city" autocomplete="address-level2">
+            <p id="city_error" class="ledenbeheer-field-error"></p>
+          </div>
+
+          <div class="ledenbeheer-form-row">
+            <label for="email">E-mailadres</label>
+            <input type="email" id="email" name="email" autocomplete="email">
+            <p id="email_error" class="ledenbeheer-field-error"></p>
+          </div>
+
+          <div class="ledenbeheer-form-row">
+            <label for="email_confirm">Bevestig e-mailadres</label>
+            <input type="email" id="email_confirm" name="email_confirm" autocomplete="email">
+            <p id="email_confirm_error" class="ledenbeheer-field-error"></p>
+          </div>
+
+          <div class="ledenbeheer-form-row">
+            <label for="phone">Telefoonnummer (optioneel)</label>
+            <input type="text" id="phone" name="phone" autocomplete="tel">
+            <p id="phone_error" class="ledenbeheer-field-error"></p>
+          </div>
+
+          <div class="ledenbeheer-actions">
+            <button type="submit" id="nieuw-lid-submit">Lid voorbereiden</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="ledenbeheer-lijst">
+        <h3>Bestaande leden</h3>
+        <p class="ledenbeheer-uitleg">
+          Dit is de eerste visuele lijststructuur. Echte data wordt in een volgende stap gekoppeld.
+        </p>
+
+        <div class="ledenbeheer-table-wrapper">
+          <table class="ledenbeheer-table" aria-label="Ledenlijst">
+            <thead>
+              <tr>
+                <th>Naam</th>
+                <th>E-mailadres</th>
+                <th>Role</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ledenbeheer-lijst-body">
+              <tr class="ledenbeheer-empty-row">
+                <td colspan="4">Nog geen leden geladen. De datakoppeling volgt in een volgende stap.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../components/menu.js"></script>
+  <script src="../admin/ledenbeheer.js"></script>
+  <script>
+    window.addEventListener("load", async () => {
+      const loginPath = "../leden/login.html";
+      const adminContent = document.getElementById("admin-content");
+
+      try {
+        const session = await window.authHelpers.getCurrentSession();
+        if (!session) {
+          window.location.href = loginPath;
+          return;
+        }
+
+        const profile = await window.authHelpers.getCurrentProfile();
+        if (!profile) {
+          window.location.href = loginPath;
+          return;
+        }
+
+        if (profile.role !== "admin" || profile.status !== "active") {
+          window.location.href = loginPath;
+          return;
+        }
+
+        if (adminContent) {
+          adminContent.style.display = "block";
+        }
+
+        if (window.ledenbeheer && typeof window.ledenbeheer.init === "function") {
+          window.ledenbeheer.init();
+        }
+      } catch (error) {
+        console.error("Fout bij admin-autorisatie:", error);
         window.location.href = loginPath;
-        return;
       }
-
-      const profile = await window.authHelpers.getCurrentProfile();
-
-      if (!profile) {
-        window.location.href = loginPath;
-        return;
-      }
-
-      if (profile.role !== "admin" || profile.status !== "active") {
-        window.location.href = loginPath;
-        return;
-      }
-
-      if (adminContent) {
-        adminContent.style.display = "block";
-      }
-    } catch (error) {
-      console.error("Fout bij admin-autorisatie:", error);
-      window.location.href = loginPath;
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
