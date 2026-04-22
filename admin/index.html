@@ -286,13 +286,18 @@
         if (adminContent) {
           adminContent.style.display = "block";
         }
+      } catch (error) {
+        console.error("Fout bij admin-autorisatie:", error);
+        window.location.href = loginPath;
+        return;
+      }
 
+      try {
         if (window.ledenbeheer && typeof window.ledenbeheer.init === "function") {
           window.ledenbeheer.init();
         }
       } catch (error) {
-        console.error("Fout bij admin-autorisatie:", error);
-        window.location.href = loginPath;
+        console.error("Fout bij laden van ledenbeheer:", error);
       }
     });
   </script>

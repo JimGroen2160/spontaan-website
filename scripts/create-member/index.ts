@@ -37,7 +37,7 @@ function normalizeEmail(value: unknown): string {
 }
 
 function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[^\s@]+@[^\s@]+$/.test(email) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isValidDutchPostalCode(postalCode: string): boolean {
@@ -85,10 +85,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
       return jsonResponse(
         { success: false, code: "SERVER_CONFIG_ERROR", message: "Serverconfiguratie is niet volledig." },
         500,
@@ -96,29 +95,31 @@ Deno.serve(async (req: Request) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return jsonResponse(
-        { success: false, code: "UNAUTHORIZED", message: "Geen autorisatieheader ontvangen." },
+        { success: false, code: "UNAUTHORIZED", message: "Geen geldige autorisatieheader ontvangen." },
         401,
       );
     }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader,
-        },
-      },
-    });
+    const accessToken = authHeader.replace("Bearer ", "").trim();
+
+    if (!accessToken) {
+      return jsonResponse(
+        { success: false, code: "UNAUTHORIZED", message: "Geen geldige access token ontvangen." },
+        401,
+      );
+    }
 
     const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     const {
       data: { user },
       error: getUserError,
-    } = await userClient.auth.getUser();
+    } = await adminClient.auth.getUser(accessToken);
 
     if (getUserError || !user) {
+      console.error("getUser fout:", getUserError);
       return jsonResponse(
         { success: false, code: "UNAUTHORIZED", message: "Gebruiker is niet ingelogd of niet geldig." },
         401,
@@ -132,6 +133,7 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (adminProfileError || !adminProfile) {
+      console.error("Adminprofiel fout:", adminProfileError);
       return jsonResponse(
         { success: false, code: "FORBIDDEN", message: "Profiel van admin is niet beschikbaar." },
         403,
@@ -173,6 +175,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (existingProfileError) {
+      console.error("Profile lookup fout:", existingProfileError);
       return jsonResponse(
         { success: false, code: "PROFILE_LOOKUP_FAILED", message: "Bestaande leden konden niet worden gecontroleerd." },
         500,
@@ -189,6 +192,7 @@ Deno.serve(async (req: Request) => {
     const { data: listUsersData, error: listUsersError } = await adminClient.auth.admin.listUsers();
 
     if (listUsersError) {
+      console.error("Auth lookup fout:", listUsersError);
       return jsonResponse(
         { success: false, code: "AUTH_LOOKUP_FAILED", message: "Bestaande accounts konden niet worden gecontroleerd." },
         500,
@@ -214,8 +218,13 @@ Deno.serve(async (req: Request) => {
       });
 
     if (inviteError || !invitedUserData.user) {
+      console.error("Invite fout:", inviteError);
       return jsonResponse(
-        { success: false, code: "INVITE_FAILED", message: "Uitnodiging verzenden is mislukt." },
+        {
+          success: false,
+          code: "INVITE_FAILED",
+          message: inviteError?.message || "Uitnodiging verzenden is mislukt.",
+        },
         500,
       );
     }
@@ -238,11 +247,12 @@ Deno.serve(async (req: Request) => {
       });
 
     if (insertProfileError) {
+      console.error("Profile insert fout:", insertProfileError);
       return jsonResponse(
         {
           success: false,
           code: "PROFILE_INSERT_FAILED",
-          message: "Uitnodiging is verstuurd, maar profiel kon niet worden opgeslagen. Handmatige controle is nodig.",
+          message: insertProfileError.message || "Uitnodiging is verstuurd, maar profiel kon niet worden opgeslagen.",
         },
         500,
       );

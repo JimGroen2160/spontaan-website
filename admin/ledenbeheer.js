@@ -67,11 +67,6 @@
       }
     }
   
-    function bestaatTijdelijkEmailAl(email) {
-      const normalizedEmail = normalize(email).toLowerCase();
-      return tijdelijkeLeden.some((lid) => lid.email === normalizedEmail);
-    }
-  
     function validateSingleField(fieldId) {
       const value = normalize(getElement(fieldId)?.value);
   
@@ -166,33 +161,18 @@
         clearFieldError(fieldId);
       }
   
-      const data = {
-        full_name: normalize(getElement("full_name")?.value),
-        street: normalize(getElement("street")?.value),
-        house_number: normalize(getElement("house_number")?.value),
-        postal_code: normalize(getElement("postal_code")?.value).toUpperCase(),
-        city: normalize(getElement("city")?.value),
-        email: normalize(getElement("email")?.value).toLowerCase(),
-        email_confirm: normalize(getElement("email_confirm")?.value).toLowerCase(),
-        phone: normalize(getElement("phone")?.value),
-      };
-  
-      if (bestaatTijdelijkEmailAl(data.email)) {
-        showFieldError("email", "Dit e-mailadres bestaat al in de tijdelijke lijst.");
-        showFieldError("email_confirm", "Dit e-mailadres bestaat al in de tijdelijke lijst.");
-        return {
-          valid: false,
-          message: "Er bestaat al een lid met dit e-mailadres in de tijdelijke lijst.",
-          fieldId: "email",
-        };
-      }
-  
-      clearFieldError("email");
-      clearFieldError("email_confirm");
-  
       return {
         valid: true,
-        data,
+        data: {
+          full_name: normalize(getElement("full_name")?.value),
+          street: normalize(getElement("street")?.value),
+          house_number: normalize(getElement("house_number")?.value),
+          postal_code: normalize(getElement("postal_code")?.value).toUpperCase(),
+          city: normalize(getElement("city")?.value),
+          email: normalize(getElement("email")?.value).toLowerCase(),
+          email_confirm: normalize(getElement("email_confirm")?.value).toLowerCase(),
+          phone: normalize(getElement("phone")?.value),
+        },
       };
     }
   
@@ -268,6 +248,44 @@
       renderLedenlijst();
     }
   
+    async function createMemberViaFunction(data) {
+      if (!window.authHelpers || typeof window.authHelpers.getCurrentSession !== "function") {
+        throw new Error("Auth helpers zijn niet beschikbaar.");
+      }
+  
+      const session = await window.authHelpers.getCurrentSession();
+      const accessToken = session?.access_token;
+  
+      if (!accessToken) {
+        throw new Error("Geen geldige sessie beschikbaar.");
+      }
+  
+      const response = await fetch(
+        "https://wqtpngqematpnswetxxj.supabase.co/functions/v1/create-member",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(data),
+        }
+      );
+  
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error("Ongeldige response ontvangen van de create-member functie.");
+      }
+  
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || "Ledenaanmaak is mislukt.");
+      }
+  
+      return result;
+    }
+  
     function initNieuwLidFormulier() {
       const form = getElement("nieuw-lid-form");
       if (!form) {
@@ -286,7 +304,7 @@
         "phone",
       ].forEach(bindFieldValidation);
   
-      form.addEventListener("submit", function (event) {
+      form.addEventListener("submit", async function (event) {
         event.preventDefault();
   
         const validation = validateNieuwLidForm();
@@ -297,14 +315,30 @@
           return;
         }
   
-        voegTijdelijkLidToe(validation.data);
-        resetNieuwLidForm();
+        try {
+          const result = await createMemberViaFunction(validation.data);
   
-        setMelding(
-          "Frontend-validatie geslaagd. Het lid is tijdelijk aan de lijst toegevoegd. Opslaan naar backend volgt in een volgende stap.",
-          "success"
-        );
-        console.log("Nieuw lid formulier validatie geslaagd.", validation.data);
+          voegTijdelijkLidToe({
+            full_name: result.member.full_name,
+            email: result.member.email,
+          });
+  
+          resetNieuwLidForm();
+  
+          setMelding(
+            result.message || "Lid succesvol uitgenodigd en profiel aangemaakt.",
+            "success"
+          );
+          console.log("Create-member functie succesvol uitgevoerd.", result);
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Er is een onbekende fout opgetreden bij ledenaanmaak.";
+  
+          setMelding(message, "error");
+          console.error("Fout bij create-member functie:", error);
+        }
       });
     }
   
