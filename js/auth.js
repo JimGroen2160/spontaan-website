@@ -58,6 +58,8 @@ async function logout() {
 }
 
 window.authHelpers = {
+  supabaseUrl: SUPABASE_URL,
+  supabaseKey: SUPABASE_KEY,
   ensureSupabaseClient,
   getCurrentSession,
   getCurrentProfile,

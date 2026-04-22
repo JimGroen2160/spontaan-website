@@ -37,7 +37,7 @@ function normalizeEmail(value: unknown): string {
 }
 
 function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+$/.test(email) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isValidDutchPostalCode(postalCode: string): boolean {
@@ -69,6 +69,27 @@ function validatePayload(payload: Partial<CreateMemberPayload>): string | null {
   }
 
   return null;
+}
+
+function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {
+  try {
+    const parts = accessToken.split(".");
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const payload = parts[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+
+    const paddedPayload = payload + "=".repeat((4 - (payload.length % 4)) % 4);
+    const decodedPayload = atob(paddedPayload);
+
+    return JSON.parse(decodedPayload);
+  } catch (error) {
+    console.error("JWT payload kon niet worden gedecodeerd:", error);
+    return null;
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -111,25 +132,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const jwtPayload = decodeJwtPayload(accessToken);
+    const userId = typeof jwtPayload?.sub === "string" ? jwtPayload.sub : null;
 
-    const {
-      data: { user },
-      error: getUserError,
-    } = await adminClient.auth.getUser(accessToken);
-
-    if (getUserError || !user) {
-      console.error("getUser fout:", getUserError);
+    if (!userId) {
       return jsonResponse(
         { success: false, code: "UNAUTHORIZED", message: "Gebruiker is niet ingelogd of niet geldig." },
         401,
       );
     }
 
+    const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey);
+
     const { data: adminProfile, error: adminProfileError } = await adminClient
       .from("profiles")
       .select("auth_user_id, role, status")
-      .eq("auth_user_id", user.id)
+      .eq("auth_user_id", userId)
       .single();
 
     if (adminProfileError || !adminProfile) {

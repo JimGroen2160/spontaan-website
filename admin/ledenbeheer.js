@@ -260,13 +260,18 @@
         throw new Error("Geen geldige sessie beschikbaar.");
       }
   
+      if (!window.authHelpers.supabaseKey) {
+        throw new Error("Supabase publishable key is niet beschikbaar.");
+      }
+  
       const response = await fetch(
         "https://wqtpngqematpnswetxxj.supabase.co/functions/v1/create-member",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`,
+            apikey: window.authHelpers.supabaseKey
           },
           body: JSON.stringify(data),
         }
