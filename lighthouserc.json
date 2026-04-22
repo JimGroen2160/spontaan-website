@@ -1,9 +1,7 @@
 {
   "ci": {
     "collect": {
-      "urlFile": "./scripts/findPages.js",
-      "startServerCommand": "npx serve -l 5500 .",
-      "staticDistDir": ".",
+      "url": ["http://localhost:5500"],
       "numberOfRuns": 1,
       "settings": {
         "chromeFlags": "--no-sandbox --disable-dev-shm-usage"

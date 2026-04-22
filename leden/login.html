@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inloggen</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main>
+  <h1>Inloggen</h1>
+
+  <form id="login-form" class="login-form" action="#" method="post">
+    <label for="email">E-mailadres</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="password">Wachtwoord</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit" id="login-btn">Login</button>
+  </form>
+
+  <p style="margin-top: 15px; text-align: center;">
+    <a href="wachtwoord-vergeten.html">Wachtwoord vergeten?</a>
+  </p>
+
+  <p id="error" style="color:red; text-align:center;"></p>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/auth.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("login-form");
+  const errorEl = document.getElementById("error");
+
+  if (!form) {
+    console.error("FORM NIET GEVONDEN");
+    return;
+  }
+
+  function getReadableLoginError(error) {
+    const msg = (error?.message || "").toLowerCase();
+
+    if (msg.includes("invalid login credentials")) {
+      return "Het e-mailadres of wachtwoord is onjuist.";
+    }
+
+    if (msg.includes("email not confirmed")) {
+      return "Je e-mailadres is nog niet bevestigd.";
+    }
+
+    if (msg.includes("too many requests")) {
+      return "Er zijn tijdelijk te veel inlogpogingen gedaan. Probeer het straks opnieuw.";
+    }
+
+    return "Inloggen is niet gelukt. Controleer je gegevens en probeer het opnieuw.";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorEl.innerText = "";
+
+    try {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      const { data, error } = await window.authHelpers.login(email, password);
+
+      if (error || !data.session) {
+        errorEl.innerText = getReadableLoginError(error);
+        return;
+      }
+
+      window.location.href = "dashboard.html";
+    } catch (error) {
+      console.error("Loginfout:", error);
+      errorEl.innerText = "Inloggen is niet gelukt. Probeer het opnieuw.";
+    }
+  });
+});
+</script>
+
+<script src="../components/menu.js" defer></script>
+
+</body>
+</html>

@@ -178,3 +178,23 @@ footer a:focus {
   }
 
 }
+.login-form {
+  max-width: 400px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-form input {
+  padding: 10px;
+  font-size: 16px;
+}
+
+.login-form button {
+  padding: 12px;
+  background-color: #e6b93d;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
