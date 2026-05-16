@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nieuw wachtwoord instellen</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main>
+  <h1>Nieuw wachtwoord instellen</h1>
+
+  <p style="text-align: center; max-width: 650px; margin: 0 auto 20px;">
+    Vul hieronder een nieuw wachtwoord in. Na het opslaan kun je opnieuw inloggen.
+  </p>
+
+  <form id="reset-password-form" class="login-form" action="#" method="post">
+    <label for="new-password">Nieuw wachtwoord</label>
+    <input type="password" id="new-password" name="new-password" required>
+
+    <label for="confirm-password">Herhaal nieuw wachtwoord</label>
+    <input type="password" id="confirm-password" name="confirm-password" required>
+
+    <label style="display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 15px;">
+      <input type="checkbox" id="toggle-password-visibility">
+      Wachtwoorden tonen
+    </label>
+
+    <button type="submit">Opslaan</button>
+  </form>
+
+  <p id="message" style="text-align:center; margin-top:15px;"></p>
+
+  <p style="margin-top: 20px; text-align: center;">
+    <a href="login.html">Terug naar inloggen</a>
+  </p>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const form = document.getElementById("reset-password-form");
+  const messageEl = document.getElementById("message");
+  const newPasswordInput = document.getElementById("new-password");
+  const confirmPasswordInput = document.getElementById("confirm-password");
+  const toggleVisibility = document.getElementById("toggle-password-visibility");
+
+  if (!form) {
+    console.error("RESET PASSWORD FORM NIET GEVONDEN");
+    return;
+  }
+
+  const SUPABASE_URL = "https://wqtpngqematpnswetxxj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL";
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function getReadableResetSaveError(error) {
+    const msg = (error?.message || "").toLowerCase();
+
+    if (msg.includes("auth session missing")) {
+      return "De resetlink is ongeldig of verlopen. Vraag opnieuw een wachtwoordreset aan.";
+    }
+
+    if (msg.includes("session missing")) {
+      return "De resetlink is ongeldig of verlopen. Vraag opnieuw een wachtwoordreset aan.";
+    }
+
+    if (msg.includes("same password")) {
+      return "Kies een nieuw wachtwoord dat verschilt van je huidige wachtwoord.";
+    }
+
+    if (msg.includes("weak password")) {
+      return "Het nieuwe wachtwoord is te zwak. Kies een sterker wachtwoord.";
+    }
+
+    return "Het opslaan van je nieuwe wachtwoord is niet gelukt. Vraag eventueel een nieuwe resetlink aan.";
+  }
+
+  if (toggleVisibility) {
+    toggleVisibility.addEventListener("change", () => {
+      const inputType = toggleVisibility.checked ? "text" : "password";
+      newPasswordInput.type = inputType;
+      confirmPasswordInput.type = inputType;
+    });
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    messageEl.innerText = "";
+    messageEl.style.color = "";
+
+    const newPassword = newPasswordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    if (newPassword !== confirmPassword) {
+      messageEl.style.color = "red";
+      messageEl.innerText = "De wachtwoorden komen niet overeen.";
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      messageEl.style.color = "red";
+      messageEl.innerText = "Het wachtwoord moet minimaal 8 tekens bevatten.";
+      return;
+    }
+
+    const { error } = await client.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      messageEl.style.color = "red";
+      messageEl.innerText = getReadableResetSaveError(error);
+      return;
+    }
+
+    messageEl.style.color = "green";
+    messageEl.innerText = "Je wachtwoord is succesvol gewijzigd. Je wordt doorgestuurd naar de inlogpagina.";
+
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 2500);
+  });
+});
+</script>
+
+<script src="../components/menu.js" defer></script>
+
+</body>
+</html>

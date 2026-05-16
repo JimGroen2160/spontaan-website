@@ -1,54 +1,51 @@
-const basePath = window.location.pathname.includes('/pages/') ? '../' : './';
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("Menu laden gestart");
 
-console.log("Nav wordt geladen vanaf:", basePath + 'components/nav.html');
+  // Bepaal pad afhankelijk van pagina
+  const path = window.location.pathname;
 
-// NAV + LOGICA SAMEN (BELANGRIJK: alles in dezelfde flow)
-fetch(basePath + 'components/nav.html')
-  .then(res => {
-    if (!res.ok) throw new Error('Nav laden mislukt');
-    return res.text();
-  })
-  .then(data => {
-    const navContainer = document.getElementById('nav');
+  let basePath = "";
 
-    if (!navContainer) {
-      console.error('Element met id="nav" niet gevonden');
-      return;
+  if (
+    path.includes("/leden/") ||
+    path.includes("/pages/") ||
+    path.includes("/admin/")
+  ) {
+    basePath = "../";
+  }
+
+  try {
+    // NAV laden
+    const navResponse = await fetch(basePath + "components/nav.html");
+    if (!navResponse.ok) {
+      throw new Error(`Nav kon niet geladen worden: ${navResponse.status} ${navResponse.statusText}`);
+    }
+    const navHtml = await navResponse.text();
+
+    const navContainer = document.getElementById("nav-placeholder");
+    if (navContainer) {
+      navContainer.innerHTML = navHtml;
+      console.log("Nav geladen");
+    } else {
+      console.warn("nav-placeholder niet gevonden");
     }
 
-    // 1. Inject nav
-    navContainer.innerHTML = data;
+    // FOOTER laden
+    const footerResponse = await fetch(basePath + "components/footer.html");
+    if (!footerResponse.ok) {
+      throw new Error(`Footer kon niet geladen worden: ${footerResponse.status} ${footerResponse.statusText}`);
+    }
+    const footerHtml = await footerResponse.text();
 
-    // 2. Hamburger menu
-    const hamburger = document.getElementById("hamburger");
-    const navMenu = document.getElementById("navMenu");
-
-    if (hamburger && navMenu) {
-      hamburger.addEventListener("click", () => {
-        navMenu.classList.toggle("active");
-      });
+    const footerContainer = document.getElementById("footer-placeholder");
+    if (footerContainer) {
+      footerContainer.innerHTML = footerHtml;
+      console.log("Footer geladen");
+    } else {
+      console.warn("footer-placeholder niet gevonden");
     }
 
-    // 3. ACTIVE MENU ITEM (NU PAS NA LOAD)
-    const currentPath = window.location.pathname;
-
-    document.querySelectorAll('nav a').forEach(link => {
-      const linkPath = link.getAttribute('href');
-
-      if (linkPath && currentPath.includes(linkPath)) {
-        link.classList.add('active');
-      }
-    });
-  })
-  .catch(err => console.error(err));
-
-
-// FOOTER (apart maar geen impact op nav timing)
-fetch(basePath + 'components/footer.html')
-  .then(res => res.text())
-  .then(data => {
-    const footer = document.getElementById('footer');
-    if (footer) {
-      footer.innerHTML = data;
-    }
-  });
+  } catch (error) {
+    console.error("Fout bij laden menu:", error);
+  }
+});

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wachtwoord vergeten</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main>
+  <h1>Wachtwoord vergeten</h1>
+
+  <p style="text-align: center; max-width: 600px; margin: 0 auto 20px;">
+    Vul je e-mailadres in. Als dit adres bij ons bekend is, ontvang je een e-mail
+    om je wachtwoord opnieuw in te stellen.
+  </p>
+
+  <form id="reset-form" class="login-form" action="#" method="post">
+    <label for="reset-email">E-mailadres</label>
+    <input type="email" id="reset-email" name="reset-email" required>
+
+    <button type="submit">Verstuur resetlink</button>
+  </form>
+
+  <p id="message" style="text-align:center; margin-top:15px;"></p>
+
+  <p style="margin-top: 20px; text-align: center;">
+    <a href="login.html">Terug naar inloggen</a>
+  </p>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("reset-form");
+  const messageEl = document.getElementById("message");
+
+  if (!form) {
+    console.error("RESET FORM NIET GEVONDEN");
+    return;
+  }
+
+  const SUPABASE_URL = "https://wqtpngqematpnswetxxj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL";
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function getReadableResetRequestError(error) {
+    const msg = (error?.message || "").toLowerCase();
+
+    if (msg.includes("email rate limit exceeded")) {
+      return "Er zijn tijdelijk te veel resetverzoeken gedaan. Probeer het over enkele minuten opnieuw.";
+    }
+
+    if (msg.includes("for security purposes")) {
+      return "Er zijn tijdelijk te veel resetverzoeken gedaan. Probeer het over enkele minuten opnieuw.";
+    }
+
+    if (msg.includes("too many requests")) {
+      return "Er zijn tijdelijk te veel resetverzoeken gedaan. Probeer het later opnieuw.";
+    }
+
+    return "Het versturen van de resetlink is niet gelukt. Probeer het later opnieuw.";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    messageEl.style.color = "";
+    messageEl.innerText = "";
+
+    const email = document.getElementById("reset-email").value.trim();
+
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/leden/reset-wachtwoord.html"
+    });
+
+    if (error) {
+      messageEl.style.color = "red";
+      messageEl.innerText = getReadableResetRequestError(error);
+      return;
+    }
+
+    messageEl.style.color = "green";
+    messageEl.innerText = "Als het e-mailadres bekend is, is er een resetlink verstuurd.";
+  });
+});
+</script>
+
+<script src="../components/menu.js" defer></script>
+
+</body>
+</html>
