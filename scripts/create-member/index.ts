@@ -266,11 +266,33 @@ Deno.serve(async (req: Request) => {
 
     if (insertProfileError) {
       console.error("Profile insert fout:", insertProfileError);
+
+      const { error: rollbackError } = await adminClient.auth.admin.deleteUser(invitedUserId);
+
+      if (rollbackError) {
+        console.error("Rollback auth-user na mislukte profielinsert is mislukt:", rollbackError);
+        return jsonResponse(
+          {
+            success: false,
+            code: "PROFILE_INSERT_FAILED_ROLLBACK_FAILED",
+            message:
+              "Lid kon niet volledig worden aangemaakt. De uitnodiging is mogelijk aangemaakt, maar het profiel kon niet worden opgeslagen. Controleer dit handmatig in Supabase.",
+          },
+          500,
+        );
+      }
+
+      console.warn(
+        "Rollback uitgevoerd: auth-user verwijderd na mislukte profielinsert.",
+        invitedUserId,
+      );
+
       return jsonResponse(
         {
           success: false,
-          code: "PROFILE_INSERT_FAILED",
-          message: insertProfileError.message || "Uitnodiging is verstuurd, maar profiel kon niet worden opgeslagen.",
+          code: "PROFILE_INSERT_FAILED_ROLLBACK_DONE",
+          message:
+            "Lid kon niet volledig worden aangemaakt. De uitnodiging is teruggedraaid omdat het profiel niet kon worden opgeslagen.",
         },
         500,
       );
