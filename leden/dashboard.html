@@ -15,7 +15,7 @@
 
   <p id="status">Controleren...</p>
 
-  <button id="logout">Uitloggen</button>
+  <button id="logout" style="display: none;">Uitloggen</button>
 </main>
 
 <div id="footer-placeholder"></div>
@@ -35,6 +35,22 @@ window.addEventListener("load", async () => {
     return;
   }
 
+  async function redirectToLogin() {
+    await window.authHelpers.logout();
+    window.location.href = "login.html";
+  }
+
+  async function activatePendingProfile(client) {
+    const { data, error } = await client.rpc("activate_current_user_profile");
+
+    if (error) {
+      console.error("Activeren pending profiel mislukt:", error);
+      throw error;
+    }
+
+    return data;
+  }
+
   try {
     const session = await window.authHelpers.getCurrentSession();
 
@@ -44,8 +60,43 @@ window.addEventListener("load", async () => {
       return;
     }
 
-    console.log("Session OK");
+    const client = window.authHelpers.ensureSupabaseClient();
+    let profile = await window.authHelpers.getCurrentProfile();
+
+    if (!profile) {
+      console.warn("Geen profiel gevonden voor ingelogde gebruiker.");
+      await redirectToLogin();
+      return;
+    }
+
+    if (profile.status === "inactive") {
+      console.warn("Inactief profiel probeert ledenportaal te openen.");
+      statusEl.innerText = "Je account is niet actief. Neem contact op met de beheerder.";
+      setTimeout(redirectToLogin, 2000);
+      return;
+    }
+
+    if (profile.status === "pending") {
+      statusEl.innerText = "Je account wordt geactiveerd...";
+
+      profile = await activatePendingProfile(client);
+
+      if (!profile || profile.status !== "active") {
+        console.warn("Profiel kon niet worden geactiveerd:", profile);
+        statusEl.innerText = "Je account kon niet automatisch worden geactiveerd. Neem contact op met de beheerder.";
+        return;
+      }
+    }
+
+    if (profile.status !== "active") {
+      console.warn("Onbekende of niet-toegestane profielstatus:", profile.status);
+      await redirectToLogin();
+      return;
+    }
+
+    console.log("Session en profiel OK");
     statusEl.innerText = "Je bent succesvol ingelogd.";
+    logoutBtn.style.display = "inline-block";
 
     logoutBtn.addEventListener("click", async () => {
       await window.authHelpers.logout();
@@ -53,7 +104,8 @@ window.addEventListener("load", async () => {
     });
   } catch (error) {
     console.error("Dashboardfout:", error);
-    window.location.href = "login.html";
+    statusEl.innerText = "Het ledenportaal kon niet worden geladen. Probeer opnieuw in te loggen.";
+    setTimeout(redirectToLogin, 2500);
   }
 });
 </script>
