@@ -28,27 +28,7 @@
   }
 
   function setMelding(message, type = "info") {
-    const melding = getElement("ledenbeheer-melding");
     const toast = getElement("ledenbeheer-toast");
-
-    if (melding) {
-      melding.textContent = message;
-      melding.style.display = "block";
-
-      if (type === "error") {
-        melding.style.background = "#fbeaea";
-        melding.style.color = "#8a1f1f";
-        melding.style.border = "1px solid #e2b4b4";
-      } else if (type === "success") {
-        melding.style.background = "#eaf7ea";
-        melding.style.color = "#1f6b2d";
-        melding.style.border = "1px solid #b7d8bd";
-      } else {
-        melding.style.background = "#f4f4f4";
-        melding.style.color = "#333";
-        melding.style.border = "1px solid #ddd";
-      }
-    }
 
     if (toast) {
       toast.textContent = message;
@@ -56,7 +36,6 @@
       toast.style.display = "block";
     }
   }
-
   function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
