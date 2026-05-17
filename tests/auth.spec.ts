@@ -59,6 +59,10 @@ async function openAdminAndWaitUntilReady(page) {
       return false;
     }
   });
+
+  await expect(page.locator('#ledenbeheer-toast')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-lijst-body')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
 }
 
 test('Geldig account kan inloggen en dashboard openen', async ({ page }) => {
@@ -102,6 +106,49 @@ test('Ingelogde admin ziet ledenbeheerformulier op adminpagina', async ({ page }
   await expect(page.locator('#ledenbeheer-formulier')).toContainText('Nieuw lid toevoegen');
 });
 
+test('Ingelogde admin ziet schaalbare ledenlijstfuncties', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await expect(page.locator('#ledenbeheer-zoek')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-status-filter')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-role-filter')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-sortering')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-page-size')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-prev-page')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-next-page')).toBeVisible();
+});
+
+test('Ingelogde admin kan ledenlijst zoeken en filteren', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Jim Groen');
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Tester Spontaan');
+
+  await page.fill('#ledenbeheer-zoek', 'tester');
+
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Tester Spontaan');
+  await expect(page.locator('#ledenbeheer-lijst-body')).not.toContainText('Jim Groen');
+
+  await page.fill('#ledenbeheer-zoek', '');
+  await page.selectOption('#ledenbeheer-role-filter', 'member');
+
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('member');
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Tester Spontaan');
+
+  await page.selectOption('#ledenbeheer-status-filter', 'active');
+
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('active');
+
+  await page.selectOption('#ledenbeheer-sortering', 'email');
+  await page.selectOption('#ledenbeheer-page-size', '25');
+
+  await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+});
+
 test('Ingelogde admin krijgt backend-foutmelding bij bestaand e-mailadres', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
@@ -117,8 +164,8 @@ test('Ingelogde admin krijgt backend-foutmelding bij bestaand e-mailadres', asyn
 
   await page.click('#nieuw-lid-submit');
 
-  await expect(page.locator('#ledenbeheer-melding')).toBeVisible();
-  await expect(page.locator('#ledenbeheer-melding')).toContainText(
+  await expect(page.locator('#ledenbeheer-toast')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-toast')).toContainText(
     'Er bestaat al een lid met dit e-mailadres.'
   );
 });

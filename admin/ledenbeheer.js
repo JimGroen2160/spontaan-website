@@ -1,5 +1,14 @@
 (function () {
   let leden = [];
+  let huidigePagina = 1;
+
+  const ledenFilters = {
+    zoekterm: "",
+    status: "all",
+    role: "all",
+    sortering: "full_name",
+    pageSize: 10,
+  };
 
   function getElement(id) {
     return document.getElementById(id);
@@ -20,23 +29,31 @@
 
   function setMelding(message, type = "info") {
     const melding = getElement("ledenbeheer-melding");
-    if (!melding) return;
+    const toast = getElement("ledenbeheer-toast");
 
-    melding.textContent = message;
-    melding.style.display = "block";
+    if (melding) {
+      melding.textContent = message;
+      melding.style.display = "block";
 
-    if (type === "error") {
-      melding.style.background = "#fbeaea";
-      melding.style.color = "#8a1f1f";
-      melding.style.border = "1px solid #e2b4b4";
-    } else if (type === "success") {
-      melding.style.background = "#eaf7ea";
-      melding.style.color = "#1f6b2d";
-      melding.style.border = "1px solid #b7d8bd";
-    } else {
-      melding.style.background = "#f4f4f4";
-      melding.style.color = "#333";
-      melding.style.border = "1px solid #ddd";
+      if (type === "error") {
+        melding.style.background = "#fbeaea";
+        melding.style.color = "#8a1f1f";
+        melding.style.border = "1px solid #e2b4b4";
+      } else if (type === "success") {
+        melding.style.background = "#eaf7ea";
+        melding.style.color = "#1f6b2d";
+        melding.style.border = "1px solid #b7d8bd";
+      } else {
+        melding.style.background = "#f4f4f4";
+        melding.style.color = "#333";
+        melding.style.border = "1px solid #ddd";
+      }
+    }
+
+    if (toast) {
+      toast.textContent = message;
+      toast.className = `ledenbeheer-toast ${type}`;
+      toast.style.display = "block";
     }
   }
 
@@ -209,20 +226,114 @@
     return window.authHelpers.ensureSupabaseClient();
   }
 
-  function renderLedenlijst(teTonenLeden = leden) {
+  function getGefilterdeLeden() {
+    const zoekterm = ledenFilters.zoekterm.toLowerCase();
+    const status = ledenFilters.status;
+    const role = ledenFilters.role;
+    const sortering = ledenFilters.sortering;
+
+    return leden
+      .filter((lid) => {
+        const naam = String(lid.full_name || "").toLowerCase();
+        const email = String(lid.email || "").toLowerCase();
+        const lidStatus = String(lid.status || "");
+        const lidRole = String(lid.role || "");
+
+        const zoektermPast = !zoekterm || naam.includes(zoekterm) || email.includes(zoekterm);
+        const statusPast = status === "all" || lidStatus === status;
+        const rolePast = role === "all" || lidRole === role;
+
+        return zoektermPast && statusPast && rolePast;
+      })
+      .sort((a, b) => {
+        const valueA = String(a[sortering] || "").toLowerCase();
+        const valueB = String(b[sortering] || "").toLowerCase();
+
+        return valueA.localeCompare(valueB, "nl", { sensitivity: "base" });
+      });
+  }
+
+  function getPaginering(gefilterdeLeden) {
+    const pageSize = ledenFilters.pageSize;
+    const totaalPaginas = Math.max(1, Math.ceil(gefilterdeLeden.length / pageSize));
+
+    if (huidigePagina > totaalPaginas) {
+      huidigePagina = totaalPaginas;
+    }
+
+    if (huidigePagina < 1) {
+      huidigePagina = 1;
+    }
+
+    const startIndex = (huidigePagina - 1) * pageSize;
+    const eindIndex = startIndex + pageSize;
+
+    return {
+      totaalPaginas,
+      pageSize,
+      startIndex,
+      eindIndex,
+      ledenVoorPagina: gefilterdeLeden.slice(startIndex, eindIndex),
+    };
+  }
+
+  function renderResultCount(totaalGefilterd) {
+    const resultCount = getElement("ledenbeheer-result-count");
+    if (!resultCount) return;
+
+    const totaal = leden.length;
+
+    if (totaal === 0) {
+      resultCount.textContent = "Geen leden beschikbaar.";
+      return;
+    }
+
+    if (totaalGefilterd === totaal) {
+      resultCount.textContent = `${totaal} leden gevonden.`;
+      return;
+    }
+
+    resultCount.textContent = `${totaalGefilterd} van ${totaal} leden gevonden.`;
+  }
+
+  function renderPaginering(totaalPaginas) {
+    const prevButton = getElement("ledenbeheer-prev-page");
+    const nextButton = getElement("ledenbeheer-next-page");
+    const pageStatus = getElement("ledenbeheer-page-status");
+
+    if (pageStatus) {
+      pageStatus.textContent = `Pagina ${huidigePagina} van ${totaalPaginas}`;
+    }
+
+    if (prevButton) {
+      prevButton.disabled = huidigePagina <= 1;
+    }
+
+    if (nextButton) {
+      nextButton.disabled = huidigePagina >= totaalPaginas;
+    }
+  }
+
+  function renderLedenlijst() {
     const tbody = getElement("ledenbeheer-lijst-body");
     if (!tbody) return;
 
-    if (!teTonenLeden.length) {
+    const gefilterdeLeden = getGefilterdeLeden();
+    const paginering = getPaginering(gefilterdeLeden);
+
+    renderResultCount(gefilterdeLeden.length);
+    renderPaginering(paginering.totaalPaginas);
+
+    if (!paginering.ledenVoorPagina.length) {
       tbody.innerHTML = `
         <tr class="ledenbeheer-empty-row">
-          <td colspan="4">Er zijn nog geen leden gevonden.</td>
+          <td colspan="4">Er zijn geen leden gevonden die aan de filters voldoen.</td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = teTonenLeden
+    tbody.innerHTML = paginering.ledenVoorPagina
       .map((lid) => {
         const fullName = escapeHtml(lid.full_name || "-");
         const email = escapeHtml(lid.email || "-");
@@ -258,6 +369,7 @@
     }
 
     leden = Array.isArray(data) ? data : [];
+    huidigePagina = 1;
     renderLedenlijst();
   }
 
@@ -378,6 +490,70 @@
     });
   }
 
+  function bindLedenlijstControls() {
+    const zoekInput = getElement("ledenbeheer-zoek");
+    const statusFilter = getElement("ledenbeheer-status-filter");
+    const roleFilter = getElement("ledenbeheer-role-filter");
+    const sorteringSelect = getElement("ledenbeheer-sortering");
+    const pageSizeSelect = getElement("ledenbeheer-page-size");
+    const prevButton = getElement("ledenbeheer-prev-page");
+    const nextButton = getElement("ledenbeheer-next-page");
+
+    if (zoekInput) {
+      zoekInput.addEventListener("input", function () {
+        ledenFilters.zoekterm = normalize(zoekInput.value);
+        huidigePagina = 1;
+        renderLedenlijst();
+      });
+    }
+
+    if (statusFilter) {
+      statusFilter.addEventListener("change", function () {
+        ledenFilters.status = statusFilter.value;
+        huidigePagina = 1;
+        renderLedenlijst();
+      });
+    }
+
+    if (roleFilter) {
+      roleFilter.addEventListener("change", function () {
+        ledenFilters.role = roleFilter.value;
+        huidigePagina = 1;
+        renderLedenlijst();
+      });
+    }
+
+    if (sorteringSelect) {
+      sorteringSelect.addEventListener("change", function () {
+        ledenFilters.sortering = sorteringSelect.value;
+        huidigePagina = 1;
+        renderLedenlijst();
+      });
+    }
+
+    if (pageSizeSelect) {
+      pageSizeSelect.addEventListener("change", function () {
+        ledenFilters.pageSize = Number(pageSizeSelect.value) || 10;
+        huidigePagina = 1;
+        renderLedenlijst();
+      });
+    }
+
+    if (prevButton) {
+      prevButton.addEventListener("click", function () {
+        huidigePagina -= 1;
+        renderLedenlijst();
+      });
+    }
+
+    if (nextButton) {
+      nextButton.addEventListener("click", function () {
+        huidigePagina += 1;
+        renderLedenlijst();
+      });
+    }
+  }
+
   async function initLedenbeheer() {
     const formulierBlok = getElement("ledenbeheer-formulier");
     const lijstBlok = getElement("ledenbeheer-lijst");
@@ -389,6 +565,7 @@
 
     setMelding("Ledenbeheer wordt geladen.", "info");
     initNieuwLidFormulier();
+    bindLedenlijstControls();
 
     try {
       await laadLedenlijst();
