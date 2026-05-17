@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zangkoor Spontaan - Admin</title>
+
+  <title>Admin | Zangkoor Spontaan</title>
+
   <link rel="stylesheet" href="../css/style.css">
+
   <style>
     #admin-content {
       display: none;
+      max-width: 1180px;
     }
 
     #ledenbeheer {
@@ -16,14 +20,6 @@
 
     #ledenbeheer-melding {
       display: none;
-      margin: 1rem 0;
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      background: #f4f4f4;
-    }
-
-    #ledenbeheer-formulier,
-    #ledenbeheer-lijst {
       margin-top: 1rem;
       padding: 1rem;
       border: 1px solid #ddd;
@@ -46,11 +42,18 @@
       font-weight: 600;
     }
 
-    .ledenbeheer-form-row input {
-      padding: 0.7rem 0.8rem;
+    .ledenbeheer-form-row input,
+    .ledenbeheer-controls input,
+    .ledenbeheer-controls select {
+      width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      padding: 0.55rem 0.7rem;
       border: 1px solid #ccc;
       border-radius: 6px;
       font: inherit;
+      font-size: 0.92rem;
+      background: #fff;
     }
 
     .ledenbeheer-form-row input.field-error {
@@ -69,7 +72,8 @@
       margin-top: 0.5rem;
     }
 
-    .ledenbeheer-actions button {
+    .ledenbeheer-actions button,
+    .ledenbeheer-pagination button {
       padding: 0.8rem 1.2rem;
       border: none;
       border-radius: 6px;
@@ -80,13 +84,55 @@
       font-weight: 600;
     }
 
-    .ledenbeheer-actions button:hover {
+    .ledenbeheer-actions button:hover,
+    .ledenbeheer-pagination button:hover {
       opacity: 0.95;
+    }
+
+    .ledenbeheer-pagination button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
     }
 
     .ledenbeheer-uitleg {
       margin-top: 0.25rem;
       color: #555;
+    }
+
+    .ledenbeheer-controls {
+      display: grid;
+      gap: 0.85rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .ledenbeheer-control-row {
+      display: grid;
+      grid-template-columns: minmax(320px, 2fr) minmax(145px, 1fr) minmax(145px, 1fr) minmax(180px, 1.15fr) minmax(190px, 1.1fr);
+      gap: 1.25rem;
+      align-items: end;
+    }
+
+    .ledenbeheer-control {
+      display: grid;
+      gap: 0.3rem;
+      min-width: 0;
+    }
+
+    .ledenbeheer-control label {
+      font-weight: 600;
+      font-size: 0.92rem;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .ledenbeheer-result-count {
+      margin: 0.1rem 0 0;
+      color: #555;
+      font-size: 0.95rem;
     }
 
     .ledenbeheer-table-wrapper {
@@ -118,6 +164,20 @@
       font-style: italic;
     }
 
+    .ledenbeheer-pagination {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .ledenbeheer-page-status {
+      color: #555;
+      font-weight: 600;
+    }
+
     .status-badge {
       display: inline-block;
       padding: 0.25rem 0.6rem;
@@ -128,9 +188,19 @@
       color: #333;
     }
 
+    .status-badge.active {
+      background: #eaf7ea;
+      color: #1f6b2d;
+    }
+
     .status-badge.pending {
       background: #fff4d6;
       color: #7a5d00;
+    }
+
+    .status-badge.inactive {
+      background: #fbeaea;
+      color: #8a1f1f;
     }
 
     .role-badge {
@@ -141,6 +211,54 @@
       font-weight: 600;
       background: #eef3ff;
       color: #294a8d;
+    }
+
+    .ledenbeheer-toast {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      max-width: min(420px, calc(100vw - 2rem));
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #f4f4f4;
+      color: #333;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+      font-weight: 600;
+    }
+
+    .ledenbeheer-toast.info {
+      background: #f4f4f4;
+      color: #333;
+      border-color: #ddd;
+    }
+
+    .ledenbeheer-toast.success {
+      background: #eaf7ea;
+      color: #1f6b2d;
+      border-color: #b7d8bd;
+    }
+
+    .ledenbeheer-toast.error {
+      background: #fbeaea;
+      color: #8a1f1f;
+      border-color: #e2b4b4;
+    }
+
+    @media (max-width: 768px) {
+      .ledenbeheer-control-row {
+        grid-template-columns: 1fr;
+      }
+
+      .ledenbeheer-pagination {
+        align-items: stretch;
+      }
+
+      .ledenbeheer-pagination button {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -165,6 +283,7 @@
       <p>Hier komt het beheer voor leden toevoegen, bekijken en bijwerken.</p>
 
       <div id="ledenbeheer-melding" aria-live="polite"></div>
+      <div id="ledenbeheer-toast" class="ledenbeheer-toast" role="status" aria-live="polite"></div>
 
       <div id="ledenbeheer-formulier">
         <h3>Nieuw lid toevoegen</h3>
@@ -233,6 +352,57 @@
           Deze lijst toont de actuele leden uit de ledenadministratie.
         </p>
 
+        <div class="ledenbeheer-controls" aria-label="Ledenlijst filters">
+          <div class="ledenbeheer-control-row">
+            <div class="ledenbeheer-control">
+              <label for="ledenbeheer-zoek">Zoeken</label>
+              <input type="search" id="ledenbeheer-zoek" placeholder="Zoek op naam of e-mailadres">
+            </div>
+
+            <div class="ledenbeheer-control">
+              <label for="ledenbeheer-status-filter">Status</label>
+              <select id="ledenbeheer-status-filter">
+                <option value="all">Alle statussen</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="ledenbeheer-control">
+              <label for="ledenbeheer-role-filter">Role</label>
+              <select id="ledenbeheer-role-filter">
+                <option value="all">Alle rollen</option>
+                <option value="admin">Admin</option>
+                <option value="member">Member</option>
+              </select>
+            </div>
+
+            <div class="ledenbeheer-control">
+              <label for="ledenbeheer-sortering">Sorteren op</label>
+              <select id="ledenbeheer-sortering">
+                <option value="full_name">Naam</option>
+                <option value="email">E-mailadres</option>
+                <option value="role">Role</option>
+                <option value="status">Status</option>
+              </select>
+            </div>
+
+            <div class="ledenbeheer-control">
+              <label for="ledenbeheer-page-size">Aantal per pagina</label>
+              <select id="ledenbeheer-page-size">
+                <option value="10">10 leden</option>
+                <option value="25">25 leden</option>
+                <option value="50">50 leden</option>
+              </select>
+            </div>
+          </div>
+
+          <p id="ledenbeheer-result-count" class="ledenbeheer-result-count" aria-live="polite">
+            Nog geen leden geladen.
+          </p>
+        </div>
+
         <div class="ledenbeheer-table-wrapper">
           <table class="ledenbeheer-table" aria-label="Ledenlijst">
             <thead>
@@ -245,10 +415,16 @@
             </thead>
             <tbody id="ledenbeheer-lijst-body">
               <tr class="ledenbeheer-empty-row">
-                <td colspan="4">Nog geen leden geladen. De datakoppeling volgt in een volgende stap.</td>
+                <td colspan="4">Nog geen leden geladen.</td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="ledenbeheer-pagination" aria-label="Paginering ledenlijst">
+          <button type="button" id="ledenbeheer-prev-page">Vorige</button>
+          <span id="ledenbeheer-page-status" class="ledenbeheer-page-status">Pagina 1 van 1</span>
+          <button type="button" id="ledenbeheer-next-page">Volgende</button>
         </div>
       </div>
     </section>
