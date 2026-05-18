@@ -1,6 +1,7 @@
 (function () {
   let leden = [];
   let huidigePagina = 1;
+  let currentProfile = null;
 
   const ledenFilters = {
     zoekterm: "",
@@ -306,7 +307,7 @@
     if (!paginering.ledenVoorPagina.length) {
       tbody.innerHTML = `
         <tr class="ledenbeheer-empty-row">
-          <td colspan="4">Er zijn geen leden gevonden die aan de filters voldoen.</td>
+          <td colspan="5">Er zijn geen leden gevonden die aan de filters voldoen.</td>
         </tr>
       `;
       return;
@@ -318,6 +319,7 @@
         const email = escapeHtml(lid.email || "-");
         const role = escapeHtml(lid.role || "-");
         const status = escapeHtml(lid.status || "-");
+        const acties = renderLidActies(lid);
 
         return `
           <tr>
@@ -325,18 +327,87 @@
             <td>${email}</td>
             <td><span class="role-badge">${role}</span></td>
             <td><span class="status-badge ${status}">${status}</span></td>
+            <td>${acties}</td>
           </tr>
         `;
       })
       .join("");
   }
 
+  function renderLidActies(lid) {
+    const profileId = escapeHtml(lid.id || "");
+    const status = String(lid.status || "");
+    const role = String(lid.role || "");
+    const isCurrentUser = currentProfile?.auth_user_id && lid.auth_user_id === currentProfile.auth_user_id;
+
+    if (!profileId) {
+      return "-";
+    }
+
+    if (status === "pending") {
+      return "-";
+    }
+
+    if (isCurrentUser && role === "admin") {
+      return "Eigen account";
+    }
+
+    if (status === "active") {
+      return `
+        <div class="ledenbeheer-row-actions">
+          <button type="button" class="ledenbeheer-row-action deactivate" data-profile-id="${profileId}" data-new-status="inactive">
+            Deactiveren
+          </button>
+        </div>
+      `;
+    }
+
+    if (status === "inactive") {
+      return `
+        <div class="ledenbeheer-row-actions">
+          <button type="button" class="ledenbeheer-row-action activate" data-profile-id="${profileId}" data-new-status="active">
+            Heractiveren
+          </button>
+        </div>
+      `;
+    }
+
+    return "-";
+  }
+
+  async function updateLidStatus(profileId, nieuweStatus) {
+    if (!profileId || !["active", "inactive"].includes(nieuweStatus)) {
+      setMelding("Ongeldige statuswijziging.", "error");
+      return;
+    }
+
+    const client = getSupabaseClient();
+
+    const { error } = await client
+      .from("profiles")
+      .update({ status: nieuweStatus })
+      .eq("id", profileId);
+
+    if (error) {
+      console.error("Status wijzigen mislukt:", error);
+      setMelding("Status van het lid kon niet worden gewijzigd.", "error");
+      return;
+    }
+
+    await laadLedenlijst();
+
+    const melding = nieuweStatus === "inactive"
+      ? "Lid is gedeactiveerd."
+      : "Lid is geheractiveerd.";
+
+    setMelding(melding, "success");
+  }
   async function laadLedenlijst() {
     const client = getSupabaseClient();
 
     const { data, error } = await client
       .from("profiles")
-      .select("full_name, email, role, status")
+      .select("id, auth_user_id, full_name, email, role, status")
       .order("full_name", { ascending: true });
 
     if (error) {
@@ -469,6 +540,27 @@
     });
   }
 
+  function bindLedenlijstActies() {
+    const tbody = getElement("ledenbeheer-lijst-body");
+    if (!tbody) return;
+
+    tbody.addEventListener("click", async function (event) {
+      const button = event.target.closest(".ledenbeheer-row-action");
+      if (!button) return;
+
+      const profileId = button.getAttribute("data-profile-id");
+      const nieuweStatus = button.getAttribute("data-new-status");
+
+      button.disabled = true;
+
+      try {
+        await updateLidStatus(profileId, nieuweStatus);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
   function bindLedenlijstControls() {
     const zoekInput = getElement("ledenbeheer-zoek");
     const statusFilter = getElement("ledenbeheer-status-filter");
@@ -543,8 +635,10 @@
     }
 
     setMelding("Ledenbeheer wordt geladen.", "info");
+    currentProfile = await window.authHelpers.getCurrentProfile();
     initNieuwLidFormulier();
     bindLedenlijstControls();
+    bindLedenlijstActies();
 
     try {
       await laadLedenlijst();
