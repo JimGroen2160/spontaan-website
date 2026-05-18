@@ -98,6 +98,36 @@ test('Ingelogde member kan adminpagina niet openen', async ({ page }) => {
   await expect(page).toHaveURL(/login\.html/);
 });
 
+test('Ingelogde admin ziet navigatie naar adminomgeving op dashboard', async ({ page }) => {
+  await loginAsAdmin(page);
+
+  await expect(page.locator('#admin-link')).toBeVisible();
+  await expect(page.locator('#admin-link')).toContainText('Naar adminomgeving');
+
+  await page.click('#admin-link');
+
+  await expect(page).toHaveURL(/admin\/index\.html/);
+  await expect(page.locator('#ledenbeheer')).toBeVisible();
+});
+
+test('Ingelogde member ziet geen navigatie naar adminomgeving op dashboard', async ({ page }) => {
+  await loginAsMember(page);
+
+  await expect(page.locator('#admin-link')).toBeHidden();
+});
+
+test('Ingelogde admin ziet navigatie naar ledenomgeving op adminpagina', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await expect(page.locator('#ledenomgeving-link')).toBeVisible();
+  await expect(page.locator('#ledenomgeving-link')).toContainText('Naar ledenomgeving');
+
+  await page.click('#ledenomgeving-link');
+
+  await expect(page).toHaveURL(/leden\/dashboard\.html/);
+  await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
+});
 test('Ingelogde admin ziet ledenbeheerformulier op adminpagina', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);

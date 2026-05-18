@@ -4,6 +4,55 @@
   <meta charset="UTF-8">
   <title>Dashboard</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .portal-card {
+      max-width: 520px;
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border: 1px solid #e2ded6;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .portal-card #status {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    .portal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .portal-action-link,
+    .portal-action-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0.55rem 1rem;
+      border: 1px solid #d4af37;
+      border-radius: 999px;
+      background: #d4af37;
+      color: #111;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .portal-action-button {
+      background: #fff;
+      border-color: #cfc7b8;
+    }
+
+    .portal-action-link:hover,
+    .portal-action-button:hover {
+      opacity: 0.9;
+    }
+  </style>
 </head>
 
 <body>
@@ -13,9 +62,14 @@
 <main>
   <h1>Welkom in het ledenportaal</h1>
 
-  <p id="status">Controleren...</p>
+  <section class="portal-card" aria-label="Ledenportaal acties">
+    <p id="status">Controleren...</p>
 
-  <button id="logout" style="display: none;">Uitloggen</button>
+    <div class="portal-actions">
+      <a id="admin-link" class="portal-action-link" href="../admin/index.html" style="display: none;">Naar adminomgeving</a>
+      <button id="logout" class="portal-action-button" style="display: none;">Uitloggen</button>
+    </div>
+  </section>
 </main>
 
 <div id="footer-placeholder"></div>
@@ -29,8 +83,9 @@ window.addEventListener("load", async () => {
 
   const statusEl = document.getElementById("status");
   const logoutBtn = document.getElementById("logout");
+  const adminLink = document.getElementById("admin-link");
 
-  if (!statusEl || !logoutBtn) {
+  if (!statusEl || !logoutBtn || !adminLink) {
     console.error("Dashboard elementen niet gevonden");
     return;
   }
@@ -55,7 +110,7 @@ window.addEventListener("load", async () => {
     const session = await window.authHelpers.getCurrentSession();
 
     if (!session) {
-      console.log("Geen session → redirect");
+      console.log("Geen session Ã¢â€ â€™ redirect");
       window.location.href = "login.html";
       return;
     }
@@ -96,6 +151,11 @@ window.addEventListener("load", async () => {
 
     console.log("Session en profiel OK");
     statusEl.innerText = "Je bent succesvol ingelogd.";
+
+    if (profile.role === "admin") {
+      adminLink.style.display = "inline-block";
+    }
+
     logoutBtn.style.display = "inline-block";
 
     logoutBtn.addEventListener("click", async () => {
