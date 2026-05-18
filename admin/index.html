@@ -99,6 +99,32 @@
       color: #555;
     }
 
+    .admin-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 1rem 0 0;
+    }
+
+    .admin-action-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0.55rem 1rem;
+      border: 1px solid #d4af37;
+      border-radius: 999px;
+      background: #d4af37;
+      color: #111;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .admin-action-link:hover {
+      opacity: 0.9;
+    }
+
     .ledenbeheer-controls {
       display: grid;
       gap: 0.85rem;
@@ -276,6 +302,9 @@
     <section>
       <h2>Welkom (Admin)</h2>
       <p>Dit is de admin omgeving van Zangkoor Spontaan.</p>
+      <div class="admin-actions" aria-label="Admin navigatie">
+        <a id="ledenomgeving-link" class="admin-action-link" href="../leden/dashboard.html">Naar ledenomgeving</a>
+      </div>
     </section>
 
     <section id="ledenbeheer">
