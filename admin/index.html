@@ -229,6 +229,44 @@
       color: #8a1f1f;
     }
 
+    .ledenbeheer-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .ledenbeheer-row-action {
+      min-height: 34px;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid #cfc7b8;
+      border-radius: 999px;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .ledenbeheer-row-action:hover {
+      opacity: 0.9;
+    }
+
+    .ledenbeheer-row-action:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .ledenbeheer-row-action.deactivate {
+      border-color: #e2b4b4;
+      color: #8a1f1f;
+    }
+
+    .ledenbeheer-row-action.activate {
+      border-color: #b7d8bd;
+      color: #1f6b2d;
+    }
+
     .role-badge {
       display: inline-block;
       padding: 0.25rem 0.6rem;
@@ -440,11 +478,12 @@
                 <th>E-mailadres</th>
                 <th>Role</th>
                 <th>Status</th>
+                <th>Acties</th>
               </tr>
             </thead>
             <tbody id="ledenbeheer-lijst-body">
               <tr class="ledenbeheer-empty-row">
-                <td colspan="4">Nog geen leden geladen.</td>
+                <td colspan="5">Nog geen leden geladen.</td>
               </tr>
             </tbody>
           </table>

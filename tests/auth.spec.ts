@@ -150,6 +150,19 @@ test('Ingelogde admin ziet schaalbare ledenlijstfuncties', async ({ page }) => {
   await expect(page.locator('#ledenbeheer-next-page')).toBeVisible();
 });
 
+test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await expect(page.locator('th')).toContainText(['Naam', 'E-mailadres', 'Role', 'Status', 'Acties']);
+
+  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Jim Groen' });
+  await expect(adminRow).toContainText('Eigen account');
+
+  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Tester Spontaan' });
+  await expect(memberRow.locator('.ledenbeheer-row-action.deactivate')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-row-action.deactivate')).toContainText('Deactiveren');
+});
 test('Ingelogde admin kan ledenlijst zoeken en filteren', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
