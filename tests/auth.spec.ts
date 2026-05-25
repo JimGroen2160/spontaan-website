@@ -65,6 +65,17 @@ async function openAdminAndWaitUntilReady(page) {
   await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
 }
 
+async function openMemberActionMenu(page) {
+  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Tester Spontaan' });
+
+  await expect(memberRow.locator('.ledenbeheer-action-trigger')).toBeVisible();
+  await memberRow.locator('.ledenbeheer-action-trigger').click();
+
+  await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
+
+  return memberRow;
+}
+
 test('Geldig account kan inloggen en dashboard openen', async ({ page }) => {
   await loginAsAdmin(page);
 });
@@ -128,6 +139,7 @@ test('Ingelogde admin ziet navigatie naar ledenomgeving op adminpagina', async (
   await expect(page).toHaveURL(/leden\/dashboard\.html/);
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 });
+
 test('Ingelogde admin ziet ledenbeheerformulier op adminpagina', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
@@ -159,10 +171,67 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
   const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Jim Groen' });
   await expect(adminRow).toContainText('Eigen account');
 
-  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Tester Spontaan' });
-  await expect(memberRow.locator('.ledenbeheer-row-action.deactivate')).toBeVisible();
-  await expect(memberRow.locator('.ledenbeheer-row-action.deactivate')).toContainText('Deactiveren');
+  const memberRow = await openMemberActionMenu(page);
+
+  await expect(memberRow.locator('.ledenbeheer-menu-action.edit')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-menu-action.edit')).toContainText('Bewerken');
+  await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toContainText('Deactiveren');
 });
+
+test('Ingelogde admin kan bewerkmodal voor lid openen en sluiten', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const memberRow = await openMemberActionMenu(page);
+
+  await memberRow.locator('.ledenbeheer-menu-action.edit').click();
+
+  await expect(page.locator('#ledenbeheer-edit-modal')).toHaveClass(/open/);
+  await expect(page.locator('#ledenbeheer-edit-title')).toContainText('Lidgegevens bewerken');
+  await expect(page.locator('#edit_full_name')).toBeVisible();
+  await expect(page.locator('#edit_email')).toBeVisible();
+  await expect(page.locator('#edit_role')).toBeVisible();
+  await expect(page.locator('#edit_status')).toBeVisible();
+  await expect(page.locator('#edit_email')).toHaveAttribute('readonly', '');
+  await expect(page.locator('#edit_role')).toHaveAttribute('readonly', '');
+  await expect(page.locator('#edit_status')).toHaveAttribute('readonly', '');
+  await expect(page.locator('#ledenbeheer-edit-save')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-edit-cancel')).toBeVisible();
+
+  await page.click('#ledenbeheer-edit-cancel');
+
+  await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
+});
+
+test('Ingelogde admin ziet veldvalidatie in bewerkmodal', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const memberRow = await openMemberActionMenu(page);
+
+  await memberRow.locator('.ledenbeheer-menu-action.edit').click();
+
+  await expect(page.locator('#ledenbeheer-edit-modal')).toHaveClass(/open/);
+
+  await page.fill('#edit_house_number', 'testhuisnummer');
+  await page.click('#ledenbeheer-edit-save');
+
+  await expect(page.locator('#edit_house_number_error')).toBeVisible();
+  await expect(page.locator('#edit_house_number_error')).toContainText('Huisnummer moet met een cijfer beginnen');
+
+  await page.fill('#edit_house_number', '10A');
+  await page.fill('#edit_phone', '0613694301B');
+  await page.click('#ledenbeheer-edit-save');
+
+  await expect(page.locator('#edit_phone_error')).toBeVisible();
+  await expect(page.locator('#edit_phone_error')).toContainText('Telefoonnummer mag alleen cijfers');
+
+  await page.click('#ledenbeheer-edit-cancel');
+
+  await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
+});
+
 test('Ingelogde admin kan ledenlijst zoeken en filteren', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
