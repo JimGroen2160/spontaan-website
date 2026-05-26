@@ -264,10 +264,8 @@
 
     .ledenbeheer-action-dropdown {
       display: none;
-      position: absolute;
-      right: 0;
-      top: calc(100% + 0.35rem);
-      z-index: 50;
+      position: fixed;
+      z-index: 2000;
       min-width: 185px;
       padding: 0.35rem 0;
       border: 1px solid #ddd;
@@ -421,11 +419,6 @@
 
       .ledenbeheer-modal-panel {
         width: 100%;
-      }
-
-      .ledenbeheer-action-dropdown {
-        left: 0;
-        right: auto;
       }
     }
   </style>

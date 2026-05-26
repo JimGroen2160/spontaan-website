@@ -326,10 +326,79 @@
   function closeActionMenus() {
     document.querySelectorAll(".ledenbeheer-action-menu.open").forEach((menu) => {
       menu.classList.remove("open");
+
       const trigger = menu.querySelector(".ledenbeheer-action-trigger");
       if (trigger) {
         trigger.setAttribute("aria-expanded", "false");
       }
+
+      const dropdown = menu.querySelector(".ledenbeheer-action-dropdown");
+      if (dropdown) {
+        dropdown.style.left = "";
+        dropdown.style.top = "";
+        dropdown.style.minWidth = "";
+      }
+    });
+  }
+
+  function positionActionDropdown(menu) {
+    const trigger = menu.querySelector(".ledenbeheer-action-trigger");
+    const dropdown = menu.querySelector(".ledenbeheer-action-dropdown");
+
+    if (!trigger || !dropdown) {
+      return;
+    }
+
+    const viewportMargin = 8;
+    const gap = 6;
+    const triggerRect = trigger.getBoundingClientRect();
+
+    dropdown.style.minWidth = `${Math.max(triggerRect.width, 185)}px`;
+    dropdown.style.left = "0px";
+    dropdown.style.top = "0px";
+
+    const dropdownWidth = dropdown.offsetWidth || 185;
+    const dropdownHeight = dropdown.offsetHeight || 80;
+
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+
+    let left = triggerRect.right - dropdownWidth;
+
+    if (left < viewportMargin) {
+      left = viewportMargin;
+    }
+
+    if (left + dropdownWidth > viewportWidth - viewportMargin) {
+      left = Math.max(viewportMargin, viewportWidth - dropdownWidth - viewportMargin);
+    }
+
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+
+    let top;
+
+    if (spaceBelow >= dropdownHeight + gap || spaceBelow >= spaceAbove) {
+      top = triggerRect.bottom + gap;
+    } else {
+      top = triggerRect.top - dropdownHeight - gap;
+    }
+
+    if (top < viewportMargin) {
+      top = viewportMargin;
+    }
+
+    if (top + dropdownHeight > viewportHeight - viewportMargin) {
+      top = Math.max(viewportMargin, viewportHeight - dropdownHeight - viewportMargin);
+    }
+
+    dropdown.style.left = `${left}px`;
+    dropdown.style.top = `${top}px`;
+  }
+
+  function repositionOpenActionMenus() {
+    document.querySelectorAll(".ledenbeheer-action-menu.open").forEach((menu) => {
+      positionActionDropdown(menu);
     });
   }
 
@@ -803,6 +872,7 @@
         if (!isOpen) {
           menu.classList.add("open");
           trigger.setAttribute("aria-expanded", "true");
+          positionActionDropdown(menu);
         }
 
         return;
@@ -836,6 +906,15 @@
         closeActionMenus();
       }
     });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeActionMenus();
+      }
+    });
+
+    window.addEventListener("resize", repositionOpenActionMenus);
+    window.addEventListener("scroll", repositionOpenActionMenus, true);
   }
 
   function bindEditModal() {
