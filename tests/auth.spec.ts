@@ -39,6 +39,20 @@ async function loginAsMember(page) {
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
+async function waitForLedenlijstReady(page) {
+  await expect(page.locator('#ledenbeheer-toast')).toContainText('Ledenbeheer is geladen.', {
+    timeout: 15000,
+  });
+
+  await expect(page.locator('#ledenbeheer-lijst-body')).toBeVisible();
+
+  await expect(
+    page.locator('#ledenbeheer-lijst-body tr:not(.ledenbeheer-empty-row)').first()
+  ).toBeVisible({ timeout: 15000 });
+
+  await expect(page.locator('#ledenbeheer-result-count')).not.toContainText('Nog geen leden geladen.');
+}
+
 async function openAdminAndWaitUntilReady(page) {
   await page.goto('http://localhost:5500/admin/index.html');
 
@@ -63,6 +77,8 @@ async function openAdminAndWaitUntilReady(page) {
   await expect(page.locator('#ledenbeheer-toast')).toBeVisible();
   await expect(page.locator('#ledenbeheer-lijst-body')).toBeVisible();
   await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
+
+  await waitForLedenlijstReady(page);
 }
 
 async function openMemberActionMenu(page) {
@@ -74,6 +90,35 @@ async function openMemberActionMenu(page) {
   await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
 
   return memberRow;
+}
+
+async function expectVisibleRowsSortedByColumn(page, columnIndex: number) {
+  const values = await page
+    .locator('#ledenbeheer-lijst-body tr:not(.ledenbeheer-empty-row)')
+    .evaluateAll((rows, index) => {
+      return rows
+        .map((row) => row.children[index as number]?.textContent?.trim().toLowerCase() || '')
+        .filter(Boolean);
+    }, columnIndex);
+
+  expect(values.length).toBeGreaterThan(0);
+
+  const sortedValues = [...values].sort((a, b) =>
+    a.localeCompare(b, 'nl', { sensitivity: 'base' })
+  );
+
+  expect(values).toEqual(sortedValues);
+}
+
+async function expectVisibleRowCountAtMost(page, maximum: number) {
+  const visibleRows = page.locator('#ledenbeheer-lijst-body tr:not(.ledenbeheer-empty-row)');
+
+  await expect(visibleRows.first()).toBeVisible({ timeout: 15000 });
+
+  const visibleRowCount = await visibleRows.count();
+
+  expect(visibleRowCount).toBeGreaterThan(0);
+  expect(visibleRowCount).toBeLessThanOrEqual(maximum);
 }
 
 test('Geldig account kan inloggen en dashboard openen', async ({ page }) => {
@@ -260,6 +305,63 @@ test('Ingelogde admin kan ledenlijst zoeken en filteren', async ({ page }) => {
 
   await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
   await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+});
+
+test('Ingelogde admin ziet inhoudelijke sortering in ledenlijst', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await page.selectOption('#ledenbeheer-role-filter', 'all');
+  await page.selectOption('#ledenbeheer-status-filter', 'all');
+  await page.fill('#ledenbeheer-zoek', '');
+  await page.selectOption('#ledenbeheer-page-size', '25');
+
+  await page.selectOption('#ledenbeheer-sortering', 'full_name');
+  await expectVisibleRowsSortedByColumn(page, 0);
+
+  await page.selectOption('#ledenbeheer-sortering', 'email');
+  await expectVisibleRowsSortedByColumn(page, 1);
+
+  await page.selectOption('#ledenbeheer-sortering', 'role');
+  await expectVisibleRowsSortedByColumn(page, 2);
+
+  await page.selectOption('#ledenbeheer-sortering', 'status');
+  await expectVisibleRowsSortedByColumn(page, 3);
+});
+
+test('Ingelogde admin ziet consistente paginering en page-size in ledenlijst', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await page.selectOption('#ledenbeheer-role-filter', 'all');
+  await page.selectOption('#ledenbeheer-status-filter', 'all');
+  await page.fill('#ledenbeheer-zoek', '');
+
+  await page.selectOption('#ledenbeheer-page-size', '10');
+  await expectVisibleRowCountAtMost(page, 10);
+  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+
+  await page.selectOption('#ledenbeheer-page-size', '25');
+  await expectVisibleRowCountAtMost(page, 25);
+  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+
+  await page.selectOption('#ledenbeheer-page-size', '50');
+  await expectVisibleRowCountAtMost(page, 50);
+  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+});
+
+test('Ingelogde admin ziet toastmelding bij client-side validatiefout nieuw lid', async ({ page }) => {
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await page.click('#nieuw-lid-submit');
+
+  await expect(page.locator('#full_name_error')).toBeVisible();
+  await expect(page.locator('#full_name_error')).toContainText('Volledige naam is verplicht.');
+
+  await expect(page.locator('#ledenbeheer-toast')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-toast')).toContainText('Volledige naam is verplicht.');
+  await expect(page.locator('#ledenbeheer-toast')).toHaveCSS('position', 'fixed');
 });
 
 test('Ingelogde admin krijgt backend-foutmelding bij bestaand e-mailadres', async ({ page }) => {
