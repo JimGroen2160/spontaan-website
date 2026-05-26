@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -54,6 +54,12 @@
       font: inherit;
       font-size: 0.92rem;
       background: #fff;
+    }
+
+    .ledenbeheer-form-row input[readonly] {
+      background: #f5f5f5;
+      color: #555;
+      cursor: not-allowed;
     }
 
     .ledenbeheer-form-row input.field-error {
@@ -229,41 +235,71 @@
       color: #8a1f1f;
     }
 
-    .ledenbeheer-row-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+    .ledenbeheer-action-menu {
+      position: relative;
+      display: inline-block;
     }
 
-    .ledenbeheer-row-action {
-      min-height: 34px;
-      padding: 0.4rem 0.75rem;
-      border: 1px solid #cfc7b8;
+    .ledenbeheer-action-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 36px;
+      padding: 0.45rem 0.9rem;
+      border: 1px solid #d4af37;
       border-radius: 999px;
       background: #fff;
       color: #111;
       cursor: pointer;
       font: inherit;
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    .ledenbeheer-row-action:hover {
-      opacity: 0.9;
+    .ledenbeheer-action-trigger:hover,
+    .ledenbeheer-action-menu.open .ledenbeheer-action-trigger {
+      background: #fbf4dd;
     }
 
-    .ledenbeheer-row-action:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
+    .ledenbeheer-action-dropdown {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      min-width: 185px;
+      padding: 0.35rem 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
     }
 
-    .ledenbeheer-row-action.deactivate {
-      border-color: #e2b4b4;
-      color: #8a1f1f;
+    .ledenbeheer-action-menu.open .ledenbeheer-action-dropdown {
+      display: grid;
     }
 
-    .ledenbeheer-row-action.activate {
-      border-color: #b7d8bd;
+    .ledenbeheer-menu-action {
+      width: 100%;
+      min-height: 38px;
+      padding: 0.55rem 0.9rem;
+      border: 0;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.92rem;
+      text-align: left;
+    }
+
+    .ledenbeheer-menu-action:hover {
+      background: #f7f7f7;
+    }
+
+    .ledenbeheer-menu-action.deactivate {
+      color: #b00020;
+    }
+
+    .ledenbeheer-menu-action.activate {
       color: #1f6b2d;
     }
 
@@ -275,6 +311,63 @@
       font-weight: 600;
       background: #eef3ff;
       color: #294a8d;
+    }
+
+    .ledenbeheer-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .ledenbeheer-modal.open {
+      display: flex;
+    }
+
+    .ledenbeheer-modal-panel {
+      width: min(760px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 1.25rem;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .ledenbeheer-modal-panel h3 {
+      margin-top: 0;
+    }
+
+    .ledenbeheer-modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .ledenbeheer-modal-actions button {
+      min-height: 40px;
+      padding: 0.55rem 1rem;
+      border: 1px solid #cfc7b8;
+      border-radius: 999px;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+
+    .ledenbeheer-modal-actions button:hover {
+      opacity: 0.9;
+    }
+
+    #ledenbeheer-edit-save {
+      border-color: #d4af37;
+      background: #d4af37;
     }
 
     .ledenbeheer-toast {
@@ -321,6 +414,10 @@
       }
 
       .ledenbeheer-pagination button {
+        width: 100%;
+      }
+
+      .ledenbeheer-modal-panel {
         width: 100%;
       }
     }
@@ -373,7 +470,7 @@
 
           <div class="ledenbeheer-form-row">
             <label for="house_number">Huisnummer</label>
-            <input type="text" id="house_number" name="house_number">
+            <input type="text" id="house_number" name="house_number" inputmode="text" autocomplete="address-line2">
             <p id="house_number_error" class="ledenbeheer-field-error"></p>
           </div>
 
@@ -403,7 +500,7 @@
 
           <div class="ledenbeheer-form-row">
             <label for="phone">Telefoonnummer (optioneel)</label>
-            <input type="text" id="phone" name="phone" autocomplete="tel">
+            <input type="text" id="phone" name="phone" autocomplete="tel" inputmode="tel">
             <p id="phone_error" class="ledenbeheer-field-error"></p>
           </div>
 
@@ -493,6 +590,75 @@
           <button type="button" id="ledenbeheer-prev-page">Vorige</button>
           <span id="ledenbeheer-page-status" class="ledenbeheer-page-status">Pagina 1 van 1</span>
           <button type="button" id="ledenbeheer-next-page">Volgende</button>
+        </div>
+      </div>
+
+      <div id="ledenbeheer-edit-modal" class="ledenbeheer-modal" aria-hidden="true">
+        <div class="ledenbeheer-modal-panel" role="dialog" aria-modal="true" aria-labelledby="ledenbeheer-edit-title">
+          <h3 id="ledenbeheer-edit-title">Lidgegevens bewerken</h3>
+          <p class="ledenbeheer-uitleg">
+            Pas hier de basisgegevens van het lid aan. E-mailadres, role en status worden alleen getoond en kunnen in deze stap niet worden gewijzigd.
+          </p>
+
+          <form id="ledenbeheer-edit-form" class="ledenbeheer-form" novalidate>
+            <input type="hidden" id="edit_profile_id">
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_full_name">Volledige naam</label>
+              <input type="text" id="edit_full_name" required>
+              <p id="edit_full_name_error" class="ledenbeheer-field-error"></p>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_street">Straat</label>
+              <input type="text" id="edit_street" required>
+              <p id="edit_street_error" class="ledenbeheer-field-error"></p>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_house_number">Huisnummer</label>
+              <input type="text" id="edit_house_number" required inputmode="text">
+              <p id="edit_house_number_error" class="ledenbeheer-field-error"></p>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_postal_code">Postcode</label>
+              <input type="text" id="edit_postal_code" required autocomplete="postal-code">
+              <p id="edit_postal_code_error" class="ledenbeheer-field-error"></p>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_city">Plaats</label>
+              <input type="text" id="edit_city" required>
+              <p id="edit_city_error" class="ledenbeheer-field-error"></p>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_phone">Telefoonnummer</label>
+              <input type="text" id="edit_phone" inputmode="tel" autocomplete="tel">
+              <p id="edit_phone_error" class="ledenbeheer-field-error"></p>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_email">E-mailadres</label>
+              <input type="email" id="edit_email" readonly>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_role">Role</label>
+              <input type="text" id="edit_role" readonly>
+            </div>
+
+            <div class="ledenbeheer-form-row">
+              <label for="edit_status">Status</label>
+              <input type="text" id="edit_status" readonly>
+            </div>
+
+            <div class="ledenbeheer-modal-actions">
+              <button type="submit" id="ledenbeheer-edit-save">Opslaan</button>
+              <button type="button" id="ledenbeheer-edit-cancel">Annuleren</button>
+            </div>
+          </form>
         </div>
       </div>
     </section>
