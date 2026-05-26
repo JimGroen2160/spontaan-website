@@ -475,6 +475,14 @@
       `;
     }
 
+    if (status === "pending" && role === "member") {
+      statusActie = `
+        <button type="button" class="ledenbeheer-menu-action resend-invite" data-profile-id="${profileId}">
+          Opnieuw uitnodigen
+        </button>
+      `;
+    }
+
     return `
       <div class="ledenbeheer-action-menu">
         <button type="button" class="ledenbeheer-action-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="${menuId}" data-action-menu-trigger>
@@ -719,6 +727,65 @@
     setMelding(melding, "success");
   }
 
+  async function resendMemberInvite(profileId) {
+    if (!profileId) {
+      setMelding("Lid kon niet opnieuw worden uitgenodigd.", "error");
+      return;
+    }
+
+    if (!window.authHelpers || typeof window.authHelpers.getCurrentSession !== "function") {
+      setMelding("Auth helpers zijn niet beschikbaar.", "error");
+      return;
+    }
+
+    const session = await window.authHelpers.getCurrentSession();
+    const accessToken = session?.access_token;
+
+    if (!accessToken) {
+      setMelding("Geen geldige sessie beschikbaar.", "error");
+      return;
+    }
+
+    if (!window.authHelpers.supabaseUrl) {
+      setMelding("Supabase URL is niet beschikbaar.", "error");
+      return;
+    }
+
+    if (!window.authHelpers.supabaseKey) {
+      setMelding("Supabase publishable key is niet beschikbaar.", "error");
+      return;
+    }
+
+    const response = await fetch(
+      `${window.authHelpers.supabaseUrl}/functions/v1/resend-member-invite`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          apikey: window.authHelpers.supabaseKey,
+        },
+        body: JSON.stringify({ profile_id: profileId }),
+      }
+    );
+
+    let result;
+
+    try {
+      result = await response.json();
+    } catch {
+      setMelding("Ongeldige response ontvangen van de resend-member-invite functie.", "error");
+      return;
+    }
+
+    if (!response.ok || !result?.success) {
+      setMelding(result?.message || "Opnieuw uitnodigen is mislukt.", "error");
+      return;
+    }
+
+    setMelding(result.message || "Uitnodiging is opnieuw verzonden.", "success");
+  }
+
   async function laadLedenlijst() {
     const client = getSupabaseClient();
 
@@ -887,6 +954,18 @@
 
       if (button.classList.contains("edit")) {
         openEditModal(profileId);
+        return;
+      }
+
+      if (button.classList.contains("resend-invite")) {
+        button.disabled = true;
+
+        try {
+          await resendMemberInvite(profileId);
+        } finally {
+          button.disabled = false;
+        }
+
         return;
       }
 
