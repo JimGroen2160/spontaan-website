@@ -204,6 +204,7 @@ test('Ingelogde admin kan bewerkmodal voor lid openen en sluiten', async ({ page
   await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
 });
 
+// Controleert client-side validatie zonder echte lidgegevensmutatie.
 test('Ingelogde admin ziet veldvalidatie in bewerkmodal', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
