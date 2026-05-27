@@ -28,6 +28,17 @@
       .replace(/'/g, "&#039;");
   }
 
+  function getBeheerderVriendelijkeFoutmelding(message) {
+    const rawMessage = String(message || "").trim();
+    const normalizedMessage = rawMessage.toLowerCase();
+
+    if (normalizedMessage.includes("email rate limit exceeded")) {
+      return "Het verzenden van uitnodigingsmails is tijdelijk geblokkeerd door een e-maillimiet. Het lid is niet aangemaakt of de uitnodiging is niet verzonden. Wacht enige tijd en probeer het later opnieuw. Neem contact op met de technisch beheerder als dit probleem blijft optreden.";
+    }
+
+    return rawMessage || "Er is een onbekende fout opgetreden.";
+  }
+
   function setMelding(message, type = "info") {
     const toast = getElement("ledenbeheer-toast");
 
@@ -756,18 +767,26 @@
       return;
     }
 
-    const response = await fetch(
-      `${window.authHelpers.supabaseUrl}/functions/v1/resend-member-invite`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          apikey: window.authHelpers.supabaseKey,
-        },
-        body: JSON.stringify({ profile_id: profileId }),
-      }
-    );
+    let response;
+
+    try {
+      response = await fetch(
+        `${window.authHelpers.supabaseUrl}/functions/v1/resend-member-invite`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            apikey: window.authHelpers.supabaseKey,
+          },
+          body: JSON.stringify({ profile_id: profileId }),
+        }
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Opnieuw uitnodigen is mislukt.";
+      setMelding(getBeheerderVriendelijkeFoutmelding(message), "error");
+      return;
+    }
 
     let result;
 
@@ -779,7 +798,10 @@
     }
 
     if (!response.ok || !result?.success) {
-      setMelding(result?.message || "Opnieuw uitnodigen is mislukt.", "error");
+      setMelding(
+        getBeheerderVriendelijkeFoutmelding(result?.message || "Opnieuw uitnodigen is mislukt."),
+        "error"
+      );
       return;
     }
 
@@ -918,7 +940,7 @@
             ? error.message
             : "Er is een onbekende fout opgetreden bij ledenaanmaak.";
 
-        setMelding(message, "error");
+        setMelding(getBeheerderVriendelijkeFoutmelding(message), "error");
         console.error("Fout bij create-member functie:", error);
       }
     });
