@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "description": "Allowlist voor gecontroleerde testgebruikers ledenbeheer. E-mails en wachtwoorden komen uit omgeving (env-keys), niet uit dit bestand.",
+  "supabaseUrlMustMatch": "https://wqtpngqematpnswetxxj.supabase.co",
+  "testAddress": {
+    "street": "Teststraat",
+    "house_number": "1",
+    "postal_code": "1234 AB",
+    "city": "Teststad",
+    "phone": "0612345678"
+  },
+  "users": [
+    {
+      "id": "test-admin",
+      "label": "Test admin",
+      "emailEnvKey": "TEST_ADMIN_EMAIL",
+      "passwordEnvKey": "TEST_ADMIN_PASSWORD",
+      "displayNameEnvKey": "TEST_ADMIN_DISPLAY_NAME",
+      "role": "admin",
+      "status": "active"
+    },
+    {
+      "id": "test-member-active",
+      "label": "Active test member",
+      "emailEnvKey": "TEST_MEMBER_EMAIL",
+      "passwordEnvKey": "TEST_MEMBER_PASSWORD",
+      "displayNameEnvKey": "TEST_MEMBER_DISPLAY_NAME",
+      "role": "member",
+      "status": "active"
+    },
+    {
+      "id": "test-member-pending",
+      "label": "Pending test member",
+      "emailEnvKey": "TEST_MEMBER_PENDING_EMAIL",
+      "passwordEnvKey": "TEST_MEMBER_PENDING_PASSWORD",
+      "displayNameEnvKey": "TEST_MEMBER_PENDING_DISPLAY_NAME",
+      "role": "member",
+      "status": "pending"
+    },
+    {
+      "id": "test-member-inactive",
+      "label": "Inactive test member",
+      "emailEnvKey": "TEST_MEMBER_INACTIVE_EMAIL",
+      "passwordEnvKey": "TEST_MEMBER_INACTIVE_PASSWORD",
+      "displayNameEnvKey": "TEST_MEMBER_INACTIVE_DISPLAY_NAME",
+      "role": "member",
+      "status": "inactive"
+    }
+  ]
+}
