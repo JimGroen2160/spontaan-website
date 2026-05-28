@@ -1,0 +1,271 @@
+﻿---
+description: Standaard werkwijze voor website Spontaan
+alwaysApply: true
+---
+
+# Website Spontaan — verplichte Cursor werkwijze
+
+Werk altijd volgens deze regels. Deze regels zijn leidend voor alle wijzigingen in dit project.
+
+## 1. Eerst analyseren, daarna pas aanpassen
+
+Voer nooit direct wijzigingen uit.
+
+Begin altijd met een analyse:
+- wat is het verzoek;
+- welke bestanden, instellingen, secrets, policies of platformonderdelen worden geraakt;
+- welke actuele bronbestanden nodig zijn;
+- welke risico’s bestaan;
+- welke controles nodig zijn;
+- of Playwright/regressie nodig is;
+- of Supabase, Vercel, GitHub Actions, OTAP of Security Advisor geraakt worden.
+
+Geef pas na deze analyse een concreet wijzigingsvoorstel.
+
+## 2. Actuele bron is verplicht
+
+Werk alleen op basis van actuele bestanden in de repository.
+
+Geen aannames.
+Geen verzonnen bestanden.
+Geen verzonnen mappen.
+Geen verzonnen services.
+Geen verzonnen policies.
+Geen verzonnen secrets.
+
+Als een relevante bron ontbreekt, stop en meld welke bron ontbreekt.
+
+## 3. Eén stap tegelijk
+
+Werk altijd in kleine stappen.
+
+Geef nooit meerdere uitvoeringsstappen tegelijk als tussentijdse controle nodig is.
+
+Na elke wijziging:
+- toon welke bestanden zijn aangepast;
+- geef de verwachte diff-impact;
+- geef exact één volgende controle;
+- wacht op akkoord of terminaloutput.
+
+Bij foutmelding:
+- stop;
+- analyseer de fout;
+- geef pas daarna de volgende stap.
+
+## 4. OTAP geldt voor het hele project
+
+Werk projectbreed volgens OTAP.
+
+OTAP betekent:
+- O = Ontwikkelomgeving: lokale ontwikkeling, lokale controle en lokale tests.
+- T = Testomgeving: GitHub Actions, Playwright, Lighthouse, security-checks en overige geautomatiseerde controles.
+- A = Acceptatieomgeving: Vercel Preview of een andere expliciet aangewezen acceptatieomgeving waar testers functioneel kunnen testen.
+- P = Productie: main-branch en productie-deployment.
+
+Voor iedere wijziging moet vooraf worden bepaald welke OTAP-stappen van toepassing zijn.
+
+Voor wijzigingen met effect op zichtbare functionaliteit, gedrag, routing, layout, formulieren, ledenomgeving, adminomgeving, CMS-weergave, Supabase-authenticatie/autorisatie, Edge Functions of gebruikersflows geldt:
+1. Eerst lokaal ontwikkelen en controleren in O.
+2. Daarna geautomatiseerd testen via T.
+3. Daarna beschikbaar stellen aan testers in A.
+4. Pas na akkoord of expliciete vrijgave naar P.
+
+Productie mag niet worden gebruikt als primaire testomgeving.
+
+Groene CI/CD-checks betekenen dat T akkoord is. Dit betekent niet automatisch dat A akkoord is.
+
+Merge naar main/productie mag pas na A-akkoord of expliciete vrijgave wanneer acceptatie relevant is.
+
+Bij iedere wijziging moet expliciet worden vermeld:
+- O nodig/uitgevoerd: ja/nee + toelichting
+- T nodig/uitgevoerd: ja/nee + toelichting
+- A nodig/uitgevoerd: ja/nee + toelichting
+- P toegestaan: ja/nee + reden
+
+## 5. Niet direct op main werken
+
+Main is productie.
+
+Voordat bestanden worden gewijzigd:
+- controleer de huidige branch;
+- werk niet direct op main;
+- adviseer eerst een aparte branch als die nog niet bestaat.
+
+Direct pushen naar main is niet toegestaan.
+
+## 6. Bestaande werking behouden
+
+Wijzig alleen wat nodig is.
+Geen onnodige refactors.
+Geen scope-uitbreiding.
+Geen bestaande logica vervangen als een gerichte correctie voldoende is.
+Geen oude werking verwijderen zonder expliciet akkoord.
+
+## 7. Volledige bestanden of veilige diffs
+
+Cursor mag bestanden zelf aanpassen in de repository en daarna de diff tonen.
+
+Geef geen losse onduidelijke codefragmenten die handmatig verkeerd geplakt kunnen worden.
+
+Bij grote of risicovolle wijzigingen:
+- pas het bestand zelf aan;
+- toon daarna de diff;
+- vraag controle.
+
+## 8. Playwright verplicht bij leden/auth/UI/gedrag
+
+Playwright-regressie is verplicht bij wijzigingen in:
+- login;
+- logout;
+- sessies;
+- ledenomgeving;
+- adminomgeving;
+- role;
+- status;
+- pending/active/inactive;
+- uitnodigingsflows;
+- formulieren;
+- routing;
+- component loading;
+- ledenlijst;
+- filters;
+- modals;
+- beheeracties;
+- zichtbare gebruikersfunctionaliteit.
+
+Controleer bij dynamische data altijd of tests wachten op werkelijk geladen elementen.
+
+## 9. Supabase is hoog risico
+
+Wijzigingen in Supabase zijn hoog risico bij:
+- Auth;
+- Edge Functions;
+- service_role;
+- policies;
+- RLS;
+- databasefuncties;
+- nieuwe tabellen;
+- Data API grants;
+- secrets;
+- role/status.
+
+Bij Supabase Edge Functions geldt:
+- GitHub-merge bewijst niet dat runtime gedeployed is;
+- deployment naar Supabase moet apart worden gecontroleerd;
+- function moet zichtbaar zijn in Supabase Dashboard;
+- settings moeten worden gecontroleerd;
+- logs/invocations moeten waar relevant worden gecontroleerd.
+
+## 10. Nieuwe Supabase-tabellen
+
+Bij iedere nieuwe tabel in het public schema verplicht controleren:
+- SQL/migratie aanwezig;
+- RLS expliciet aan;
+- passende RLS policies;
+- expliciete GRANT statements voor anon, authenticated en service_role;
+- anon alleen indien expliciet goedgekeurd;
+- authenticated alleen in combinatie met RLS;
+- service_role alleen server-side/admin;
+- toegang testen via applicatie of supabase-js;
+- Supabase Security Advisor controleren;
+- vastleggen in logboek.
+
+Neem nooit aan dat nieuwe tabellen automatisch beschikbaar zijn via supabase-js, PostgREST of GraphQL.
+
+## 11. Testgebruikers en testdata
+
+Tijdelijke testgebruikers zijn toegestaan voor ledenfunctionaliteit, mits:
+- duidelijk herkenbaar als testgebruiker;
+- geen echte persoonsgegevens;
+- niet te verwarren met echte leden;
+- bruikbaar voor Playwright/regressie;
+- vóór definitieve productie-gereedmelding verwijderd.
+
+Automatisch aanmaken van testgebruikers mag alleen via gecontroleerd seed-script of testdata-aanpak.
+
+## 12. CI/CD en PR-controles
+
+Bij iedere PR controleren:
+- Playwright;
+- Lighthouse;
+- Security;
+- merge-conflicten;
+- deployment/preview waar relevant;
+- A-omgeving/acceptatie waar relevant.
+
+Niet mergen zolang één verplichte check faalt of nog draait.
+
+Bij falende check:
+- stop;
+- detail-log openen;
+- oorzaak analyseren;
+- gericht oplossen;
+- opnieuw lokaal controleren;
+- opnieuw pushen;
+- opnieuw PR-checks controleren.
+
+## 13. Security
+
+Critical vulnerabilities zijn blokkerend.
+High findings zijn blokkerend of moeten expliciet opgelost of beoordeeld worden.
+Moderate/low findings zijn niet automatisch blokkerend, maar moeten worden benoemd.
+
+Nooit zomaar uitvoeren:
+- npm audit fix --force;
+- breaking dependency-upgrades;
+- secretwijzigingen;
+- policywijzigingen.
+
+Eerst analyseren.
+
+## 14. Verplichte controles na wijzigingen
+
+Afhankelijk van wijziging minimaal uitvoeren of laten uitvoeren:
+- git status;
+- git diff --check;
+- syntaxcheck indien beschikbaar;
+- npm audit --audit-level=high bij dependency/security-impact;
+- npx playwright test tests/auth.spec.ts bij leden/auth/admin-impact;
+- PR-checks na push;
+- Supabase runtimecontrole bij Edge Functions;
+- Supabase Security Advisor bij database/policy/grant-impact;
+- Vercel Preview/A-omgeving bij zichtbare functionaliteit.
+
+## 15. Harde stopregels
+
+Stop direct bij:
+- ontbrekende actuele bron;
+- falende lokale controle;
+- falende PR-check;
+- ontbrekende verplichte Playwright-regressie;
+- niet-bewezen Supabase runtime;
+- onduidelijke security-impact;
+- ontbreken van A-controle terwijl acceptatie vereist is;
+- werken op main terwijl een branch vereist is.
+
+Meld dan expliciet:
+STOP: reden.
+
+## 16. Logboek
+
+Alleen goedgekeurde en afgeronde wijzigingen worden gelogd.
+
+Lognaamgeving:
+log<dd-mm-jjjj>_v<versienummer>.docx
+
+Gebruik altijd de huidige datum.
+Bij een nieuwe dag start de versie weer op v0.1.
+Lever geen log op zonder expliciete opdracht.
+
+## 17. Outputstijl
+
+Geef bij elk verzoek:
+- korte analyse;
+- geraakte bestanden;
+- risico;
+- OTAP-impact;
+- voorgestelde eerste stap;
+- controles;
+- exact één volgende actie.
+
+Voer niet meer uit dan gevraagd.
