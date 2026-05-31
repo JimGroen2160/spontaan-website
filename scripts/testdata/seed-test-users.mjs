@@ -87,6 +87,10 @@ function maskEmail(email) {
   return `${email.slice(0, 1)}***${email.slice(at)}`;
 }
 
+function formatAuthUserPresence(authUserExists, authUserIdAvailable) {
+  return `Auth-user bestaat: ${authUserExists ? "ja" : "nee"}, Auth-user id beschikbaar: ${authUserIdAvailable ? "ja" : "nee"}`;
+}
+
 function collectUserEnvKeys(user) {
   return [user.emailEnvKey, user.passwordEnvKey, user.displayNameEnvKey].filter(Boolean);
 }
@@ -149,13 +153,22 @@ async function applyAuthUserForAllowlistEntry(adminClient, manifestUser) {
     return {
       ok: false,
       message: "e-mail of wachtwoord ontbreekt in env",
+      authUserExists: false,
+      authUserIdAvailable: false,
+      authUserId: null,
     };
   }
 
   const { user: authUser, error: lookupError } = await findAuthUserByEmail(adminClient, email);
 
   if (lookupError) {
-    return { ok: false, message: lookupError.message };
+    return {
+      ok: false,
+      message: lookupError.message,
+      authUserExists: false,
+      authUserIdAvailable: false,
+      authUserId: null,
+    };
   }
 
   if (!authUser) {
@@ -165,14 +178,23 @@ async function applyAuthUserForAllowlistEntry(adminClient, manifestUser) {
       email_confirm: true,
     });
 
-    if (createError || !data?.user) {
+    if (createError || !data?.user?.id) {
       return {
         ok: false,
         message: createError?.message ?? "Auth-user aanmaken mislukt",
+        authUserExists: false,
+        authUserIdAvailable: false,
+        authUserId: null,
       };
     }
 
-    return { ok: true, action: "created" };
+    return {
+      ok: true,
+      action: "created",
+      authUserExists: true,
+      authUserIdAvailable: true,
+      authUserId: data.user.id,
+    };
   }
 
   const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
@@ -181,10 +203,22 @@ async function applyAuthUserForAllowlistEntry(adminClient, manifestUser) {
   });
 
   if (updateError) {
-    return { ok: false, message: updateError.message };
+    return {
+      ok: false,
+      message: updateError.message,
+      authUserExists: true,
+      authUserIdAvailable: Boolean(authUser.id),
+      authUserId: authUser.id ?? null,
+    };
   }
 
-  return { ok: true, action: "updated" };
+  return {
+    ok: true,
+    action: "updated",
+    authUserExists: true,
+    authUserIdAvailable: Boolean(authUser.id),
+    authUserId: authUser.id,
+  };
 }
 
 async function runApplyAuthOnly(manifest) {
@@ -193,16 +227,37 @@ async function runApplyAuthOnly(manifest) {
   const adminClient = createAdminClient();
   let succeeded = 0;
   let failed = 0;
+  /** @type {Array<{ manifestUserId: string, emailEnvKey: string, email: string, ok: boolean, authUserExists: boolean, authUserIdAvailable: boolean, authUserId: string | null }>} */
+  const authContexts = [];
 
   for (const manifestUser of manifest.users) {
     const email = process.env[manifestUser.emailEnvKey]?.trim().toLowerCase() ?? "";
 
     if (!email) {
       console.log(`  [${manifestUser.id}] Overgeslagen: ${manifestUser.emailEnvKey} niet ingevuld.`);
+      authContexts.push({
+        manifestUserId: manifestUser.id,
+        emailEnvKey: manifestUser.emailEnvKey,
+        email: "",
+        ok: false,
+        authUserExists: false,
+        authUserIdAvailable: false,
+        authUserId: null,
+      });
       continue;
     }
 
     const result = await applyAuthUserForAllowlistEntry(adminClient, manifestUser);
+
+    authContexts.push({
+      manifestUserId: manifestUser.id,
+      emailEnvKey: manifestUser.emailEnvKey,
+      email,
+      ok: result.ok,
+      authUserExists: result.authUserExists,
+      authUserIdAvailable: result.authUserIdAvailable,
+      authUserId: result.authUserId ?? null,
+    });
 
     if (result.ok) {
       succeeded += 1;
@@ -213,12 +268,26 @@ async function runApplyAuthOnly(manifest) {
       console.log(
         `  [${manifestUser.id}] ${manifestUser.emailEnvKey} (${maskEmail(email)}): ${actionLabel}`,
       );
+      console.log(`    ${formatAuthUserPresence(result.authUserExists, result.authUserIdAvailable)}`);
       continue;
     }
 
     failed += 1;
     console.log(
       `  [${manifestUser.id}] ${manifestUser.emailEnvKey} (${maskEmail(email)}): mislukt (${result.message})`,
+    );
+    console.log(`    ${formatAuthUserPresence(result.authUserExists, result.authUserIdAvailable)}`);
+  }
+
+  console.log("\n--- Auth-context voor profile-apply (nog niet uitgevoerd) ---");
+  for (const ctx of authContexts) {
+    if (!ctx.email) {
+      console.log(`  [${ctx.manifestUserId}] geen e-mail in env`);
+      continue;
+    }
+    const profileReady = ctx.ok && ctx.authUserIdAvailable ? "ja" : "nee";
+    console.log(
+      `  [${ctx.manifestUserId}] ${ctx.emailEnvKey} (${maskEmail(ctx.email)}): ${formatAuthUserPresence(ctx.authUserExists, ctx.authUserIdAvailable)}; klaar voor profile-apply: ${profileReady}`,
     );
   }
 
@@ -228,6 +297,8 @@ async function runApplyAuthOnly(manifest) {
   if (failed > 0) {
     process.exitCode = 1;
   }
+
+  return { authContexts };
 }
 
 async function printAuthLookupStatus(manifest) {
@@ -254,10 +325,12 @@ async function printAuthLookupStatus(manifest) {
 
     if (authUser) {
       console.log(`  [${user.id}] ${user.emailEnvKey} (${maskEmail(email)}): Auth-user gevonden`);
+      console.log(`    ${formatAuthUserPresence(true, Boolean(authUser.id))}`);
       continue;
     }
 
     console.log(`  [${user.id}] ${user.emailEnvKey} (${maskEmail(email)}): Auth-user niet gevonden`);
+    console.log(`    ${formatAuthUserPresence(false, false)}`);
   }
 }
 
@@ -454,11 +527,17 @@ async function runApplyPrecheck(manifest) {
   }
 
   await printAuthLookupStatus(manifest);
-  await runApplyAuthOnly(manifest);
+  const { authContexts } = await runApplyAuthOnly(manifest);
 
   if (!process.exitCode) {
     await printAuthLookupStatus(manifest);
-    console.log("Apply (Auth) afgerond. Geen profile-mutaties uitgevoerd.\n");
+    const profileReadyCount = authContexts.filter(
+      (ctx) => ctx.ok && ctx.authUserIdAvailable && ctx.authUserId,
+    ).length;
+    console.log(
+      `Apply (Auth) afgerond. ${profileReadyCount}/${manifest.users.length} allowlist-users hebben een Auth-user id voor profile-apply.`,
+    );
+    console.log("Geen public.profiles-mutaties uitgevoerd.\n");
   }
 }
 
