@@ -14,8 +14,10 @@ jobs:
     env:
       TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
       TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+      TEST_ADMIN_DISPLAY_NAME: ${{ secrets.TEST_ADMIN_DISPLAY_NAME }}
       TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
       TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
+      TEST_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_DISPLAY_NAME }}
 
     steps:
       - name: Checkout repository
