@@ -2,8 +2,10 @@ import { test, expect } from '@playwright/test';
 
 const VALID_EMAIL = process.env.TEST_ADMIN_EMAIL;
 const VALID_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
+const ADMIN_DISPLAY_NAME = process.env.TEST_ADMIN_DISPLAY_NAME;
 const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL;
 const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD;
+const MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_DISPLAY_NAME;
 
 if (!VALID_EMAIL || !VALID_PASSWORD) {
   throw new Error(
@@ -11,11 +13,21 @@ if (!VALID_EMAIL || !VALID_PASSWORD) {
   );
 }
 
+if (!ADMIN_DISPLAY_NAME) {
+  throw new Error('Missing required environment variable: TEST_ADMIN_DISPLAY_NAME');
+}
+
 if (!MEMBER_EMAIL || !MEMBER_PASSWORD) {
   throw new Error(
     'Missing required environment variables: TEST_MEMBER_EMAIL and/or TEST_MEMBER_PASSWORD'
   );
 }
+
+if (!MEMBER_DISPLAY_NAME) {
+  throw new Error('Missing required environment variable: TEST_MEMBER_DISPLAY_NAME');
+}
+
+const MEMBER_SEARCH_TERM = MEMBER_DISPLAY_NAME.trim().split(/\s+/)[0]!.toLowerCase();
 
 async function loginAsAdmin(page) {
   await page.goto('http://localhost:5500/leden/login.html');
@@ -82,7 +94,7 @@ async function openAdminAndWaitUntilReady(page) {
 }
 
 async function openMemberActionMenu(page) {
-  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Tester Spontaan' });
+  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: MEMBER_DISPLAY_NAME });
 
   await expect(memberRow.locator('.ledenbeheer-action-trigger')).toBeVisible();
   await memberRow.locator('.ledenbeheer-action-trigger').click();
@@ -213,7 +225,7 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
 
   await expect(page.locator('th')).toContainText(['Naam', 'E-mailadres', 'Role', 'Status', 'Acties']);
 
-  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: 'Jim Groen' });
+  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: ADMIN_DISPLAY_NAME });
   await expect(adminRow).toContainText('Eigen account');
 
   const memberRow = await openMemberActionMenu(page);
@@ -282,19 +294,19 @@ test('Ingelogde admin kan ledenlijst zoeken en filteren', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
 
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Jim Groen');
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Tester Spontaan');
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(ADMIN_DISPLAY_NAME);
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(MEMBER_DISPLAY_NAME);
 
-  await page.fill('#ledenbeheer-zoek', 'tester');
+  await page.fill('#ledenbeheer-zoek', MEMBER_SEARCH_TERM);
 
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Tester Spontaan');
-  await expect(page.locator('#ledenbeheer-lijst-body')).not.toContainText('Jim Groen');
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(MEMBER_DISPLAY_NAME);
+  await expect(page.locator('#ledenbeheer-lijst-body')).not.toContainText(ADMIN_DISPLAY_NAME);
 
   await page.fill('#ledenbeheer-zoek', '');
   await page.selectOption('#ledenbeheer-role-filter', 'member');
 
   await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('member');
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('Tester Spontaan');
+  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(MEMBER_DISPLAY_NAME);
 
   await page.selectOption('#ledenbeheer-status-filter', 'active');
 
