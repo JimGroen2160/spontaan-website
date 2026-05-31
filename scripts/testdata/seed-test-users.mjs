@@ -7,6 +7,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createClient } from "@supabase/supabase-js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..", "..");
@@ -88,6 +89,87 @@ function maskEmail(email) {
 
 function collectUserEnvKeys(user) {
   return [user.emailEnvKey, user.passwordEnvKey, user.displayNameEnvKey].filter(Boolean);
+}
+
+function createAdminClient() {
+  const supabaseUrl = process.env.SUPABASE_URL.trim();
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY.trim();
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+function canRunAuthLookup(manifest) {
+  const supabaseUrl = process.env.SUPABASE_URL?.trim() ?? "";
+  const expectedUrl = manifest.supabaseUrlMustMatch?.trim() ?? "";
+
+  return (
+    isSet(process.env.SUPABASE_URL) &&
+    isSet(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
+    (!expectedUrl || supabaseUrl === expectedUrl)
+  );
+}
+
+async function findAuthUserByEmail(adminClient, email) {
+  const targetEmail = email.trim().toLowerCase();
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      return { user: null, error };
+    }
+
+    const users = data?.users ?? [];
+    const match = users.find((candidate) => candidate.email?.toLowerCase() === targetEmail);
+
+    if (match) {
+      return { user: match, error: null };
+    }
+
+    if (users.length < perPage) {
+      return { user: null, error: null };
+    }
+
+    page += 1;
+  }
+}
+
+async function printAuthLookupStatus(manifest) {
+  console.log("\n--- Auth lookup (read-only) ---");
+
+  const adminClient = createAdminClient();
+
+  for (const user of manifest.users) {
+    const email = process.env[user.emailEnvKey]?.trim().toLowerCase() ?? "";
+
+    if (!email) {
+      console.log(`  [${user.id}] Overgeslagen: ${user.emailEnvKey} niet ingevuld.`);
+      continue;
+    }
+
+    const { user: authUser, error } = await findAuthUserByEmail(adminClient, email);
+
+    if (error) {
+      console.log(
+        `  [${user.id}] ${user.emailEnvKey} (${maskEmail(email)}): lookup mislukt (${error.message})`,
+      );
+      continue;
+    }
+
+    if (authUser) {
+      console.log(`  [${user.id}] ${user.emailEnvKey} (${maskEmail(email)}): Auth-user gevonden`);
+      continue;
+    }
+
+    console.log(`  [${user.id}] ${user.emailEnvKey} (${maskEmail(email)}): Auth-user niet gevonden`);
+  }
 }
 
 function validateEnvironment(manifest) {
@@ -220,7 +302,7 @@ function printValidationResult(errors, warnings) {
   }
 }
 
-function runDryRun(manifest) {
+async function runDryRun(manifest) {
   console.log("=== seed-test-users ===\n");
   console.log("Modus: dry-run. Er worden geen wijzigingen naar Supabase geschreven.\n");
 
@@ -244,10 +326,14 @@ function runDryRun(manifest) {
     return;
   }
 
+  if (canRunAuthLookup(manifest)) {
+    await printAuthLookupStatus(manifest);
+  }
+
   console.log("\nDry-run geslaagd. Geen data geschreven naar Supabase.\n");
 }
 
-function runApplyPrecheck(manifest) {
+async function runApplyPrecheck(manifest) {
   console.log("=== seed-test-users ===\n");
   console.log("Modus: --apply (validatie).\n");
 
@@ -271,13 +357,18 @@ function runApplyPrecheck(manifest) {
   }
 
   console.log("\nValidatie geslaagd.");
+
+  if (canRunAuthLookup(manifest)) {
+    await printAuthLookupStatus(manifest);
+  }
+
   console.log(
     "STOP: --apply is nog niet geïmplementeerd. Er zijn geen Supabase-mutaties uitgevoerd.\n",
   );
   process.exitCode = 1;
 }
 
-function main() {
+async function main() {
   let options;
 
   try {
@@ -297,11 +388,14 @@ function main() {
   const manifest = loadManifest();
 
   if (options.mode === "apply") {
-    runApplyPrecheck(manifest);
+    await runApplyPrecheck(manifest);
     return;
   }
 
-  runDryRun(manifest);
+  await runDryRun(manifest);
 }
 
-main();
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});
