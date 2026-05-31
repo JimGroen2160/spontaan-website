@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Seed testgebruikers: standaard dry-run (validatie + geplande acties).
- * --apply: validatie daarna; Supabase-mutaties volgen in een latere stap.
+ * --apply: Auth-users sync (create/update); public.profiles volgt in een latere stap.
  */
 
 import { readFileSync, existsSync } from "node:fs";
@@ -138,6 +138,95 @@ async function findAuthUserByEmail(adminClient, email) {
     }
 
     page += 1;
+  }
+}
+
+async function applyAuthUserForAllowlistEntry(adminClient, manifestUser) {
+  const email = process.env[manifestUser.emailEnvKey]?.trim().toLowerCase() ?? "";
+  const password = process.env[manifestUser.passwordEnvKey]?.trim() ?? "";
+
+  if (!email || !password) {
+    return {
+      ok: false,
+      message: "e-mail of wachtwoord ontbreekt in env",
+    };
+  }
+
+  const { user: authUser, error: lookupError } = await findAuthUserByEmail(adminClient, email);
+
+  if (lookupError) {
+    return { ok: false, message: lookupError.message };
+  }
+
+  if (!authUser) {
+    const { data, error: createError } = await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+
+    if (createError || !data?.user) {
+      return {
+        ok: false,
+        message: createError?.message ?? "Auth-user aanmaken mislukt",
+      };
+    }
+
+    return { ok: true, action: "created" };
+  }
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
+    password,
+    email_confirm: true,
+  });
+
+  if (updateError) {
+    return { ok: false, message: updateError.message };
+  }
+
+  return { ok: true, action: "updated" };
+}
+
+async function runApplyAuthOnly(manifest) {
+  console.log("\n--- Auth apply (geen profiles) ---");
+
+  const adminClient = createAdminClient();
+  let succeeded = 0;
+  let failed = 0;
+
+  for (const manifestUser of manifest.users) {
+    const email = process.env[manifestUser.emailEnvKey]?.trim().toLowerCase() ?? "";
+
+    if (!email) {
+      console.log(`  [${manifestUser.id}] Overgeslagen: ${manifestUser.emailEnvKey} niet ingevuld.`);
+      continue;
+    }
+
+    const result = await applyAuthUserForAllowlistEntry(adminClient, manifestUser);
+
+    if (result.ok) {
+      succeeded += 1;
+      const actionLabel =
+        result.action === "created"
+          ? "Auth-user aangemaakt (email_confirm=true)"
+          : "Auth-user bijgewerkt (wachtwoord, email_confirm)";
+      console.log(
+        `  [${manifestUser.id}] ${manifestUser.emailEnvKey} (${maskEmail(email)}): ${actionLabel}`,
+      );
+      continue;
+    }
+
+    failed += 1;
+    console.log(
+      `  [${manifestUser.id}] ${manifestUser.emailEnvKey} (${maskEmail(email)}): mislukt (${result.message})`,
+    );
+  }
+
+  console.log(`\n  Auth apply: ${succeeded} gelukt, ${failed} mislukt.`);
+  console.log("  public.profiles: niet geschreven.\n");
+
+  if (failed > 0) {
+    process.exitCode = 1;
   }
 }
 
@@ -335,7 +424,7 @@ async function runDryRun(manifest) {
 
 async function runApplyPrecheck(manifest) {
   console.log("=== seed-test-users ===\n");
-  console.log("Modus: --apply (validatie).\n");
+  console.log("Modus: --apply (Auth only; geen public.profiles).\n");
 
   printGlobalEnvStatus(manifest);
   printAllowlistStatus(manifest);
@@ -358,14 +447,19 @@ async function runApplyPrecheck(manifest) {
 
   console.log("\nValidatie geslaagd.");
 
-  if (canRunAuthLookup(manifest)) {
-    await printAuthLookupStatus(manifest);
+  if (!canRunAuthLookup(manifest)) {
+    console.log("\nApply gestopt: Supabase-configuratie ontbreekt of URL komt niet overeen.\n");
+    process.exitCode = 1;
+    return;
   }
 
-  console.log(
-    "STOP: --apply is nog niet geïmplementeerd. Er zijn geen Supabase-mutaties uitgevoerd.\n",
-  );
-  process.exitCode = 1;
+  await printAuthLookupStatus(manifest);
+  await runApplyAuthOnly(manifest);
+
+  if (!process.exitCode) {
+    await printAuthLookupStatus(manifest);
+    console.log("Apply (Auth) afgerond. Geen profile-mutaties uitgevoerd.\n");
+  }
 }
 
 async function main() {
