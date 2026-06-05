@@ -67,3 +67,57 @@ Leg minimaal vast:
 2. Geen definitieve uitspraken doen zonder actuele broncontrole.
 3. Bij ontbrekende informatie eerst aangeven wat ontbreekt.
 4. Documentatie en laatste bijlagen zijn leidend.
+
+## Rapportage na analyse of test
+
+Na iedere analyse, controle of testuitvoering moet Cline een compacte controle-samenvatting maken.
+
+Gebruik exact deze structuur:
+
+### 1. Doel van de uitgevoerde stap
+Beschrijf kort wat is gecontroleerd of uitgevoerd.
+
+### 2. Uitgevoerde acties
+Noem alleen de acties of commando's die daadwerkelijk zijn uitgevoerd.
+
+### 3. Resultaat per actie
+Geef per actie kort aan:
+- geslaagd / fout / waarschuwing;
+- belangrijkste uitkomst;
+- relevante foutmelding alleen als die nodig is.
+
+### 4. Gewijzigde bestanden
+Geef één van deze opties:
+- Geen bestanden gewijzigd.
+- Wel gewijzigd: [bestandsnamen]
+
+### 5. Git-status
+Vermeld de actuele git-status kort:
+- branch;
+- clean of niet clean;
+- staged/unstaged/untracked indien van toepassing.
+
+### 6. Belangrijkste bevindingen
+Vat de inhoudelijke bevindingen samen in maximaal 7 bullets.
+
+### 7. Risico's / aandachtspunten
+Noem alleen concrete risico's, bijvoorbeeld:
+- Supabase/RLS/grants;
+- Playwright-test ontbreekt;
+- afhankelijkheid van testdata;
+- productie-impact;
+- ontbrekende documentatie.
+
+### 8. Advies vervolgstap
+Geef één aanbevolen volgende stap.
+Voer deze stap nog niet uit.
+
+### 9. Toestemming nodig?
+Geef duidelijk aan of voor de volgende stap toestemming nodig is en waarvoor.
+
+Belangrijk:
+- Geen lange codeblokken opnemen.
+- Geen volledige bestanden tonen.
+- Geen uitgebreide terminaloutput plakken.
+- Alleen samenvatten wat nodig is voor controle door Jim en ChatGPT.
+- Geen wijzigingen uitvoeren zonder expliciet akkoord.
