@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/JimGroen2160/spontaan-website#readme",
   "devDependencies": {
+    "dotenv": "^16.4.5",
     "@supabase/supabase-js": "^2.49.8",
     "@axe-core/playwright": "^4.11.1",
     "@lhci/cli": "^0.15.1",
