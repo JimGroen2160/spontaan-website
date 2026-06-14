@@ -45,6 +45,15 @@
       "displayNameEnvKey": "TEST_MEMBER_INACTIVE_DISPLAY_NAME",
       "role": "member",
       "status": "inactive"
+    },
+    {
+      "id": "test-status-member",
+      "label": "Statusmutatie test member",
+      "emailEnvKey": "TEST_STATUS_MEMBER_EMAIL",
+      "passwordEnvKey": "TEST_STATUS_MEMBER_PASSWORD",
+      "displayNameEnvKey": "TEST_STATUS_MEMBER_DISPLAY_NAME",
+      "role": "member",
+      "status": "active"
     }
   ]
 }

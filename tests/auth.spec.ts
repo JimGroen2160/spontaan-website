@@ -6,6 +6,8 @@ const ADMIN_DISPLAY_NAME = process.env.TEST_ADMIN_DISPLAY_NAME;
 const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL;
 const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD;
 const MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_DISPLAY_NAME;
+const INACTIVE_MEMBER_EMAIL = process.env.TEST_MEMBER_INACTIVE_EMAIL;
+const INACTIVE_MEMBER_PASSWORD = process.env.TEST_MEMBER_INACTIVE_PASSWORD;
 const STATUS_MEMBER_EMAIL = process.env.TEST_STATUS_MEMBER_EMAIL;
 const STATUS_MEMBER_PASSWORD = process.env.TEST_STATUS_MEMBER_PASSWORD;
 const STATUS_MEMBER_DISPLAY_NAME = process.env.TEST_STATUS_MEMBER_DISPLAY_NAME;
@@ -494,4 +496,33 @@ test('Ingelogde gebruiker kan uitloggen vanaf dashboard', async ({ page }) => {
   await page.click('#logout');
 
   await expect(page).toHaveURL(/login\.html/);
+});
+
+// Test dat inactive accounts geen toegang krijgen tot dashboard
+test('Inactief lid krijgt geen toegang tot dashboard', async ({ page }) => {
+  // Skip als TEST_MEMBER_INACTIVE_* variabelen ontbreken
+  if (!INACTIVE_MEMBER_EMAIL || !INACTIVE_MEMBER_PASSWORD) {
+    test.skip(true, 'TEST_MEMBER_INACTIVE_EMAIL/PASSWORD ontbreekt; inactive test wordt overgeslagen.');
+    return;
+  }
+
+  // Login als inactive member
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', INACTIVE_MEMBER_EMAIL);
+  await page.fill('#password', INACTIVE_MEMBER_PASSWORD);
+  await page.click('button[type="submit"]');
+
+  // Wacht tot dashboard.html bereikt is (ook al wordt het direct weer verlaten)
+  await page.waitForURL(/dashboard\.html/, { timeout: 15000 });
+
+  // Controleer dat #status zichtbar is
+  const statusEl = page.locator('#status');
+  await expect(statusEl).toBeVisible();
+
+  // Controleer dat status een duidelijke inactive-melding bevat
+  await expect(statusEl).toContainText('niet actief');
+
+  // Controleer dat gebruiker teruggaat naar login.html
+  await page.waitForURL(/login\.html/, { timeout: 3000 });
 });
