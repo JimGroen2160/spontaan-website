@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { createClient } from '@supabase/supabase-js';
 
 const VALID_EMAIL = process.env.TEST_ADMIN_EMAIL;
 const VALID_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
@@ -6,11 +7,16 @@ const ADMIN_DISPLAY_NAME = process.env.TEST_ADMIN_DISPLAY_NAME;
 const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL;
 const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD;
 const MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_DISPLAY_NAME;
+const PENDING_MEMBER_EMAIL = process.env.TEST_MEMBER_PENDING_EMAIL;
+const PENDING_MEMBER_PASSWORD = process.env.TEST_MEMBER_PENDING_PASSWORD;
+const PENDING_MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_PENDING_DISPLAY_NAME;
 const INACTIVE_MEMBER_EMAIL = process.env.TEST_MEMBER_INACTIVE_EMAIL;
 const INACTIVE_MEMBER_PASSWORD = process.env.TEST_MEMBER_INACTIVE_PASSWORD;
 const STATUS_MEMBER_EMAIL = process.env.TEST_STATUS_MEMBER_EMAIL;
 const STATUS_MEMBER_PASSWORD = process.env.TEST_STATUS_MEMBER_PASSWORD;
 const STATUS_MEMBER_DISPLAY_NAME = process.env.TEST_STATUS_MEMBER_DISPLAY_NAME;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!VALID_EMAIL || !VALID_PASSWORD) {
   throw new Error(
@@ -33,6 +39,67 @@ if (!MEMBER_DISPLAY_NAME) {
 }
 
 const MEMBER_SEARCH_TERM = MEMBER_DISPLAY_NAME.trim().split(/\s+/)[0]!.toLowerCase();
+
+function getSupabaseAdminClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return null;
+  }
+
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+async function setTestProfileStatus(email: string, status: 'pending' | 'active' | 'inactive') {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .ilike('email', email)
+    .select('email, status')
+    .single();
+
+  if (error) {
+    throw new Error(`Kon testprofiel ${email} niet naar status ${status} zetten: ${error.message}`);
+  }
+
+  if (!data || data.status !== status) {
+    throw new Error(`Onverwachte status na reset voor ${email}: ${data?.status ?? 'geen profiel'}`);
+  }
+
+  return data;
+}
+
+async function getTestProfileStatus(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('email, status')
+    .ilike('email', email)
+    .single();
+
+  if (error) {
+    throw new Error(`Kon testprofiel ${email} niet ophalen: ${error.message}`);
+  }
+
+  return data?.status;
+}
 
 async function loginAsAdmin(page) {
   await page.goto('http://localhost:5500/leden/login.html');
@@ -498,8 +565,60 @@ test('Ingelogde gebruiker kan uitloggen vanaf dashboard', async ({ page }) => {
   await expect(page).toHaveURL(/login\.html/);
 });
 
+// Test dat pending accounts automatisch worden geactiveerd bij dashboard-login
+test('Pending lid wordt automatisch geactiveerd bij dashboard-login', async ({ page, browserName }) => {
+  // Deze test wijzigt Supabase-testdata en mag niet parallel draaien in meerdere browsers.
+  test.skip(
+    browserName !== 'chromium',
+    'Pending activatie gebruikt gedeelde Supabase-testdata en draait daarom alleen in Chromium.'
+  );
+
+  // Skip als TEST_MEMBER_PENDING_* variabelen ontbreken
+  if (!PENDING_MEMBER_EMAIL || !PENDING_MEMBER_PASSWORD || !PENDING_MEMBER_DISPLAY_NAME) {
+    test.skip(true, 'TEST_MEMBER_PENDING_* ontbreekt; pending activatie-test wordt overgeslagen.');
+    return;
+  }
+
+  // Skip als Supabase service-role configuratie ontbreekt
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ontbreekt; pending activatie-test wordt overgeslagen.');
+    return;
+  }
+
+  // Zet het gedeelde pending-testprofiel eerst terug naar pending, zodat de test herhaalbaar is.
+  await setTestProfileStatus(PENDING_MEMBER_EMAIL, 'pending');
+
+  // Login als pending member
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', PENDING_MEMBER_EMAIL);
+  await page.fill('#password', PENDING_MEMBER_PASSWORD);
+  await page.click('button[type="submit"]');
+
+  // Dashboard activeert pending profiel via activate_current_user_profile.
+  await page.waitForURL(/dashboard\.html/, { timeout: 15000 });
+
+  const statusEl = page.locator('#status');
+  await expect(statusEl).toBeVisible();
+  await expect(statusEl).toContainText('Je bent succesvol ingelogd', { timeout: 15000 });
+
+  // Controleer in Supabase dat het profiel na dashboard-login active is geworden.
+  await expect
+    .poll(async () => getTestProfileStatus(PENDING_MEMBER_EMAIL), {
+      timeout: 15000,
+      message: 'Pending testprofiel is niet naar active gezet.',
+    })
+    .toBe('active');
+});
+
 // Test dat inactive accounts geen toegang krijgen tot dashboard
-test('Inactief lid krijgt geen toegang tot dashboard', async ({ page }) => {
+test('Inactief lid krijgt geen toegang tot dashboard', async ({ page, browserName }) => {
+  // Deze test controleert een redirect-flow met gedeelde Supabase-testdata en draait daarom alleen in Chromium.
+  test.skip(
+    browserName !== 'chromium',
+    'Inactive toegang gebruikt gedeelde Supabase-testdata en draait daarom alleen in Chromium.'
+  );
+
   // Skip als TEST_MEMBER_INACTIVE_* variabelen ontbreken
   if (!INACTIVE_MEMBER_EMAIL || !INACTIVE_MEMBER_PASSWORD) {
     test.skip(true, 'TEST_MEMBER_INACTIVE_EMAIL/PASSWORD ontbreekt; inactive test wordt overgeslagen.');
@@ -516,7 +635,7 @@ test('Inactief lid krijgt geen toegang tot dashboard', async ({ page }) => {
   // Wacht tot dashboard.html bereikt is (ook al wordt het direct weer verlaten)
   await page.waitForURL(/dashboard\.html/, { timeout: 15000 });
 
-  // Controleer dat #status zichtbar is
+  // Controleer dat #status zichtbaar is
   const statusEl = page.locator('#status');
   await expect(statusEl).toBeVisible();
 
