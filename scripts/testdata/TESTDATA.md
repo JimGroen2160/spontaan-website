@@ -42,6 +42,27 @@ Voor de Playwright-test van profielgegevens bewerken wordt een aparte actieve me
 |---|---|---|---|
 | Profielbewerking test member (`TEST_PROFILE_MEMBER_EMAIL`, `TEST_PROFILE_MEMBER_PASSWORD`, `TEST_PROFILE_MEMBER_DISPLAY_NAME`) | `member` | `active` | Testen dat een admin toegestane profielvelden kan wijzigen, opslaan, controleren en terugzetten. |
 
+
+### Create-member testidentity
+
+Voor de Playwright-test van de nieuw-lid-aanmaakflow wordt een aparte testidentity gebruikt. Deze identity is bedoeld om via de admin-UI en de Supabase Edge Function `create-member` een nieuw lid uit te nodigen en als `member` met `status = pending` in `public.profiles` te controleren.
+
+Deze testidentity hoort bewust **niet** in `scripts/testdata/manifest.json`, omdat het seed-script voor manifest-users een wachtwoord verwacht en deze flow via `inviteUserByEmail` werkt. Voor deze invite-flow is geen lokaal wachtwoord nodig.
+
+| Testidentity | Doel | Opmerking |
+|---|---|---|
+| `TEST_CREATE_MEMBER_EMAIL`, `TEST_CREATE_MEMBER_DISPLAY_NAME` | E2E-test nieuw lid toevoegen via admin-UI en `create-member` | Tijdelijke Auth-user en profiel worden vóór en na de test opgeschoond. |
+
+Aanvullende afspraken:
+
+- Gebruik geen standaard admin, member, pending member, inactive member, statusmutatie-member of profielbewerking-member voor deze test.
+- De test gebruikt een apart test-e-mailadres en geen echte persoonsgegevens.
+- De test kan een Supabase Auth-user, een uitnodiging en een `public.profiles`-record aanmaken.
+- Cleanup moet zowel Supabase Auth (`auth.users`) als `public.profiles` controleren.
+- De test draait standaard Chromium-only, omdat deze Supabase Auth en `public.profiles` muteert.
+- De test is opt-in en draait alleen als `TEST_CREATE_MEMBER_E2E_ENABLED=true` is gezet. Standaard staat deze test uit om onbedoelde uitnodigingsmails en Supabase mail-rate-limits te voorkomen.
+- Als cleanup faalt, moet dit als risico worden onderzocht voordat de test opnieuw wordt gebruikt.
+
 ## Consistentie Auth en profiles
 
 Supabase Auth (`auth.users`) en `public.profiles` moeten consistent zijn:
