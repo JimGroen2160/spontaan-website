@@ -21,6 +21,7 @@ const PROFILE_MEMBER_DISPLAY_NAME = process.env.TEST_PROFILE_MEMBER_DISPLAY_NAME
 const CREATE_MEMBER_EMAIL = process.env.TEST_CREATE_MEMBER_EMAIL;
 const CREATE_MEMBER_DISPLAY_NAME = process.env.TEST_CREATE_MEMBER_DISPLAY_NAME;
 const CREATE_MEMBER_E2E_ENABLED = process.env.TEST_CREATE_MEMBER_E2E_ENABLED === 'true';
+const RESEND_MEMBER_INVITE_E2E_ENABLED = process.env.TEST_RESEND_MEMBER_INVITE_E2E_ENABLED === 'true';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -753,6 +754,49 @@ test('Ingelogde gebruiker kan uitloggen vanaf dashboard', async ({ page }) => {
 });
 
 
+
+test('Ingelogde admin kan pending lid opnieuw uitnodigen via opt-in test', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Runtime resend-invite test wordt bewust alleen in Chromium uitgevoerd.');
+  test.skip(!RESEND_MEMBER_INVITE_E2E_ENABLED, 'Resend-member-invite E2E-test is opt-in.');
+
+  test.skip(
+    !PENDING_MEMBER_EMAIL ||
+      !PENDING_MEMBER_DISPLAY_NAME ||
+      !process.env.SUPABASE_URL ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY,
+    'Pending testidentity of Supabase service credentials ontbreken.'
+  );
+
+  await setTestProfileStatus(PENDING_MEMBER_EMAIL, 'pending');
+
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await page.selectOption('#ledenbeheer-status-filter', 'pending');
+  await page.fill('#ledenbeheer-zoek', PENDING_MEMBER_EMAIL);
+
+  const pendingMemberRow = page
+    .locator('#ledenbeheer-lijst-body tr')
+    .filter({ hasText: PENDING_MEMBER_EMAIL });
+
+  await expect(pendingMemberRow).toBeVisible({ timeout: 15000 });
+  await expect(pendingMemberRow.locator('.status-badge')).toHaveText(/^pending$/i);
+
+  await pendingMemberRow.locator('[data-action-menu-trigger]').click();
+
+  const resendButton = pendingMemberRow.locator('.ledenbeheer-menu-action.resend-invite');
+  await expect(resendButton).toBeVisible();
+  await expect(resendButton).toContainText('Opnieuw uitnodigen');
+
+  await resendButton.click();
+
+  const toast = page.locator('#ledenbeheer-toast');
+  await expect(toast).toBeVisible({ timeout: 15000 });
+  await expect(toast).toContainText(
+    /Uitnodiging is opnieuw verzonden|opnieuw verzonden|e-maillimiet|tijdelijk geblokkeerd|rate limit/i,
+    { timeout: 15000 }
+  );
+});
 test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', async ({ page, browserName }) => {
   test.skip(
     browserName !== 'chromium',
