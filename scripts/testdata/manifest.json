@@ -54,6 +54,15 @@
       "displayNameEnvKey": "TEST_STATUS_MEMBER_DISPLAY_NAME",
       "role": "member",
       "status": "active"
+    },
+    {
+      "id": "test-profile-member",
+      "label": "Profielbewerking test member",
+      "emailEnvKey": "TEST_PROFILE_MEMBER_EMAIL",
+      "passwordEnvKey": "TEST_PROFILE_MEMBER_PASSWORD",
+      "displayNameEnvKey": "TEST_PROFILE_MEMBER_DISPLAY_NAME",
+      "role": "member",
+      "status": "active"
     }
   ]
 }
