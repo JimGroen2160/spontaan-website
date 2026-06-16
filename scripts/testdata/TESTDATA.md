@@ -127,3 +127,20 @@ Playwright-tests (`tests/auth.spec.ts`) mogen niet structureel leunen op echte l
 - Ledenbeheer: `admin/ledenbeheer.js`
 - Edge Functions (productiepad lid aanmaken): `scripts/create-member/`, `scripts/resend-member-invite/`
 - SQL (RLS/activatie): `scripts/supabase_ledenbeheer_step1_profiles.sql`, `scripts/supabase_ledenbeheer_step2_activate_profile.sql`
+
+### Resend-member-invite opt-in test
+
+De test voor opnieuw uitnodigen van pending leden is bewust opt-in.
+
+Gebruikte instelling:
+
+- `TEST_RESEND_MEMBER_INVITE_E2E_ENABLED=false`
+
+Standaard blijft deze test uitgeschakeld, omdat de flow via `resend-member-invite` een echte Supabase Auth reset-/uitnodigingsmail kan versturen en daardoor e-mail-rate-limits kan raken.
+
+De test gebruikt de bestaande pending testidentity:
+
+- `TEST_MEMBER_PENDING_EMAIL`
+- `TEST_MEMBER_PENDING_DISPLAY_NAME`
+
+De test hoort niet standaard in de volledige regressie actief te zijn. Alleen bewust inschakelen als runtime-validatie van de resend-flow nodig is.
