@@ -18,6 +18,9 @@ const STATUS_MEMBER_DISPLAY_NAME = process.env.TEST_STATUS_MEMBER_DISPLAY_NAME;
 const PROFILE_MEMBER_EMAIL = process.env.TEST_PROFILE_MEMBER_EMAIL;
 const PROFILE_MEMBER_PASSWORD = process.env.TEST_PROFILE_MEMBER_PASSWORD;
 const PROFILE_MEMBER_DISPLAY_NAME = process.env.TEST_PROFILE_MEMBER_DISPLAY_NAME;
+const CREATE_MEMBER_EMAIL = process.env.TEST_CREATE_MEMBER_EMAIL;
+const CREATE_MEMBER_DISPLAY_NAME = process.env.TEST_CREATE_MEMBER_DISPLAY_NAME;
+const CREATE_MEMBER_E2E_ENABLED = process.env.TEST_CREATE_MEMBER_E2E_ENABLED === 'true';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -54,6 +57,92 @@ function getSupabaseAdminClient() {
       persistSession: false,
     },
   });
+}
+
+
+async function findAuthUserByEmailForCleanup(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  const targetEmail = email.trim().toLowerCase();
+  let pageNumber = 1;
+  const perPage = 200;
+
+  while (true) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page: pageNumber,
+      perPage,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const users = data?.users ?? [];
+    const match = users.find((candidate) => candidate.email?.toLowerCase() === targetEmail);
+
+    if (match) {
+      return match;
+    }
+
+    if (users.length < perPage) {
+      return null;
+    }
+
+    pageNumber += 1;
+  }
+}
+
+async function cleanupCreateMemberTestIdentity(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  const targetEmail = email.trim().toLowerCase();
+
+  const { error: profileDeleteError } = await supabaseAdmin
+    .from('profiles')
+    .delete()
+    .eq('email', targetEmail);
+
+  if (profileDeleteError) {
+    throw profileDeleteError;
+  }
+
+  const authUser = await findAuthUserByEmailForCleanup(targetEmail);
+
+  if (authUser?.id) {
+    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+
+    if (authDeleteError) {
+      throw authDeleteError;
+    }
+  }
+}
+
+async function getCreateMemberProfile(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('email, full_name, role, status')
+    .eq('email', email.trim().toLowerCase())
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 }
 
 async function setTestProfileStatus(email: string, status: 'pending' | 'active' | 'inactive') {
@@ -661,6 +750,68 @@ test('Ingelogde gebruiker kan uitloggen vanaf dashboard', async ({ page }) => {
   await page.click('#logout');
 
   await expect(page).toHaveURL(/login\.html/);
+});
+
+
+test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', async ({ page, browserName }) => {
+  test.skip(
+    browserName !== 'chromium',
+    'Create-member test muteert Supabase Auth en public.profiles en draait daarom alleen in Chromium.'
+  );
+
+  if (!CREATE_MEMBER_E2E_ENABLED) {
+    test.skip(true, 'TEST_CREATE_MEMBER_E2E_ENABLED staat niet op true; create-member E2E-test wordt overgeslagen.');
+    return;
+  }
+
+  if (!CREATE_MEMBER_EMAIL || !CREATE_MEMBER_DISPLAY_NAME) {
+    test.skip(true, 'TEST_CREATE_MEMBER_* ontbreekt; create-member E2E-test wordt overgeslagen.');
+    return;
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ontbreekt; cleanup en controle zijn niet mogelijk.');
+    return;
+  }
+
+  await cleanupCreateMemberTestIdentity(CREATE_MEMBER_EMAIL);
+
+  try {
+    await loginAsAdmin(page);
+    await openAdminAndWaitUntilReady(page);
+
+    await page.fill('#full_name', CREATE_MEMBER_DISPLAY_NAME);
+    await page.fill('#street', 'Teststraat');
+    await page.fill('#house_number', '1');
+    await page.fill('#postal_code', '1234 AB');
+    await page.fill('#city', 'Teststad');
+    await page.fill('#email', CREATE_MEMBER_EMAIL);
+    await page.fill('#email_confirm', CREATE_MEMBER_EMAIL);
+    await page.fill('#phone', '0612345678');
+
+    await page.click('#nieuw-lid-submit');
+
+    await expect(page.locator('#ledenbeheer-toast')).toContainText(
+      /succesvol|uitgenodigd|profiel aangemaakt/i,
+      { timeout: 20000 }
+    );
+
+    await expect
+      .poll(async () => {
+        const profile = await getCreateMemberProfile(CREATE_MEMBER_EMAIL);
+        return profile ? `${profile.role}:${profile.status}` : 'missing';
+      }, {
+        timeout: 20000,
+        message: 'Create-member profiel is niet als member:pending aangemaakt.',
+      })
+      .toBe('member:pending');
+
+    await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(CREATE_MEMBER_EMAIL, {
+      timeout: 15000,
+    });
+  } finally {
+    await cleanupCreateMemberTestIdentity(CREATE_MEMBER_EMAIL);
+  }
 });
 
 // Test dat pending accounts automatisch worden geactiveerd bij dashboard-login
