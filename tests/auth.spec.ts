@@ -401,7 +401,7 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
   await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toContainText('Deactiveren');
 });
 
-// Test statusmutatie: active → inactive → active met exacte assertions
+// Test statusmutatie: active -> inactive -> active met exacte assertions
 test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, browserName }) => {
   // Deze test wijzigt Supabase-testdata en mag niet parallel draaien in meerdere browsers.
   test.skip(
@@ -409,86 +409,66 @@ test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, brows
     'Statusmutatie gebruikt gedeelde Supabase-testdata en draait daarom alleen in Chromium.'
   );
 
-  // Skip als TEST_STATUS_MEMBER_DISPLAY_NAME ontbreekt
-  if (!STATUS_MEMBER_DISPLAY_NAME) {
-    test.skip(true, 'TEST_STATUS_MEMBER_DISPLAY_NAME ontbreekt; statusmutatie-test wordt overgeslagen.');
-    return;
-  }
+  test.skip(
+    !STATUS_MEMBER_EMAIL ||
+      !STATUS_MEMBER_DISPLAY_NAME ||
+      !process.env.SUPABASE_URL ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY,
+    'Statusmutatie-testidentity of Supabase service credentials ontbreken.'
+  );
 
-  // 1. Admin inloggen en admin pagina openen
+  await setTestProfileStatus(STATUS_MEMBER_EMAIL, 'active');
+
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
 
-  // 2. Helper-functie om member row te vinden (opnieuw bepalen na refresh)
-  const getMemberRow = () =>
-    page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: STATUS_MEMBER_DISPLAY_NAME });
+  await page.selectOption('#ledenbeheer-status-filter', 'active');
+  await page.fill('#ledenbeheer-zoek', STATUS_MEMBER_EMAIL);
 
-  // 3. Helper-functie om status badge te vinden
+  const getMemberRow = () =>
+    page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: STATUS_MEMBER_EMAIL });
+
   const getStatusBadge = (memberRow: ReturnType<typeof getMemberRow>) =>
     memberRow.locator('.status-badge');
 
-  // 4. Vind het member row en controleer zichtbaarheid
   let memberRow = getMemberRow();
-  await expect(memberRow).toBeVisible();
+  await expect(memberRow).toBeVisible({ timeout: 15000 });
 
-  // 5. Lees de actuele status van het testlid
   let statusBadge = getStatusBadge(memberRow);
-  const currentStatus = (await statusBadge.textContent())?.trim().toLowerCase();
-
-  // 6. Indien het lid al inactive is, eerst heractiveren naar active
-  if (currentStatus === 'inactive') {
-    await memberRow.locator('.ledenbeheer-action-trigger').click();
-    await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
-
-    await memberRow.locator('.ledenbeheer-menu-action.activate').click();
-
-    await expect(page.locator('#ledenbeheer-toast')).toContainText('Lid is geheractiveerd.');
-
-    // Herhaal memberRow en statusBadge na refresh
-    memberRow = getMemberRow();
-    statusBadge = getStatusBadge(memberRow);
-
-    // Controleer dat status nu active is (exacte matching)
-    await expect(statusBadge).toHaveText(/^active$/i);
-  }
-
-  // 7. Nu is het lid gegarandeerd active - start de eigenlijke test
-  // Controleer eerst dat status active is (exacte matching)
   await expect(statusBadge).toHaveText(/^active$/i);
 
-  // 8. Open action menu en deactiveer
   await memberRow.locator('.ledenbeheer-action-trigger').click();
   await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
 
   await memberRow.locator('.ledenbeheer-menu-action.deactivate').click();
 
-  // 9. Wacht op successmelding en controleer statuswijziging naar inactive
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Lid is gedeactiveerd.');
 
-  // Herhaal memberRow en statusBadge na refresh
+  await page.selectOption('#ledenbeheer-status-filter', 'inactive');
+  await page.fill('#ledenbeheer-zoek', STATUS_MEMBER_EMAIL);
+
   memberRow = getMemberRow();
   statusBadge = getStatusBadge(memberRow);
 
-  // VEILIGE ASSERTION: exacte tekst matching (geen toContainText('active')!)
+  await expect(memberRow).toBeVisible({ timeout: 15000 });
   await expect(statusBadge).toHaveText(/^inactive$/i);
 
-  // 10. Open opnieuw action menu en heractiveer
   await memberRow.locator('.ledenbeheer-action-trigger').click();
   await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
 
   await memberRow.locator('.ledenbeheer-menu-action.activate').click();
 
-  // 11. Wacht op successmelding en controleer statuswijziging naar active
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Lid is geheractiveerd.');
 
-  // Herhaal memberRow en statusBadge na refresh
+  await page.selectOption('#ledenbeheer-status-filter', 'active');
+  await page.fill('#ledenbeheer-zoek', STATUS_MEMBER_EMAIL);
+
   memberRow = getMemberRow();
   statusBadge = getStatusBadge(memberRow);
 
-  // VEILIGE ASSERTION: exacte tekst matching
+  await expect(memberRow).toBeVisible({ timeout: 15000 });
   await expect(statusBadge).toHaveText(/^active$/i);
 });
-
 test('Ingelogde admin kan bewerkmodal voor lid openen en sluiten', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
