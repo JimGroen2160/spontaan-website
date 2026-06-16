@@ -34,6 +34,14 @@ Voor ledenbeheer en Playwright zijn minimaal deze combinaties nodig (elk als apa
 
 Credentials voor admin en active member staan in omgevingsvariabelen (zie `.env.example`). Pending en inactive leden zijn vooral nodig voor gerichte scenarios; ze hoeven niet allemaal in CI-secrets te staan, maar moeten wel bewust in Supabase bestaan als ze getest worden.
 
+### Profielbewerking test member
+
+Voor de Playwright-test van profielgegevens bewerken wordt een aparte actieve member gebruikt. Deze testidentiteit is bedoeld voor het gecontroleerd wijzigen en terugzetten van toegestane profielvelden via de admin-UI. De test gebruikt geen standaard member, geen statusmutatie-member, geen pending member en geen inactive member.
+
+| Testgebruiker | Role | Status | Doel |
+|---|---|---|---|
+| Profielbewerking test member (`TEST_PROFILE_MEMBER_EMAIL`, `TEST_PROFILE_MEMBER_PASSWORD`, `TEST_PROFILE_MEMBER_DISPLAY_NAME`) | `member` | `active` | Testen dat een admin toegestane profielvelden kan wijzigen, opslaan, controleren en terugzetten. |
+
 ## Consistentie Auth en profiles
 
 Supabase Auth (`auth.users`) en `public.profiles` moeten consistent zijn:

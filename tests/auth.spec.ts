@@ -15,6 +15,9 @@ const INACTIVE_MEMBER_PASSWORD = process.env.TEST_MEMBER_INACTIVE_PASSWORD;
 const STATUS_MEMBER_EMAIL = process.env.TEST_STATUS_MEMBER_EMAIL;
 const STATUS_MEMBER_PASSWORD = process.env.TEST_STATUS_MEMBER_PASSWORD;
 const STATUS_MEMBER_DISPLAY_NAME = process.env.TEST_STATUS_MEMBER_DISPLAY_NAME;
+const PROFILE_MEMBER_EMAIL = process.env.TEST_PROFILE_MEMBER_EMAIL;
+const PROFILE_MEMBER_PASSWORD = process.env.TEST_PROFILE_MEMBER_PASSWORD;
+const PROFILE_MEMBER_DISPLAY_NAME = process.env.TEST_PROFILE_MEMBER_DISPLAY_NAME;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -447,6 +450,101 @@ test('Ingelogde admin ziet veldvalidatie in bewerkmodal', async ({ page }) => {
 
   await page.click('#ledenbeheer-edit-cancel');
 
+  await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
+});
+
+// Controleert daadwerkelijke profielbewerking via de admin-UI met een aparte testmember.
+// De test wijzigt alleen toegestane profielvelden en zet de waarden daarna terug.
+test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstellen', async ({ page, browserName }) => {
+  test.skip(
+    browserName !== 'chromium',
+    'Profielbewerking gebruikt gedeelde Supabase-testdata en draait daarom alleen in Chromium.'
+  );
+
+  if (!PROFILE_MEMBER_EMAIL || !PROFILE_MEMBER_PASSWORD || !PROFILE_MEMBER_DISPLAY_NAME) {
+    test.skip(
+      true,
+      'TEST_PROFILE_MEMBER_EMAIL/PASSWORD/DISPLAY_NAME ontbreekt; profielbewerking-test wordt overgeslagen.'
+    );
+  }
+
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const profileRowByEmail = () =>
+    page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: PROFILE_MEMBER_EMAIL! });
+
+  const openProfileEditModal = async () => {
+    const row = profileRowByEmail();
+    await expect(row).toBeVisible({ timeout: 15000 });
+
+    await row.locator('.ledenbeheer-action-trigger').click();
+
+    const editButton = row.locator('.ledenbeheer-menu-action').filter({ hasText: 'Bewerken' });
+    await expect(editButton).toBeVisible();
+    await editButton.click();
+
+    await expect(page.locator('#ledenbeheer-edit-modal')).toHaveClass(/open/);
+    await expect(page.locator('#edit_email')).toHaveValue(PROFILE_MEMBER_EMAIL!);
+    await expect(page.locator('#edit_role')).toHaveAttribute('readonly', '');
+    await expect(page.locator('#edit_status')).toHaveAttribute('readonly', '');
+  };
+
+  await openProfileEditModal();
+
+  const originalValues = {
+    street: await page.locator('#edit_street').inputValue(),
+    houseNumber: await page.locator('#edit_house_number').inputValue(),
+    postalCode: await page.locator('#edit_postal_code').inputValue(),
+    city: await page.locator('#edit_city').inputValue(),
+    phone: await page.locator('#edit_phone').inputValue(),
+  };
+
+  const updatedValues = {
+    street: 'Profielteststraat',
+    houseNumber: '42A',
+    postalCode: '4321 BA',
+    city: 'Testplaats',
+    phone: '0611111111',
+  };
+
+  await page.fill('#edit_street', updatedValues.street);
+  await page.fill('#edit_house_number', updatedValues.houseNumber);
+  await page.fill('#edit_postal_code', updatedValues.postalCode);
+  await page.fill('#edit_city', updatedValues.city);
+  await page.fill('#edit_phone', updatedValues.phone);
+  await page.click('#ledenbeheer-edit-save');
+
+  await expect(page.locator('#ledenbeheer-toast')).toContainText('Lidgegevens zijn opgeslagen.');
+  await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
+
+  await openProfileEditModal();
+
+  await expect(page.locator('#edit_street')).toHaveValue(updatedValues.street);
+  await expect(page.locator('#edit_house_number')).toHaveValue(updatedValues.houseNumber);
+  await expect(page.locator('#edit_postal_code')).toHaveValue(updatedValues.postalCode);
+  await expect(page.locator('#edit_city')).toHaveValue(updatedValues.city);
+  await expect(page.locator('#edit_phone')).toHaveValue(updatedValues.phone);
+
+  await page.fill('#edit_street', originalValues.street);
+  await page.fill('#edit_house_number', originalValues.houseNumber);
+  await page.fill('#edit_postal_code', originalValues.postalCode);
+  await page.fill('#edit_city', originalValues.city);
+  await page.fill('#edit_phone', originalValues.phone);
+  await page.click('#ledenbeheer-edit-save');
+
+  await expect(page.locator('#ledenbeheer-toast')).toContainText('Lidgegevens zijn opgeslagen.');
+  await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
+
+  await openProfileEditModal();
+
+  await expect(page.locator('#edit_street')).toHaveValue(originalValues.street);
+  await expect(page.locator('#edit_house_number')).toHaveValue(originalValues.houseNumber);
+  await expect(page.locator('#edit_postal_code')).toHaveValue(originalValues.postalCode);
+  await expect(page.locator('#edit_city')).toHaveValue(originalValues.city);
+  await expect(page.locator('#edit_phone')).toHaveValue(originalValues.phone);
+
+  await page.click('#ledenbeheer-edit-cancel');
   await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
 });
 
