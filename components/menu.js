@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const navContainer = document.getElementById("nav-placeholder");
     if (navContainer) {
       navContainer.innerHTML = navHtml;
+      initializeMobileMenu(navContainer);
       console.log("Nav geladen");
     } else {
       console.warn("nav-placeholder niet gevonden");
@@ -49,3 +50,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Fout bij laden menu:", error);
   }
 });
+
+function initializeMobileMenu(navContainer) {
+  const hamburger = navContainer.querySelector("#hamburger");
+  const navMenu = navContainer.querySelector("#navMenu");
+
+  if (!hamburger || !navMenu) {
+    return;
+  }
+
+  hamburger.addEventListener("click", () => {
+    const isOpen = navMenu.classList.toggle("open");
+    hamburger.classList.toggle("open", isOpen);
+    hamburger.setAttribute("aria-expanded", String(isOpen));
+    hamburger.setAttribute("aria-label", isOpen ? "Menu sluiten" : "Menu openen");
+  });
+
+  navMenu.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      navMenu.classList.remove("open");
+      hamburger.classList.remove("open");
+      hamburger.setAttribute("aria-expanded", "false");
+      hamburger.setAttribute("aria-label", "Menu openen");
+    });
+  });
+}
