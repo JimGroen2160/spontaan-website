@@ -245,7 +245,7 @@ footer a:focus {
     display: flex;
   }
 
-  .nav-menu {
+  .main-nav .nav-menu {
     display: none;
     width: 100%;
     flex-direction: column;
@@ -254,7 +254,7 @@ footer a:focus {
     padding-top: 15px;
   }
 
-  .nav-menu.open {
+  .main-nav .nav-menu.open {
     display: flex;
   }
 }

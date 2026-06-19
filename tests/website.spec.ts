@@ -41,7 +41,7 @@ test.describe('Website basis testen', () => {
   });
 
 
-  test('mobiel hamburgermenu opent en toont navigatielinks', async ({ page }) => {
+  test('mobiel hamburgermenu is gesloten, opent, sluit en navigeert functioneel', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
 
@@ -49,18 +49,41 @@ test.describe('Website basis testen', () => {
 
     const hamburger = page.locator('#nav-placeholder .hamburger');
     const navMenu = page.locator('#nav-placeholder .nav-menu');
+    const agendaLink = page.locator('#nav-placeholder .nav-menu a', { hasText: 'Agenda' });
 
+    // Beginsituatie: alleen de hamburger is zichtbaar en het menu is werkelijk verborgen.
     await expect(hamburger).toBeVisible();
     await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
-    await expect(navMenu).not.toHaveClass(/open/);
+    await expect(hamburger).toHaveAttribute('aria-label', 'Menu openen');
+    await expect(navMenu).toBeHidden();
+    await expect(agendaLink).toBeHidden();
 
+    // Gebruikersactie 1: menu openen.
     await hamburger.click();
 
+    // Zichtbaar resultaat: menu en links zijn werkelijk zichtbaar.
     await expect(hamburger).toHaveAttribute('aria-expanded', 'true');
-    await expect(navMenu).toHaveClass(/open/);
-    await expect(page.locator('#nav-placeholder .nav-menu a', { hasText: 'Agenda' })).toBeVisible();
+    await expect(hamburger).toHaveAttribute('aria-label', 'Menu sluiten');
+    await expect(navMenu).toBeVisible();
+    await expect(agendaLink).toBeVisible();
 
-    await page.locator('#nav-placeholder .nav-menu a', { hasText: 'Agenda' }).click();
-    await expect(page).toHaveURL(/agenda/);
+    // Gebruikersactie 2: menu opnieuw sluiten.
+    await hamburger.click();
+
+    // Zichtbaar resultaat: menu en links zijn opnieuw werkelijk verborgen.
+    await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
+    await expect(hamburger).toHaveAttribute('aria-label', 'Menu openen');
+    await expect(navMenu).toBeHidden();
+    await expect(agendaLink).toBeHidden();
+
+    // Gebruikersactie 3: opnieuw openen en daadwerkelijk navigeren.
+    await hamburger.click();
+    await expect(navMenu).toBeVisible();
+
+    await agendaLink.click();
+
+    // Functioneel eindresultaat: juiste pagina en zichtbare paginatitel.
+    await expect(page).toHaveURL(/\/pages\/agenda\.html$/);
+    await expect(page.locator('h1')).toContainText(/agenda/i);
   });
 });
