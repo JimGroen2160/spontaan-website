@@ -26,6 +26,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate required Playwright configuration
+        shell: bash
+        run: |
+          missing=()
+
+          required_variables=(
+            TEST_ADMIN_EMAIL
+            TEST_ADMIN_PASSWORD
+            TEST_ADMIN_DISPLAY_NAME
+            TEST_MEMBER_EMAIL
+            TEST_MEMBER_PASSWORD
+            TEST_MEMBER_DISPLAY_NAME
+          )
+
+          for variable_name in "${required_variables[@]}"; do
+            if [ -z "${!variable_name:-}" ]; then
+              missing+=("$variable_name")
+            fi
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            {
+              echo "## Playwright configuration"
+              echo
+              echo "❌ Verplichte browser- en auth-testconfiguratie ontbreekt."
+              echo
+              echo "Ontbrekende repository-secrets:"
+              for variable_name in "${missing[@]}"; do
+                echo "- \`$variable_name\`"
+              done
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            echo "::error title=Verplichte CI-configuratie ontbreekt::Ontbrekende repository-secrets: ${missing[*]}"
+            exit 1
+          fi
+
+          {
+            echo "## Playwright configuration"
+            echo
+            echo "✅ Verplichte browser- en auth-testconfiguratie is aanwezig."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -43,7 +85,46 @@ jobs:
           npx wait-on http://localhost:5500
 
       - name: Run Playwright tests
+        id: playwright-tests
         run: npx playwright test
+
+      - name: Publish Playwright test coverage summary
+        if: always()
+        shell: bash
+        run: |
+          playwright_outcome="${{ steps.playwright-tests.outcome }}"
+
+          case "$playwright_outcome" in
+            success)
+              playwright_status="UITGEVOERD / GESLAAGD"
+              ;;
+            failure)
+              playwright_status="UITGEVOERD / GEFAALD"
+              ;;
+            skipped)
+              playwright_status="NIET UITGEVOERD"
+              ;;
+            *)
+              playwright_status="ONBEKENDE STATUS"
+              ;;
+          esac
+
+          {
+            echo
+            echo "## Playwright testdekking"
+            echo
+            echo "| Testgroep | Automatische PR-CI | Toelichting |"
+            echo "|---|---|---|"
+            echo "| Algemene website-, accessibility-, login-, logout- en resettests | $playwright_status | Zie de Playwright-job voor het volledige testresultaat. |"
+            echo "| Statusmutatie active/inactive met directe backendcontrole | NIET UITGEVOERD | Vereist service-role en afgeschermde testdata. |"
+            echo "| Profielbewerking met apart testlid | NIET UITGEVOERD | Profieltest-secrets worden nog niet aan deze workflow aangeboden. |"
+            echo "| Pending naar active | NIET UITGEVOERD | Vereist service-role en gedeelde Supabase-testdata. |"
+            echo "| Inactive-lid toegang blokkeren | NIET UITGEVOERD | Inactive-testaccount wordt nog niet aan deze workflow aangeboden. |"
+            echo "| Nieuw lid uitnodigen en pending profiel aanmaken | OPT-IN / UITGESCHAKELD | Maakt echte Supabase Auth- en profieldata aan. |"
+            echo "| Pending lid opnieuw uitnodigen | OPT-IN / UITGESCHAKELD | Kan een echte reset- of uitnodigingsmail versturen. |"
+            echo
+            echo "**Beveiligingsgrens:** de productie-service-role-key wordt niet beschikbaar gesteld aan automatische pull-requestruns."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   lighthouse:
     name: lighthouse
