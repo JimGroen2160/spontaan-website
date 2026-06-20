@@ -1,89 +1,192 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
-test.describe('Website basis testen', () => {
+const publicRoutes = [
+  '/',
+  '/pages/over.html',
+  '/pages/agenda.html',
+  '/pages/media.html',
+  '/pages/repertoire.html',
+  '/pages/historie.html',
+  '/pages/vrienden.html',
+  '/pages/links.html',
+  '/pages/contact.html',
+  '/leden/login.html',
+  '/leden/wachtwoord-vergeten.html',
+  '/leden/reset-wachtwoord.html',
+];
 
-  test('homepage opent', async ({ page }) => {
+async function waitForSharedLayout(page: Page) {
+  await page.locator('#nav-placeholder .main-nav').waitFor({
+    state: 'attached',
+    timeout: 15000,
+  });
+
+  await page.locator('#nav-placeholder .nav-menu a').first().waitFor({
+    state: 'attached',
+    timeout: 15000,
+  });
+
+  await page.locator('#footer-placeholder .site-footer').waitFor({
+    state: 'attached',
+    timeout: 15000,
+  });
+}
+
+test.describe('Website basis en huisstijl', () => {
+  test('homepage opent met zichtbaar en geladen Spontaan-logo', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Spontaan/);
+    await waitForSharedLayout(page);
 
-    await page.waitForSelector('#nav-placeholder .nav-menu a', { timeout: 15000 });
-    await page.waitForSelector('#footer-placeholder', { timeout: 15000 });
+    const logoLink = page.locator('#nav-placeholder .site-logo');
+    const logo = logoLink.locator('img');
+
+    await expect(logoLink).toBeVisible();
+    await expect(logoLink).toHaveAttribute('aria-label', /homepage.*Spontaan/i);
+    await expect(logo).toBeVisible();
+    await expect(logo).toHaveAttribute('alt', 'Zanggroep Spontaan');
+
+    const logoLoaded = await logo.evaluate((image: HTMLImageElement) => (
+      image.complete && image.naturalWidth > 0 && image.naturalHeight > 0
+    ));
+    expect(logoLoaded).toBe(true);
   });
 
-  test('agenda pagina opent', async ({ page }) => {
-    await page.goto('/pages/agenda.html');
-    await expect(page).toHaveURL(/agenda/);
-
-    await page.waitForSelector('#nav-placeholder .nav-menu a', { timeout: 15000 });
-    await page.waitForSelector('#footer-placeholder', { timeout: 15000 });
+  test('agenda en over pagina openen met gedeelde navigatie en footer', async ({ page }) => {
+    for (const route of ['/pages/agenda.html', '/pages/over.html']) {
+      await page.goto(route);
+      await waitForSharedLayout(page);
+      await expect(page.locator('h1')).toBeVisible();
+      await expect(page.locator('#footer-placeholder .site-footer')).toBeVisible();
+    }
   });
 
-  test('over pagina opent', async ({ page }) => {
-    await page.goto('/pages/over.html');
-    await expect(page).toHaveURL(/over/);
-
-    await page.waitForSelector('#nav-placeholder .nav-menu a', { timeout: 15000 });
-    await page.waitForSelector('#footer-placeholder', { timeout: 15000 });
-  });
-
-  test('navigatie werkt', async ({ page }) => {
+  test('navigatie werkt en markeert de actuele pagina toegankelijk', async ({ page }) => {
     await page.goto('/');
+    await waitForSharedLayout(page);
 
-    await page.waitForSelector('#nav-placeholder .nav-menu a', { timeout: 15000 });
+    const homeLink = page.locator('#nav-placeholder .nav-menu a', { hasText: /^Home$/ });
+    await expect(homeLink).toHaveAttribute('aria-current', 'page');
+    await expect(homeLink).toHaveClass(/active/);
 
     await page.locator('#nav-placeholder .nav-menu a', { hasText: 'Agenda' }).click();
-    await expect(page).toHaveURL(/agenda/);
+    await expect(page).toHaveURL(/\/pages\/agenda\.html$/);
+    await waitForSharedLayout(page);
 
-    await page.waitForSelector('#nav-placeholder .nav-menu a', { timeout: 15000 });
+    const agendaLink = page.locator('#nav-placeholder .nav-menu a', { hasText: 'Agenda' });
+    await expect(agendaLink).toHaveAttribute('aria-current', 'page');
+    await expect(agendaLink).toHaveClass(/active/);
+    await expect(page.locator('#nav-placeholder .nav-menu a[aria-current="page"]')).toHaveCount(1);
 
     await page.locator('#nav-placeholder .nav-menu a', { hasText: 'Over Spontaan' }).click();
-    await expect(page).toHaveURL(/over/);
+    await expect(page).toHaveURL(/\/pages\/over\.html$/);
+    await expect(page.locator('h1')).toContainText(/over spontaan/i);
   });
 
+  test('logo-link navigeert vanaf een subpagina terug naar de homepage', async ({ page }) => {
+    await page.goto('/pages/contact.html');
+    await waitForSharedLayout(page);
 
-  test('mobiel hamburgermenu is gesloten, opent, sluit en navigeert functioneel', async ({ page }) => {
+    await page.locator('#nav-placeholder .site-logo').click();
+
+    await expect(page).toHaveURL(/\/(?:index\.html)?$/);
+    await expect(page.locator('.hero h1')).toContainText(/zangkoor spontaan/i);
+  });
+
+  test('mobiel hamburgermenu is gesloten, opent, sluit met Escape en navigeert', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
-
-    await page.waitForSelector('#nav-placeholder .hamburger', { timeout: 15000 });
+    await waitForSharedLayout(page);
 
     const hamburger = page.locator('#nav-placeholder .hamburger');
     const navMenu = page.locator('#nav-placeholder .nav-menu');
     const agendaLink = page.locator('#nav-placeholder .nav-menu a', { hasText: 'Agenda' });
 
-    // Beginsituatie: alleen de hamburger is zichtbaar en het menu is werkelijk verborgen.
     await expect(hamburger).toBeVisible();
     await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
     await expect(hamburger).toHaveAttribute('aria-label', 'Menu openen');
     await expect(navMenu).toBeHidden();
     await expect(agendaLink).toBeHidden();
 
-    // Gebruikersactie 1: menu openen.
     await hamburger.click();
 
-    // Zichtbaar resultaat: menu en links zijn werkelijk zichtbaar.
     await expect(hamburger).toHaveAttribute('aria-expanded', 'true');
     await expect(hamburger).toHaveAttribute('aria-label', 'Menu sluiten');
     await expect(navMenu).toBeVisible();
     await expect(agendaLink).toBeVisible();
 
-    // Gebruikersactie 2: menu opnieuw sluiten.
-    await hamburger.click();
+    await page.keyboard.press('Escape');
 
-    // Zichtbaar resultaat: menu en links zijn opnieuw werkelijk verborgen.
     await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
-    await expect(hamburger).toHaveAttribute('aria-label', 'Menu openen');
     await expect(navMenu).toBeHidden();
-    await expect(agendaLink).toBeHidden();
+    await expect(hamburger).toBeFocused();
 
-    // Gebruikersactie 3: opnieuw openen en daadwerkelijk navigeren.
     await hamburger.click();
-    await expect(navMenu).toBeVisible();
-
     await agendaLink.click();
 
-    // Functioneel eindresultaat: juiste pagina en zichtbare paginatitel.
     await expect(page).toHaveURL(/\/pages\/agenda\.html$/);
     await expect(page.locator('h1')).toContainText(/agenda/i);
+  });
+
+  test('desktopnavigatie blijft op één rij en schakelt tijdig naar het hamburgermenu', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await waitForSharedLayout(page);
+
+    const hamburger = page.locator('#nav-placeholder .hamburger');
+    const navMenu = page.locator('#nav-placeholder .nav-menu');
+    const navLinks = navMenu.locator('a');
+
+    await expect(hamburger).toBeHidden();
+    await expect(navMenu).toBeVisible();
+    await expect(navLinks).toHaveCount(10);
+
+    for (const link of await navLinks.all()) {
+      await expect(link).toBeVisible();
+    }
+
+    const linkRows = await navLinks.evaluateAll((links) => links.map((link) => {
+      const rectangle = link.getBoundingClientRect();
+      return {
+        top: Math.round(rectangle.top),
+        centerY: Math.round(rectangle.top + rectangle.height / 2),
+      };
+    }));
+
+    expect(new Set(linkRows.map((position) => position.centerY)).size).toBe(1);
+
+    await page.setViewportSize({ width: 1100, height: 900 });
+
+    await expect(hamburger).toBeVisible();
+    await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
+    await expect(navMenu).toBeHidden();
+    await expect(navLinks.first()).toBeHidden();
+  });
+
+  test('publieke en ledenpagina’s hebben geen horizontale overflow op desktop, tablet en mobiel', async ({ page }) => {
+    const viewports = [
+      { width: 1440, height: 900 },
+      { width: 820, height: 1180 },
+      { width: 390, height: 844 },
+    ];
+
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
+
+      for (const route of publicRoutes) {
+        await page.goto(route);
+        await waitForSharedLayout(page);
+
+        const layout = await page.evaluate(() => ({
+          documentWidth: document.documentElement.scrollWidth,
+          viewportWidth: document.documentElement.clientWidth,
+        }));
+
+        expect(
+          layout.documentWidth,
+          `${route} heeft horizontale overflow bij ${viewport.width}px`,
+        ).toBeLessThanOrEqual(layout.viewportWidth + 1);
+      }
+    }
   });
 });
