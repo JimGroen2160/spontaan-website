@@ -725,12 +725,58 @@ test('Ingelogde admin krijgt backend-foutmelding bij bestaand e-mailadres', asyn
   );
 });
 
-test('Ingelogde gebruiker kan uitloggen vanaf dashboard', async ({ page }) => {
+test('Ingelogde gebruiker kan volledig uitloggen en verliest toegang tot dashboard', async ({ page }) => {
   await loginAsAdmin(page);
 
+  // Beginsituatie: gebruiker is ingelogd en heeft een werkelijke Supabase-sessie.
+  const sessionBeforeLogout = await page.evaluate(async () => {
+    const session = await window.authHelpers.getCurrentSession();
+
+    return {
+      hasAccessToken: Boolean(session?.access_token),
+      userId: session?.user?.id ?? null,
+    };
+  });
+
+  expect(sessionBeforeLogout.hasAccessToken).toBe(true);
+  expect(sessionBeforeLogout.userId).toBeTruthy();
+  await expect(page.locator('#logout')).toBeVisible();
+
+  // Gebruikersactie: uitloggen via de zichtbare knop.
   await page.click('#logout');
 
+  // Zichtbaar resultaat: gebruiker komt op de loginpagina.
   await expect(page).toHaveURL(/login\.html/);
+  await expect(page.locator('h1')).toHaveText('Inloggen');
+  await expect(page.locator('#login-form')).toBeVisible();
+
+  // Technisch resultaat: de Supabase-sessie bestaat niet meer.
+  await page.waitForFunction(async () => {
+    if (!window.authHelpers || typeof window.authHelpers.getCurrentSession !== 'function') {
+      return false;
+    }
+
+    try {
+      const session = await window.authHelpers.getCurrentSession();
+      return session === null;
+    } catch {
+      return false;
+    }
+  });
+
+  const hasSessionAfterLogout = await page.evaluate(async () => {
+    const session = await window.authHelpers.getCurrentSession();
+    return Boolean(session);
+  });
+
+  expect(hasSessionAfterLogout).toBe(false);
+
+  // Functionele beveiligingscontrole: dashboard rechtstreeks opnieuw openen wordt geweigerd.
+  await page.goto('http://localhost:5500/leden/dashboard.html');
+
+  await expect(page).toHaveURL(/login\.html/);
+  await expect(page.locator('h1')).toHaveText('Inloggen');
+  await expect(page.locator('#login-form')).toBeVisible();
 });
 
 
