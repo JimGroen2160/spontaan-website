@@ -15,16 +15,81 @@ test.describe('Auth reset flow', () => {
     await expect(page.locator('h1')).toHaveText('Wachtwoord vergeten');
   });
 
-  test('reset aanvraagpagina toont nette melding na verzenden', async ({ page }) => {
+  test('reset aanvraag toont succesmelding en verstuurt juiste gegevens', async ({ page }) => {
+    const testEmail = 'reset-test@example.com';
+
+    await page.route('**/auth/v1/recover**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{}'
+      });
+    });
+
     await page.goto('/leden/wachtwoord-vergeten.html');
 
-    await page.fill('#reset-email', 'jim.groen14@gmail.com');
+    const requestPromise = page.waitForRequest(
+      (request) =>
+        request.url().includes('/auth/v1/recover') &&
+        request.method() === 'POST'
+    );
+
+    await page.fill('#reset-email', testEmail);
     await page.getByRole('button', { name: 'Verstuur resetlink' }).click();
 
-    const message = page.locator('#message');
-    await expect(message).not.toHaveText('');
+    const request = await requestPromise;
+    const requestBody = request.postDataJSON();
+    const requestUrl = new URL(request.url());
+    const expectedRedirect =
+      `${new URL(page.url()).origin}/leden/reset-wachtwoord.html`;
 
-    await expect(message).toContainText(/resetlink verstuurd|te veel resetverzoeken/i);
+    expect(requestBody.email).toBe(testEmail);
+    expect(requestUrl.searchParams.get('redirect_to')).toBe(expectedRedirect);
+
+    const message = page.locator('#message');
+    await expect(message).toBeVisible();
+    await expect(message).toHaveText(
+      'Als het e-mailadres bekend is, is er een resetlink verstuurd.'
+    );
+    await expect(message).toHaveCSS('color', 'rgb(0, 128, 0)');
+  });
+
+  test('reset aanvraag toont functionele melding bij rate limit', async ({ page }) => {
+    const testEmail = 'reset-test@example.com';
+
+    await page.route('**/auth/v1/recover**', async (route) => {
+      await route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          code: 'over_email_send_rate_limit',
+          msg: 'Email rate limit exceeded'
+        })
+      });
+    });
+
+    await page.goto('/leden/wachtwoord-vergeten.html');
+
+    const requestPromise = page.waitForRequest(
+      (request) =>
+        request.url().includes('/auth/v1/recover') &&
+        request.method() === 'POST'
+    );
+
+    await page.fill('#reset-email', testEmail);
+    await page.getByRole('button', { name: 'Verstuur resetlink' }).click();
+
+    const request = await requestPromise;
+    const requestBody = request.postDataJSON();
+
+    expect(requestBody.email).toBe(testEmail);
+
+    const message = page.locator('#message');
+    await expect(message).toBeVisible();
+    await expect(message).toHaveText(
+      'Er zijn tijdelijk te veel resetverzoeken gedaan. Probeer het over enkele minuten opnieuw.'
+    );
+    await expect(message).toHaveCSS('color', 'rgb(255, 0, 0)');
   });
 
   test('reset wachtwoord pagina kan wachtwoorden tonen/verbergen', async ({ page }) => {
