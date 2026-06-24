@@ -1,520 +1,124 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Admin | Zangkoor Spontaan</title>
+  <title>Ledenadministratie | Zanggroep Spontaan</title>
 
   <link rel="stylesheet" href="../css/style.css">
-
-  <style>
-    #admin-content {
-      display: none;
-      max-width: 1180px;
-    }
-
-    #ledenbeheer {
-      margin-top: 2rem;
-    }
-
-    #ledenbeheer-melding {
-      display: none;
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: #fff;
-    }
-
-    .ledenbeheer-form {
-      display: grid;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .ledenbeheer-form-row {
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .ledenbeheer-form-row label {
-      font-weight: 600;
-    }
-
-    .ledenbeheer-form-row input,
-    .ledenbeheer-controls input,
-    .ledenbeheer-controls select {
-      width: 100%;
-      min-width: 0;
-      min-height: 42px;
-      padding: 0.55rem 0.7rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font: inherit;
-      font-size: 0.92rem;
-      background: #fff;
-    }
-
-    .ledenbeheer-form-row input[readonly] {
-      background: #f5f5f5;
-      color: #555;
-      cursor: not-allowed;
-    }
-
-    .ledenbeheer-form-row input.field-error {
-      border-color: #c0392b;
-      background: #fff8f8;
-    }
-
-    .ledenbeheer-field-error {
-      display: none;
-      color: #8a1f1f;
-      font-size: 0.95rem;
-      margin: 0;
-    }
-
-    .ledenbeheer-actions {
-      margin-top: 0.5rem;
-    }
-
-    .ledenbeheer-actions button,
-    .ledenbeheer-pagination button {
-      padding: 0.8rem 1.2rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font: inherit;
-      background: #d4af37;
-      color: #111;
-      font-weight: 600;
-    }
-
-    .ledenbeheer-actions button:hover,
-    .ledenbeheer-pagination button:hover {
-      opacity: 0.95;
-    }
-
-    .ledenbeheer-pagination button:disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
-
-    .ledenbeheer-uitleg {
-      margin-top: 0.25rem;
-      color: #555;
-    }
-
-    .admin-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin: 1rem 0 0;
-    }
-
-    .admin-action-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 40px;
-      padding: 0.55rem 1rem;
-      border: 1px solid #d4af37;
-      border-radius: 999px;
-      background: #d4af37;
-      color: #111;
-      font: inherit;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .admin-action-link:hover {
-      opacity: 0.9;
-    }
-
-    .ledenbeheer-controls {
-      display: grid;
-      gap: 0.85rem;
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: #fff;
-    }
-
-    .ledenbeheer-control-row {
-      display: grid;
-      grid-template-columns: minmax(320px, 2fr) minmax(145px, 1fr) minmax(145px, 1fr) minmax(180px, 1.15fr) minmax(190px, 1.1fr);
-      gap: 1.25rem;
-      align-items: end;
-    }
-
-    .ledenbeheer-control {
-      display: grid;
-      gap: 0.3rem;
-      min-width: 0;
-    }
-
-    .ledenbeheer-control label {
-      font-weight: 600;
-      font-size: 0.92rem;
-      line-height: 1.2;
-      white-space: nowrap;
-    }
-
-    .ledenbeheer-result-count {
-      margin: 0.1rem 0 0;
-      color: #555;
-      font-size: 0.95rem;
-    }
-
-    .ledenbeheer-table-wrapper {
-      margin-top: 1rem;
-      overflow-x: auto;
-    }
-
-    .ledenbeheer-table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 720px;
-    }
-
-    .ledenbeheer-table th,
-    .ledenbeheer-table td {
-      padding: 0.85rem 0.75rem;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    .ledenbeheer-table th {
-      background: #f7f7f7;
-      font-weight: 700;
-    }
-
-    .ledenbeheer-empty-row td {
-      color: #555;
-      font-style: italic;
-    }
-
-    .ledenbeheer-pagination {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .ledenbeheer-page-status {
-      color: #555;
-      font-weight: 600;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      background: #eee;
-      color: #333;
-    }
-
-    .status-badge.active {
-      background: #eaf7ea;
-      color: #1f6b2d;
-    }
-
-    .status-badge.pending {
-      background: #fff4d6;
-      color: #7a5d00;
-    }
-
-    .status-badge.inactive {
-      background: #fbeaea;
-      color: #8a1f1f;
-    }
-
-    .ledenbeheer-action-menu {
-      position: relative;
-      display: inline-block;
-    }
-
-    .ledenbeheer-action-trigger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      min-height: 36px;
-      padding: 0.45rem 0.9rem;
-      border: 1px solid #d4af37;
-      border-radius: 999px;
-      background: #fff;
-      color: #111;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.9rem;
-      font-weight: 700;
-    }
-
-    .ledenbeheer-action-trigger:hover,
-    .ledenbeheer-action-menu.open .ledenbeheer-action-trigger {
-      background: #fbf4dd;
-    }
-
-    .ledenbeheer-action-dropdown {
-      display: none;
-      position: fixed;
-      z-index: 2000;
-      min-width: 185px;
-      padding: 0.35rem 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
-    }
-
-    .ledenbeheer-action-menu.open .ledenbeheer-action-dropdown {
-      display: grid;
-    }
-
-    .ledenbeheer-menu-action {
-      width: 100%;
-      min-height: 38px;
-      padding: 0.55rem 0.9rem;
-      border: 0;
-      background: #fff;
-      color: #111;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.92rem;
-      text-align: left;
-    }
-
-    .ledenbeheer-menu-action:hover {
-      background: #f7f7f7;
-    }
-
-    .ledenbeheer-menu-action.deactivate {
-      color: #b00020;
-    }
-
-    .ledenbeheer-menu-action.activate {
-      color: #1f6b2d;
-    }
-
-    .role-badge {
-      display: inline-block;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      background: #eef3ff;
-      color: #294a8d;
-    }
-
-    .ledenbeheer-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      background: rgba(0, 0, 0, 0.45);
-    }
-
-    .ledenbeheer-modal.open {
-      display: flex;
-    }
-
-    .ledenbeheer-modal-panel {
-      width: min(760px, 100%);
-      max-height: 90vh;
-      overflow: auto;
-      padding: 1.25rem;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
-    }
-
-    .ledenbeheer-modal-panel h3 {
-      margin-top: 0;
-    }
-
-    .ledenbeheer-modal-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-
-    .ledenbeheer-modal-actions button {
-      min-height: 40px;
-      padding: 0.55rem 1rem;
-      border: 1px solid #cfc7b8;
-      border-radius: 999px;
-      background: #fff;
-      color: #111;
-      cursor: pointer;
-      font: inherit;
-      font-weight: 600;
-    }
-
-    .ledenbeheer-modal-actions button:hover {
-      opacity: 0.9;
-    }
-
-    #ledenbeheer-edit-save {
-      border-color: #d4af37;
-      background: #d4af37;
-    }
-
-    .ledenbeheer-toast {
-      display: none;
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 9999;
-      max-width: min(420px, calc(100vw - 2rem));
-      padding: 1rem 1.25rem;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      background: #f4f4f4;
-      color: #333;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
-      font-weight: 600;
-    }
-
-    .ledenbeheer-toast.info {
-      background: #f4f4f4;
-      color: #333;
-      border-color: #ddd;
-    }
-
-    .ledenbeheer-toast.success {
-      background: #eaf7ea;
-      color: #1f6b2d;
-      border-color: #b7d8bd;
-    }
-
-    .ledenbeheer-toast.error {
-      background: #fbeaea;
-      color: #8a1f1f;
-      border-color: #e2b4b4;
-    }
-
-    @media (max-width: 768px) {
-      .ledenbeheer-control-row {
-        grid-template-columns: 1fr;
-      }
-
-      .ledenbeheer-pagination {
-        align-items: stretch;
-      }
-
-      .ledenbeheer-pagination button {
-        width: 100%;
-      }
-
-      .ledenbeheer-modal-panel {
-        width: 100%;
-      }
-    }
-  </style>
 </head>
 <body>
   <div id="nav-placeholder"></div>
 
-  <header class="hero">
-    <div class="hero-content">
-      <h1>Zangkoor Spontaan</h1>
-      <p>Admin omgeving</p>
+  <header class="admin-masthead">
+    <div class="admin-masthead__inner">
+      <p class="admin-masthead__eyebrow">Beheeromgeving</p>
+      <h1>Ledenadministratie</h1>
+      <p>Beheer uitnodigingen, profielgegevens en de actuele status van leden.</p>
     </div>
   </header>
 
-  <main id="admin-content">
-    <section>
-      <h2>Welkom (Admin)</h2>
-      <p>Dit is de admin omgeving van Zangkoor Spontaan.</p>
+  <main id="admin-content" class="admin-main">
+    <section class="admin-intro-card" aria-labelledby="admin-welcome-title">
+      <div>
+        <h2 id="admin-welcome-title">Welkom (Admin)</h2>
+        <p>Vanuit deze omgeving beheer je de ledenadministratie van Zanggroep Spontaan.</p>
+      </div>
       <div class="admin-actions" aria-label="Admin navigatie">
         <a id="ledenomgeving-link" class="admin-action-link" href="../leden/dashboard.html">Naar ledenomgeving</a>
       </div>
     </section>
 
-    <section id="ledenbeheer">
-      <h2>Ledenbeheer</h2>
-      <p>Hier komt het beheer voor leden toevoegen, bekijken en bijwerken.</p>
+    <section id="ledenbeheer" aria-labelledby="ledenbeheer-title">
+      <div class="admin-section-heading">
+        <p class="admin-section-heading__eyebrow">Ledenbeheer</p>
+        <h2 id="ledenbeheer-title">Leden toevoegen en beheren</h2>
+        <p>Nodig nieuwe leden uit en beheer de bestaande ledenlijst vanuit één overzicht.</p>
+      </div>
 
-      <div id="ledenbeheer-melding" aria-live="polite"></div>
-      <div id="ledenbeheer-toast" class="ledenbeheer-toast" role="status" aria-live="polite"></div>
+      <div id="ledenbeheer-toast" class="ledenbeheer-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <span id="ledenbeheer-toast-message"></span>
+        <button type="button" id="ledenbeheer-toast-close" class="ledenbeheer-toast-close" aria-label="Melding sluiten">×</button>
+      </div>
 
-      <div id="ledenbeheer-formulier">
-        <h3>Nieuw lid toevoegen</h3>
-        <p class="ledenbeheer-uitleg">
-          Vul de gegevens van een nieuw lid in. Na opslaan wordt het lid uitgenodigd en als pending lid aangemaakt.
-        </p>
+      <div id="ledenbeheer-formulier" class="admin-card admin-card--form" aria-labelledby="nieuw-lid-title">
+        <div class="admin-card__header">
+          <div>
+            <p class="admin-card__eyebrow">Nieuwe uitnodiging</p>
+            <h3 id="nieuw-lid-title">Nieuw lid toevoegen</h3>
+            <p class="ledenbeheer-uitleg">
+              Vul de gegevens van een nieuw lid in. Na opslaan wordt het lid uitgenodigd en als pending lid aangemaakt.
+            </p>
+          </div>
+        </div>
 
-        <form id="nieuw-lid-form" class="ledenbeheer-form" novalidate>
-          <div class="ledenbeheer-form-row">
+        <form id="nieuw-lid-form" class="ledenbeheer-form ledenbeheer-form--create" novalidate>
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--full">
             <label for="full_name">Volledige naam</label>
             <input type="text" id="full_name" name="full_name" autocomplete="name">
             <p id="full_name_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--wide">
             <label for="street">Straat</label>
             <input type="text" id="street" name="street" autocomplete="address-line1">
             <p id="street_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--narrow">
             <label for="house_number">Huisnummer</label>
             <input type="text" id="house_number" name="house_number" inputmode="text" autocomplete="address-line2">
             <p id="house_number_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--narrow">
             <label for="postal_code">Postcode</label>
             <input type="text" id="postal_code" name="postal_code" autocomplete="postal-code">
             <p id="postal_code_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--wide">
             <label for="city">Plaats</label>
             <input type="text" id="city" name="city" autocomplete="address-level2">
             <p id="city_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--half">
             <label for="email">E-mailadres</label>
             <input type="email" id="email" name="email" autocomplete="email">
             <p id="email_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--half">
             <label for="email_confirm">Bevestig e-mailadres</label>
             <input type="email" id="email_confirm" name="email_confirm" autocomplete="email">
             <p id="email_confirm_error" class="ledenbeheer-field-error"></p>
           </div>
 
-          <div class="ledenbeheer-form-row">
+          <div class="ledenbeheer-form-row ledenbeheer-form-row--half">
             <label for="phone">Telefoonnummer (optioneel)</label>
             <input type="text" id="phone" name="phone" autocomplete="tel" inputmode="tel">
             <p id="phone_error" class="ledenbeheer-field-error"></p>
           </div>
 
           <div class="ledenbeheer-actions">
-            <button type="submit" id="nieuw-lid-submit">Lid voorbereiden</button>
+            <button type="submit" id="nieuw-lid-submit">Nieuw lid uitnodigen</button>
           </div>
         </form>
       </div>
 
-      <div id="ledenbeheer-lijst">
-        <h3>Bestaande leden</h3>
-        <p class="ledenbeheer-uitleg">
-          Deze lijst toont de actuele leden uit de ledenadministratie.
-        </p>
+      <div id="ledenbeheer-lijst" class="admin-card admin-card--list" aria-labelledby="ledenlijst-title">
+        <div class="admin-card__header admin-card__header--list">
+          <div>
+            <p class="admin-card__eyebrow">Actueel overzicht</p>
+            <h3 id="ledenlijst-title">Bestaande leden</h3>
+            <p class="ledenbeheer-uitleg">
+              Deze lijst toont de actuele leden uit de ledenadministratie.
+            </p>
+          </div>
+          <span id="ledenbeheer-total-count" class="ledenbeheer-total-count" aria-live="polite">0 leden</span>
+        </div>
 
         <div class="ledenbeheer-controls" aria-label="Ledenlijst filters">
           <div class="ledenbeheer-control-row">
@@ -534,7 +138,7 @@
             </div>
 
             <div class="ledenbeheer-control">
-              <label for="ledenbeheer-role-filter">Role</label>
+              <label for="ledenbeheer-role-filter">Rol</label>
               <select id="ledenbeheer-role-filter">
                 <option value="all">Alle rollen</option>
                 <option value="admin">Admin</option>
@@ -560,6 +164,11 @@
                 <option value="50">50 leden</option>
               </select>
             </div>
+
+            <div class="ledenbeheer-control ledenbeheer-control--reset">
+              <span class="ledenbeheer-control-label">Filters</span>
+              <button type="button" id="ledenbeheer-reset-filters">Wis filters</button>
+            </div>
           </div>
 
           <p id="ledenbeheer-result-count" class="ledenbeheer-result-count" aria-live="polite">
@@ -573,7 +182,7 @@
               <tr>
                 <th>Naam</th>
                 <th>E-mailadres</th>
-                <th>Role</th>
+                <th>Rol</th>
                 <th>Status</th>
                 <th>Acties</th>
               </tr>
@@ -645,7 +254,7 @@
             </div>
 
             <div class="ledenbeheer-form-row">
-              <label for="edit_role">Role</label>
+              <label for="edit_role">Rol</label>
               <input type="text" id="edit_role" readonly>
             </div>
 

@@ -45,7 +45,28 @@ if (!MEMBER_DISPLAY_NAME) {
   throw new Error('Missing required environment variable: TEST_MEMBER_DISPLAY_NAME');
 }
 
-const MEMBER_SEARCH_TERM = MEMBER_DISPLAY_NAME.trim().split(/\s+/)[0]!.toLowerCase();
+const CONTROLLED_MEMBERS = Array.from({ length: 55 }, (_, index) => {
+  const number = index + 1;
+  const padded = String(number).padStart(2, '0');
+  const status = ['active', 'pending', 'inactive'][index % 3]!;
+  const role = number % 10 === 0 ? 'admin' : 'member';
+
+  return {
+    id: `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+    auth_user_id: `10000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
+    full_name: `Lid ${padded} Testpersoon`,
+    street: 'Teststraat',
+    house_number: String(number),
+    postal_code: '1234 AB',
+    city: 'Teststad',
+    phone: `061234${String(number).padStart(4, '0')}`,
+    email: number === 1
+      ? 'zeer.lang.emailadres.voor.mobiele.weergave.01@example.test'
+      : `lid.${padded}@example.test`,
+    role,
+    status,
+  };
+});
 
 function getSupabaseAdminClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -269,33 +290,137 @@ async function openMemberActionMenu(page) {
   return memberRow;
 }
 
-async function expectVisibleRowsSortedByColumn(page, columnIndex: number) {
-  const values = await page
-    .locator('#ledenbeheer-lijst-body tr:not(.ledenbeheer-empty-row)')
-    .evaluateAll((rows, index) => {
-      return rows
-        .map((row) => row.children[index as number]?.textContent?.trim().toLowerCase() || '')
-        .filter(Boolean);
-    }, columnIndex);
+function isControlledMembersListUrl(url: URL) {
+  const selectedColumns = (url.searchParams.get('select') || '')
+    .split(',')
+    .map((column) => column.trim());
+  const requiredColumns = [
+    'id',
+    'auth_user_id',
+    'full_name',
+    'street',
+    'house_number',
+    'postal_code',
+    'city',
+    'phone',
+    'email',
+    'role',
+    'status',
+  ];
+  const order = url.searchParams.get('order') || '';
 
-  expect(values.length).toBeGreaterThan(0);
-
-  const sortedValues = [...values].sort((a, b) =>
-    a.localeCompare(b, 'nl', { sensitivity: 'base' })
+  return (
+    url.pathname.endsWith('/rest/v1/profiles') &&
+    requiredColumns.every((column) => selectedColumns.includes(column)) &&
+    order.startsWith('full_name.asc')
   );
-
-  expect(values).toEqual(sortedValues);
 }
 
-async function expectVisibleRowCountAtMost(page, maximum: number) {
-  const visibleRows = page.locator('#ledenbeheer-lijst-body tr:not(.ledenbeheer-empty-row)');
+async function installControlledMembersList(page) {
+  let membersListGetHandled = false;
 
-  await expect(visibleRows.first()).toBeVisible({ timeout: 15000 });
+  await page.route((url) => isControlledMembersListUrl(url), async (route) => {
+    const request = route.request();
+    const requestOrigin = request.headers().origin || 'http://localhost:5500';
+    const corsHeaders = {
+      'access-control-allow-origin': requestOrigin,
+      'access-control-allow-headers': 'authorization, apikey, content-profile, prefer, x-client-info',
+      'access-control-allow-methods': 'GET, OPTIONS',
+      'access-control-expose-headers': 'content-range, content-location',
+      'vary': 'Origin',
+    };
 
-  const visibleRowCount = await visibleRows.count();
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: corsHeaders,
+        body: '',
+      });
+      return;
+    }
 
-  expect(visibleRowCount).toBeGreaterThan(0);
-  expect(visibleRowCount).toBeLessThanOrEqual(maximum);
+    if (request.method() !== 'GET') {
+      await route.abort('blockedbyclient');
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'content-type': 'application/json; charset=utf-8',
+        'content-profile': 'public',
+        'content-range': '0-54/55',
+      },
+      body: JSON.stringify(CONTROLLED_MEMBERS),
+    });
+
+    membersListGetHandled = true;
+  });
+
+  return () => membersListGetHandled;
+}
+
+async function openAdminWithControlledMembers(page) {
+  await loginAsAdmin(page);
+  const wasControlledMembersListHandled = await installControlledMembersList(page);
+
+  await page.goto('http://localhost:5500/admin/index.html');
+
+  await expect(page).toHaveURL(/admin\/index\.html/);
+  await expect(page.locator('main')).toContainText('Welkom (Admin)');
+  await expect(page.locator('#ledenbeheer')).toBeVisible();
+  await expect(page.locator('#nieuw-lid-form')).toBeVisible();
+
+  await page.waitForFunction(async () => {
+    if (!window.authHelpers || typeof window.authHelpers.getCurrentSession !== 'function') {
+      return false;
+    }
+
+    try {
+      const session = await window.authHelpers.getCurrentSession();
+      return Boolean(session?.access_token);
+    } catch {
+      return false;
+    }
+  });
+
+  await expect.poll(wasControlledMembersListHandled, {
+    message: 'De gecontroleerde read-only ledenlijstrequest is niet onderschept en beantwoord.',
+    timeout: 15000,
+  }).toBe(true);
+
+  await expect(page.locator('#ledenbeheer-total-count')).toHaveText('55 leden');
+  await expect(page.locator('#ledenbeheer-result-count')).toHaveText('Leden 1–10 van 55');
+  await expect(page.locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row')).toHaveCount(10);
+}
+
+async function getVisibleMemberCellValues(page, columnIndex: number) {
+  return page
+    .locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row')
+    .evaluateAll((rows, index) => rows.map((row) => (
+      row.children[index as number]?.textContent?.trim().toLowerCase() || ''
+    )), columnIndex);
+}
+
+async function getTestProfileDetails(email: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('email, street, house_number, postal_code, city, phone, status')
+    .ilike('email', email)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
 }
 
 test('Geldig account kan inloggen en dashboard openen', async ({ page }) => {
@@ -370,6 +495,155 @@ test('Ingelogde admin ziet ledenbeheerformulier op adminpagina', async ({ page }
   await expect(page.locator('#ledenbeheer-formulier')).toContainText('Nieuw lid toevoegen');
 });
 
+test('Ingelogde admin ziet op desktop het formulier in de afgesproken kolomindeling', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const layout = await page.evaluate(() => {
+    const rect = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!(element instanceof HTMLElement)) {
+        throw new Error(`Element ontbreekt: ${selector}`);
+      }
+
+      const bounds = element.getBoundingClientRect();
+      return {
+        left: Math.round(bounds.left),
+        right: Math.round(bounds.right),
+        top: Math.round(bounds.top),
+        width: Math.round(bounds.width),
+      };
+    };
+
+    return {
+      viewportWidth: document.documentElement.clientWidth,
+      card: rect('#ledenbeheer-formulier'),
+      fullName: rect('#full_name'),
+      street: rect('#street'),
+      houseNumber: rect('#house_number'),
+      postalCode: rect('#postal_code'),
+      city: rect('#city'),
+      email: rect('#email'),
+      emailConfirm: rect('#email_confirm'),
+    };
+  });
+
+  expect(layout.card.width).toBeLessThan(950);
+  expect(layout.card.width).toBeLessThan(layout.viewportWidth);
+  expect(layout.fullName.left).toBe(layout.street.left);
+  expect(layout.fullName.right).toBe(layout.houseNumber.right);
+  expect(layout.street.top).toBe(layout.houseNumber.top);
+  expect(layout.postalCode.top).toBe(layout.city.top);
+  expect(layout.email.top).toBe(layout.emailConfirm.top);
+  expect(layout.street.width).toBeGreaterThan(layout.houseNumber.width);
+  expect(layout.city.width).toBeGreaterThan(layout.postalCode.width);
+});
+
+test('Ingelogde admin heeft op mobiel geen pagina-overflow en formulier staat in één kolom', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 });
+  await loginAsAdmin(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const fullName = page.locator('#full_name');
+  const street = page.locator('#street');
+  const houseNumber = page.locator('#house_number');
+  const postalCode = page.locator('#postal_code');
+  const city = page.locator('#city');
+  const email = page.locator('#email');
+  const emailConfirm = page.locator('#email_confirm');
+  const submitButton = page.locator('#nieuw-lid-submit');
+  const formCard = page.locator('#ledenbeheer-formulier');
+  const listCard = page.locator('#ledenbeheer-lijst');
+  const tableWrapper = page.locator('.ledenbeheer-table-wrapper');
+
+  await expect(fullName).toBeVisible();
+  await expect(submitButton).toBeVisible();
+  await expect(listCard).toBeVisible();
+
+  const formLayout = await page.evaluate(() => {
+    const rect = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!(element instanceof HTMLElement)) {
+        throw new Error(`Element ontbreekt: ${selector}`);
+      }
+
+      const bounds = element.getBoundingClientRect();
+      return {
+        left: bounds.left,
+        right: bounds.right,
+        top: bounds.top,
+        bottom: bounds.bottom,
+        width: bounds.width,
+      };
+    };
+
+    return {
+      viewportWidth: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      fullName: rect('#full_name'),
+      street: rect('#street'),
+      houseNumber: rect('#house_number'),
+      postalCode: rect('#postal_code'),
+      city: rect('#city'),
+      email: rect('#email'),
+      emailConfirm: rect('#email_confirm'),
+      submitButton: rect('#nieuw-lid-submit'),
+      formCard: rect('#ledenbeheer-formulier'),
+      listCard: rect('#ledenbeheer-lijst'),
+    };
+  });
+
+  expect(formLayout.documentWidth).toBeLessThanOrEqual(formLayout.viewportWidth + 1);
+
+  for (const element of [formLayout.formCard, formLayout.listCard, formLayout.submitButton]) {
+    expect(element.left).toBeGreaterThanOrEqual(-1);
+    expect(element.right).toBeLessThanOrEqual(formLayout.viewportWidth + 1);
+  }
+
+  expect(formLayout.houseNumber.top).toBeGreaterThan(formLayout.street.top);
+  expect(formLayout.city.top).toBeGreaterThan(formLayout.postalCode.top);
+  expect(formLayout.emailConfirm.top).toBeGreaterThan(formLayout.email.top);
+
+  const inputWidths = [
+    formLayout.fullName.width,
+    formLayout.street.width,
+    formLayout.houseNumber.width,
+    formLayout.postalCode.width,
+    formLayout.city.width,
+    formLayout.email.width,
+    formLayout.emailConfirm.width,
+  ];
+
+  for (const width of inputWidths) {
+    expect(width).toBeGreaterThan(200);
+    expect(width).toBeLessThanOrEqual(formLayout.formCard.width);
+  }
+
+  const tableLayout = await tableWrapper.evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    overflowX: window.getComputedStyle(element).overflowX,
+  }));
+
+  expect(tableLayout.scrollWidth).toBeLessThanOrEqual(tableLayout.clientWidth + 1);
+  expect(tableLayout.overflowX).not.toMatch(/auto|scroll/);
+
+  const firstMemberCard = page.locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row').first();
+  await expect(firstMemberCard).toBeVisible();
+  await expect(firstMemberCard.locator('td[data-label="E-mailadres"]')).toBeVisible();
+  await expect(firstMemberCard.locator('td[data-label="Rol"]')).toBeVisible();
+  await expect(firstMemberCard.locator('td[data-label="Status"]')).toBeVisible();
+  await expect(firstMemberCard.locator('td[data-label="Acties"]')).toBeVisible();
+
+  await street.scrollIntoViewIfNeeded();
+  await street.fill('Teststraat');
+  await houseNumber.fill('14');
+
+  await expect(street).toHaveValue('Teststraat');
+  await expect(houseNumber).toHaveValue('14');
+});
+
 test('Ingelogde admin ziet schaalbare ledenlijstfuncties', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
@@ -380,6 +654,8 @@ test('Ingelogde admin ziet schaalbare ledenlijstfuncties', async ({ page }) => {
   await expect(page.locator('#ledenbeheer-sortering')).toBeVisible();
   await expect(page.locator('#ledenbeheer-page-size')).toBeVisible();
   await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-total-count')).toBeVisible();
+  await expect(page.locator('#ledenbeheer-reset-filters')).toBeVisible();
   await expect(page.locator('#ledenbeheer-prev-page')).toBeVisible();
   await expect(page.locator('#ledenbeheer-next-page')).toBeVisible();
 });
@@ -388,7 +664,7 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
 
-  await expect(page.locator('th')).toContainText(['Naam', 'E-mailadres', 'Role', 'Status', 'Acties']);
+  await expect(page.locator('th')).toContainText(['Naam', 'E-mailadres', 'Rol', 'Status', 'Acties']);
 
   const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: ADMIN_DISPLAY_NAME });
   await expect(adminRow).toContainText('Eigen account');
@@ -443,7 +719,15 @@ test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, brows
   await memberRow.locator('.ledenbeheer-menu-action.deactivate').click();
 
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Lid is gedeactiveerd.');
+  await expect
+    .poll(async () => getTestProfileStatus(STATUS_MEMBER_EMAIL), {
+      timeout: 15000,
+      message: 'De backendstatus is niet inactive geworden.',
+    })
+    .toBe('inactive');
 
+  await page.reload();
+  await waitForLedenlijstReady(page);
   await page.selectOption('#ledenbeheer-status-filter', 'inactive');
   await page.fill('#ledenbeheer-zoek', STATUS_MEMBER_EMAIL);
 
@@ -459,7 +743,15 @@ test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, brows
   await memberRow.locator('.ledenbeheer-menu-action.activate').click();
 
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Lid is geheractiveerd.');
+  await expect
+    .poll(async () => getTestProfileStatus(STATUS_MEMBER_EMAIL), {
+      timeout: 15000,
+      message: 'De backendstatus is niet active geworden.',
+    })
+    .toBe('active');
 
+  await page.reload();
+  await waitForLedenlijstReady(page);
   await page.selectOption('#ledenbeheer-status-filter', 'active');
   await page.fill('#ledenbeheer-zoek', STATUS_MEMBER_EMAIL);
 
@@ -475,11 +767,14 @@ test('Ingelogde admin kan bewerkmodal voor lid openen en sluiten', async ({ page
 
   const memberRow = await openMemberActionMenu(page);
 
-  await memberRow.locator('.ledenbeheer-menu-action.edit').click();
+  const actionTrigger = memberRow.locator('.ledenbeheer-action-trigger');
+  const editButton = memberRow.locator('.ledenbeheer-menu-action.edit');
+  await editButton.click();
 
   await expect(page.locator('#ledenbeheer-edit-modal')).toHaveClass(/open/);
   await expect(page.locator('#ledenbeheer-edit-title')).toContainText('Lidgegevens bewerken');
   await expect(page.locator('#edit_full_name')).toBeVisible();
+  await expect(page.locator('#edit_full_name')).toBeFocused();
   await expect(page.locator('#edit_email')).toBeVisible();
   await expect(page.locator('#edit_role')).toBeVisible();
   await expect(page.locator('#edit_status')).toBeVisible();
@@ -489,9 +784,10 @@ test('Ingelogde admin kan bewerkmodal voor lid openen en sluiten', async ({ page
   await expect(page.locator('#ledenbeheer-edit-save')).toBeVisible();
   await expect(page.locator('#ledenbeheer-edit-cancel')).toBeVisible();
 
-  await page.click('#ledenbeheer-edit-cancel');
+  await page.keyboard.press('Escape');
 
   await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
+  await expect(actionTrigger).toBeFocused();
 });
 
 // Controleert client-side validatie zonder echte lidgegevensmutatie.
@@ -536,6 +832,10 @@ test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstell
       true,
       'TEST_PROFILE_MEMBER_EMAIL/PASSWORD/DISPLAY_NAME ontbreekt; profielbewerking-test wordt overgeslagen.'
     );
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'Supabase service credentials ontbreken voor backend- en persistentiecontrole.');
   }
 
   await loginAsAdmin(page);
@@ -588,6 +888,21 @@ test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstell
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Lidgegevens zijn opgeslagen.');
   await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
 
+  await expect
+    .poll(async () => getTestProfileDetails(PROFILE_MEMBER_EMAIL!), {
+      timeout: 15000,
+      message: 'De gewijzigde profielgegevens zijn niet in de backend opgeslagen.',
+    })
+    .toMatchObject({
+      street: updatedValues.street,
+      house_number: updatedValues.houseNumber,
+      postal_code: updatedValues.postalCode,
+      city: updatedValues.city,
+      phone: updatedValues.phone,
+    });
+
+  await page.reload();
+  await waitForLedenlijstReady(page);
   await openProfileEditModal();
 
   await expect(page.locator('#edit_street')).toHaveValue(updatedValues.street);
@@ -606,6 +921,21 @@ test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstell
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Lidgegevens zijn opgeslagen.');
   await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
 
+  await expect
+    .poll(async () => getTestProfileDetails(PROFILE_MEMBER_EMAIL!), {
+      timeout: 15000,
+      message: 'De oorspronkelijke profielgegevens zijn niet in de backend hersteld.',
+    })
+    .toMatchObject({
+      street: originalValues.street,
+      house_number: originalValues.houseNumber,
+      postal_code: originalValues.postalCode,
+      city: originalValues.city,
+      phone: originalValues.phone,
+    });
+
+  await page.reload();
+  await waitForLedenlijstReady(page);
   await openProfileEditModal();
 
   await expect(page.locator('#edit_street')).toHaveValue(originalValues.street);
@@ -618,76 +948,175 @@ test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstell
   await expect(page.locator('#ledenbeheer-edit-modal')).not.toHaveClass(/open/);
 });
 
-test('Ingelogde admin kan ledenlijst zoeken en filteren', async ({ page }) => {
-  await loginAsAdmin(page);
-  await openAdminAndWaitUntilReady(page);
+test('Ingelogde admin kan gecontroleerd zoeken, combineren, nulresultaat tonen en filters wissen', async ({ page }) => {
+  await openAdminWithControlledMembers(page);
 
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(ADMIN_DISPLAY_NAME);
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(MEMBER_DISPLAY_NAME);
+  const rows = page.locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row');
+  const resultCount = page.locator('#ledenbeheer-result-count');
 
-  await page.fill('#ledenbeheer-zoek', MEMBER_SEARCH_TERM);
+  await expect(rows).toHaveCount(10);
+  await expect(resultCount).toHaveText('Leden 1–10 van 55');
 
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(MEMBER_DISPLAY_NAME);
-  await expect(page.locator('#ledenbeheer-lijst-body')).not.toContainText(ADMIN_DISPLAY_NAME);
+  await page.fill('#ledenbeheer-zoek', 'Lid 07');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText('Lid 07 Testpersoon');
+  await expect(resultCount).toHaveText('Leden 1–1 van 1 gevonden leden (55 totaal)');
+
+  await page.fill('#ledenbeheer-zoek', 'zeer.lang.emailadres');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText(
+    'zeer.lang.emailadres.voor.mobiele.weergave.01@example.test'
+  );
 
   await page.fill('#ledenbeheer-zoek', '');
   await page.selectOption('#ledenbeheer-role-filter', 'member');
+  await page.selectOption('#ledenbeheer-status-filter', 'inactive');
 
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('member');
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(MEMBER_DISPLAY_NAME);
+  await expect(rows.first()).toBeVisible();
+  const filteredRows = await rows.evaluateAll((items) => items.map((row) => ({
+    role: row.querySelector('.role-badge')?.textContent?.trim(),
+    status: row.querySelector('.status-badge')?.textContent?.trim(),
+  })));
 
-  await page.selectOption('#ledenbeheer-status-filter', 'active');
+  expect(filteredRows.length).toBeGreaterThan(0);
+  expect(filteredRows.every((row) => row.role === 'member')).toBe(true);
+  expect(filteredRows.every((row) => row.status === 'inactive')).toBe(true);
 
-  await expect(page.locator('#ledenbeheer-lijst-body')).toContainText('active');
-
-  await page.selectOption('#ledenbeheer-sortering', 'email');
-  await page.selectOption('#ledenbeheer-page-size', '25');
-
-  await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
-  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
-});
-
-test('Ingelogde admin ziet inhoudelijke sortering in ledenlijst', async ({ page }) => {
-  await loginAsAdmin(page);
-  await openAdminAndWaitUntilReady(page);
-
-  await page.selectOption('#ledenbeheer-role-filter', 'all');
-  await page.selectOption('#ledenbeheer-status-filter', 'all');
-  await page.fill('#ledenbeheer-zoek', '');
-  await page.selectOption('#ledenbeheer-page-size', '25');
-
-  await page.selectOption('#ledenbeheer-sortering', 'full_name');
-  await expectVisibleRowsSortedByColumn(page, 0);
+  await page.fill('#ledenbeheer-zoek', 'bestaat-niet');
+  await expect(page.locator('#ledenbeheer-lijst-body tr.ledenbeheer-empty-row')).toBeVisible();
+  await expect(resultCount).toHaveText('Geen leden gevonden (55 totaal).');
 
   await page.selectOption('#ledenbeheer-sortering', 'email');
-  await expectVisibleRowsSortedByColumn(page, 1);
+  await page.selectOption('#ledenbeheer-page-size', '25');
+  await page.click('#ledenbeheer-reset-filters');
 
-  await page.selectOption('#ledenbeheer-sortering', 'role');
-  await expectVisibleRowsSortedByColumn(page, 2);
-
-  await page.selectOption('#ledenbeheer-sortering', 'status');
-  await expectVisibleRowsSortedByColumn(page, 3);
+  await expect(page.locator('#ledenbeheer-zoek')).toHaveValue('');
+  await expect(page.locator('#ledenbeheer-status-filter')).toHaveValue('all');
+  await expect(page.locator('#ledenbeheer-role-filter')).toHaveValue('all');
+  await expect(page.locator('#ledenbeheer-sortering')).toHaveValue('full_name');
+  await expect(page.locator('#ledenbeheer-page-size')).toHaveValue('10');
+  await expect(page.locator('#ledenbeheer-page-status')).toHaveText('Pagina 1 van 6');
+  await expect(resultCount).toHaveText('Leden 1–10 van 55');
+  await expect(rows).toHaveCount(10);
+  await expect(page.locator('#ledenbeheer-zoek')).toBeFocused();
 });
 
-test('Ingelogde admin ziet consistente paginering en page-size in ledenlijst', async ({ page }) => {
-  await loginAsAdmin(page);
-  await openAdminAndWaitUntilReady(page);
+test('Ingelogde admin ziet gecontroleerde sortering voor naam, e-mail, rol en status', async ({ page }) => {
+  await openAdminWithControlledMembers(page);
+  await page.selectOption('#ledenbeheer-page-size', '50');
 
-  await page.selectOption('#ledenbeheer-role-filter', 'all');
-  await page.selectOption('#ledenbeheer-status-filter', 'all');
-  await page.fill('#ledenbeheer-zoek', '');
+  const sortCases = [
+    { option: 'full_name', column: 0 },
+    { option: 'email', column: 1 },
+    { option: 'role', column: 2 },
+    { option: 'status', column: 3 },
+  ];
 
-  await page.selectOption('#ledenbeheer-page-size', '10');
-  await expectVisibleRowCountAtMost(page, 10);
-  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+  for (const sortCase of sortCases) {
+    await page.selectOption('#ledenbeheer-sortering', sortCase.option);
+    const values = await getVisibleMemberCellValues(page, sortCase.column);
+    const sortedValues = [...values].sort((a, b) =>
+      a.localeCompare(b, 'nl', { sensitivity: 'base' })
+    );
+
+    expect(values).toHaveLength(50);
+    expect(values).toEqual(sortedValues);
+  }
+});
+
+test('Ingelogde admin ziet gecontroleerde paginering, tellingen en page-size', async ({ page }) => {
+  await openAdminWithControlledMembers(page);
+
+  const rows = page.locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row');
+  const names = () => getVisibleMemberCellValues(page, 0);
+
+  await expect(rows).toHaveCount(10);
+  await expect(page.locator('#ledenbeheer-prev-page')).toBeDisabled();
+  await expect(page.locator('#ledenbeheer-next-page')).toBeEnabled();
+  await expect(page.locator('#ledenbeheer-page-status')).toHaveText('Pagina 1 van 6');
+  const firstPageNames = await names();
+
+  await page.click('#ledenbeheer-next-page');
+  await expect(page.locator('#ledenbeheer-page-status')).toHaveText('Pagina 2 van 6');
+  const secondPageNames = await names();
+  expect(secondPageNames).not.toEqual(firstPageNames);
+
+  await page.click('#ledenbeheer-prev-page');
+  const restoredFirstPageNames = await names();
+  expect(restoredFirstPageNames).toEqual(firstPageNames);
 
   await page.selectOption('#ledenbeheer-page-size', '25');
-  await expectVisibleRowCountAtMost(page, 25);
-  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+  await expect(rows).toHaveCount(25);
+  await expect(page.locator('#ledenbeheer-page-status')).toHaveText('Pagina 1 van 3');
+  await expect(page.locator('#ledenbeheer-result-count')).toHaveText('Leden 1–25 van 55');
 
   await page.selectOption('#ledenbeheer-page-size', '50');
-  await expectVisibleRowCountAtMost(page, 50);
-  await expect(page.locator('#ledenbeheer-page-status')).toContainText(/Pagina \d+ van \d+/);
+  await expect(rows).toHaveCount(50);
+  await expect(page.locator('#ledenbeheer-page-status')).toHaveText('Pagina 1 van 2');
+
+  await page.click('#ledenbeheer-next-page');
+  await expect(rows).toHaveCount(5);
+  await expect(page.locator('#ledenbeheer-page-status')).toHaveText('Pagina 2 van 2');
+  await expect(page.locator('#ledenbeheer-result-count')).toHaveText('Leden 51–55 van 55');
+  await expect(page.locator('#ledenbeheer-next-page')).toBeDisabled();
+  await expect(page.locator('#ledenbeheer-prev-page')).toBeEnabled();
+});
+
+test('Ingelogde admin ziet op mobiel volledige ledenkaarten zonder afgekapt e-mailadres', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 });
+  await openAdminWithControlledMembers(page);
+
+  const firstCard = page.locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row').first();
+  const emailCell = firstCard.locator('td[data-label="E-mailadres"]');
+  const roleCell = firstCard.locator('td[data-label="Rol"]');
+  const statusCell = firstCard.locator('td[data-label="Status"]');
+  const actionsCell = firstCard.locator('td[data-label="Acties"]');
+
+  await expect(firstCard).toBeVisible();
+  await expect(emailCell).toContainText(
+    'zeer.lang.emailadres.voor.mobiele.weergave.01@example.test'
+  );
+  await expect(roleCell).toBeVisible();
+  await expect(statusCell).toBeVisible();
+  await expect(actionsCell).toBeVisible();
+
+  const layout = await page.evaluate(() => {
+    const card = document.querySelector('#ledenbeheer-lijst-body tr.ledenbeheer-member-row');
+    const email = card?.querySelector('td[data-label="E-mailadres"]');
+
+    if (!(card instanceof HTMLElement) || !(email instanceof HTMLElement)) {
+      throw new Error('Mobiele ledenkaart of e-mailcel ontbreekt.');
+    }
+
+    const cardRect = card.getBoundingClientRect();
+    const emailRect = email.getBoundingClientRect();
+
+    return {
+      viewportWidth: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      cardLeft: cardRect.left,
+      cardRight: cardRect.right,
+      cardScrollWidth: card.scrollWidth,
+      cardClientWidth: card.clientWidth,
+      emailLeft: emailRect.left,
+      emailRight: emailRect.right,
+      emailScrollWidth: email.scrollWidth,
+      emailClientWidth: email.clientWidth,
+    };
+  });
+
+  expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth + 1);
+  expect(layout.cardLeft).toBeGreaterThanOrEqual(-1);
+  expect(layout.cardRight).toBeLessThanOrEqual(layout.viewportWidth + 1);
+  expect(layout.cardScrollWidth).toBeLessThanOrEqual(layout.cardClientWidth + 1);
+  expect(layout.emailLeft).toBeGreaterThanOrEqual(layout.cardLeft - 1);
+  expect(layout.emailRight).toBeLessThanOrEqual(layout.cardRight + 1);
+  expect(layout.emailScrollWidth).toBeLessThanOrEqual(layout.emailClientWidth + 1);
+
+  const actionTrigger = firstCard.locator('.ledenbeheer-action-trigger');
+  await actionTrigger.click();
+  await expect(firstCard.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
+  await expect(firstCard.locator('.ledenbeheer-menu-action.edit')).toBeVisible();
 });
 
 test('Ingelogde admin ziet toastmelding bij client-side validatiefout nieuw lid', async ({ page }) => {
@@ -699,9 +1128,26 @@ test('Ingelogde admin ziet toastmelding bij client-side validatiefout nieuw lid'
   await expect(page.locator('#full_name_error')).toBeVisible();
   await expect(page.locator('#full_name_error')).toContainText('Volledige naam is verplicht.');
 
-  await expect(page.locator('#ledenbeheer-toast')).toBeVisible();
-  await expect(page.locator('#ledenbeheer-toast')).toContainText('Volledige naam is verplicht.');
-  await expect(page.locator('#ledenbeheer-toast')).toHaveCSS('position', 'fixed');
+  const toast = page.locator('#ledenbeheer-toast');
+  const closeButton = page.locator('#ledenbeheer-toast-close');
+
+  await expect(toast).toBeVisible();
+  await expect(toast).toContainText('Volledige naam is verplicht.');
+  await expect(toast).toHaveCSS('position', 'fixed');
+  await expect(toast).toHaveAttribute('role', 'alert');
+  await expect(toast).toHaveAttribute('aria-live', 'assertive');
+  await expect(toast).toHaveAttribute('aria-atomic', 'true');
+  await expect(closeButton).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(toast).toBeVisible();
+
+  await closeButton.click();
+  await expect(toast).toBeHidden();
+
+  await page.click('#nieuw-lid-submit');
+  await expect(toast).toBeVisible();
+  await expect(toast).toContainText('Volledige naam is verplicht.');
 });
 
 test('Ingelogde admin krijgt backend-foutmelding bij bestaand e-mailadres', async ({ page }) => {
@@ -876,6 +1322,13 @@ test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', asy
       })
       .toBe('member:pending');
 
+    await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(CREATE_MEMBER_EMAIL, {
+      timeout: 15000,
+    });
+
+    await page.reload();
+    await waitForLedenlijstReady(page);
+    await page.fill('#ledenbeheer-zoek', CREATE_MEMBER_EMAIL);
     await expect(page.locator('#ledenbeheer-lijst-body')).toContainText(CREATE_MEMBER_EMAIL, {
       timeout: 15000,
     });
