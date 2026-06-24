@@ -2,6 +2,7 @@
   let leden = [];
   let huidigePagina = 1;
   let currentProfile = null;
+  let lastModalTrigger = null;
 
   const ledenFilters = {
     zoekterm: "",
@@ -41,12 +42,34 @@
 
   function setMelding(message, type = "info") {
     const toast = getElement("ledenbeheer-toast");
+    const messageElement = getElement("ledenbeheer-toast-message");
 
-    if (toast) {
-      toast.textContent = message;
-      toast.className = `ledenbeheer-toast ${type}`;
-      toast.style.display = "block";
+    if (!toast) {
+      return;
     }
+
+    if (messageElement) {
+      messageElement.textContent = message;
+    }
+
+    const isError = type === "error";
+
+    toast.className = `ledenbeheer-toast ${type} visible`;
+    toast.hidden = false;
+    toast.setAttribute("role", isError ? "alert" : "status");
+    toast.setAttribute("aria-live", isError ? "assertive" : "polite");
+    toast.setAttribute("aria-atomic", "true");
+  }
+
+  function closeMelding() {
+    const toast = getElement("ledenbeheer-toast");
+
+    if (!toast) {
+      return;
+    }
+
+    toast.classList.remove("visible");
+    toast.hidden = true;
   }
 
   function isValidEmail(email) {
@@ -297,23 +320,38 @@
     };
   }
 
-  function renderResultCount(totaalGefilterd) {
+  function renderResultCount(totaalGefilterd, paginering) {
     const resultCount = getElement("ledenbeheer-result-count");
-    if (!resultCount) return;
-
+    const totalCount = getElement("ledenbeheer-total-count");
     const totaal = leden.length;
+
+    if (totalCount) {
+      totalCount.textContent = `${totaal} ${totaal === 1 ? "lid" : "leden"}`;
+    }
+
+    if (!resultCount) {
+      return;
+    }
 
     if (totaal === 0) {
       resultCount.textContent = "Geen leden beschikbaar.";
       return;
     }
 
-    if (totaalGefilterd === totaal) {
-      resultCount.textContent = `${totaal} leden gevonden.`;
+    if (totaalGefilterd === 0) {
+      resultCount.textContent = `Geen leden gevonden (${totaal} totaal).`;
       return;
     }
 
-    resultCount.textContent = `${totaalGefilterd} van ${totaal} leden gevonden.`;
+    const eerste = paginering.startIndex + 1;
+    const laatste = Math.min(paginering.eindIndex, totaalGefilterd);
+
+    if (totaalGefilterd === totaal) {
+      resultCount.textContent = `Leden ${eerste}–${laatste} van ${totaal}`;
+      return;
+    }
+
+    resultCount.textContent = `Leden ${eerste}–${laatste} van ${totaalGefilterd} gevonden leden (${totaal} totaal)`;
   }
 
   function renderPaginering(totaalPaginas) {
@@ -420,7 +458,7 @@
     const gefilterdeLeden = getGefilterdeLeden();
     const paginering = getPaginering(gefilterdeLeden);
 
-    renderResultCount(gefilterdeLeden.length);
+    renderResultCount(gefilterdeLeden.length, paginering);
     renderPaginering(paginering.totaalPaginas);
 
     if (!paginering.ledenVoorPagina.length) {
@@ -441,12 +479,12 @@
         const acties = renderLidActies(lid);
 
         return `
-          <tr>
-            <td>${fullName}</td>
-            <td>${email}</td>
-            <td><span class="role-badge">${role}</span></td>
-            <td><span class="status-badge ${status}">${status}</span></td>
-            <td>${acties}</td>
+          <tr class="ledenbeheer-member-row" data-profile-id="${escapeHtml(lid.id || "")}">
+            <td data-label="Naam">${fullName}</td>
+            <td data-label="E-mailadres" class="ledenbeheer-email-cell">${email}</td>
+            <td data-label="Rol"><span class="role-badge">${role}</span></td>
+            <td data-label="Status"><span class="status-badge ${status}">${status}</span></td>
+            <td data-label="Acties" class="ledenbeheer-actions-cell">${acties}</td>
           </tr>
         `;
       })
@@ -603,7 +641,7 @@
     });
   }
 
-  function openEditModal(profileId) {
+  function openEditModal(profileId, trigger = null) {
     const lid = getLidByProfileId(profileId);
     const modal = getElement("ledenbeheer-edit-modal");
 
@@ -613,6 +651,7 @@
     }
 
     clearEditErrors();
+    lastModalTrigger = trigger instanceof HTMLElement ? trigger : null;
 
     getElement("edit_profile_id").value = lid.id || "";
     getElement("edit_full_name").value = lid.full_name || "";
@@ -633,6 +672,7 @@
   function closeEditModal() {
     const modal = getElement("ledenbeheer-edit-modal");
     const form = getElement("ledenbeheer-edit-form");
+    const focusTarget = lastModalTrigger;
 
     if (modal) {
       modal.classList.remove("open");
@@ -644,6 +684,13 @@
     }
 
     clearEditErrors();
+    lastModalTrigger = null;
+
+    window.requestAnimationFrame(() => {
+      if (focusTarget && focusTarget.isConnected) {
+        focusTarget.focus();
+      }
+    });
   }
 
   function validateEditForm() {
@@ -971,11 +1018,14 @@
       if (!button) return;
 
       const profileId = button.getAttribute("data-profile-id");
+      const actionTrigger = button
+        .closest(".ledenbeheer-action-menu")
+        ?.querySelector(".ledenbeheer-action-trigger");
 
       closeActionMenus();
 
       if (button.classList.contains("edit")) {
-        openEditModal(profileId);
+        openEditModal(profileId, actionTrigger);
         return;
       }
 
@@ -1011,6 +1061,11 @@
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
         closeActionMenus();
+
+        const modal = getElement("ledenbeheer-edit-modal");
+        if (modal?.classList.contains("open")) {
+          closeEditModal();
+        }
       }
     });
 
@@ -1060,6 +1115,30 @@
     }
   }
 
+  function resetLedenlijstFilters() {
+    const zoekInput = getElement("ledenbeheer-zoek");
+    const statusFilter = getElement("ledenbeheer-status-filter");
+    const roleFilter = getElement("ledenbeheer-role-filter");
+    const sorteringSelect = getElement("ledenbeheer-sortering");
+    const pageSizeSelect = getElement("ledenbeheer-page-size");
+
+    ledenFilters.zoekterm = "";
+    ledenFilters.status = "all";
+    ledenFilters.role = "all";
+    ledenFilters.sortering = "full_name";
+    ledenFilters.pageSize = 10;
+    huidigePagina = 1;
+
+    if (zoekInput) zoekInput.value = "";
+    if (statusFilter) statusFilter.value = "all";
+    if (roleFilter) roleFilter.value = "all";
+    if (sorteringSelect) sorteringSelect.value = "full_name";
+    if (pageSizeSelect) pageSizeSelect.value = "10";
+
+    renderLedenlijst();
+    zoekInput?.focus();
+  }
+
   function bindLedenlijstControls() {
     const zoekInput = getElement("ledenbeheer-zoek");
     const statusFilter = getElement("ledenbeheer-status-filter");
@@ -1068,6 +1147,7 @@
     const pageSizeSelect = getElement("ledenbeheer-page-size");
     const prevButton = getElement("ledenbeheer-prev-page");
     const nextButton = getElement("ledenbeheer-next-page");
+    const resetButton = getElement("ledenbeheer-reset-filters");
 
     if (zoekInput) {
       zoekInput.addEventListener("input", function () {
@@ -1122,6 +1202,18 @@
         renderLedenlijst();
       });
     }
+
+    if (resetButton) {
+      resetButton.addEventListener("click", resetLedenlijstFilters);
+    }
+  }
+
+  function bindToast() {
+    const closeButton = getElement("ledenbeheer-toast-close");
+
+    if (closeButton) {
+      closeButton.addEventListener("click", closeMelding);
+    }
   }
 
   async function initLedenbeheer() {
@@ -1133,6 +1225,7 @@
       return;
     }
 
+    bindToast();
     setMelding("Ledenbeheer wordt geladen.", "info");
     currentProfile = await window.authHelpers.getCurrentProfile();
     initNieuwLidFormulier();
@@ -1154,6 +1247,7 @@
   window.ledenbeheer = {
     init: initLedenbeheer,
     setMelding,
+    closeMelding,
     laadLedenlijst,
   };
 })();

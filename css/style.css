@@ -419,6 +419,867 @@ li + li {
 }
 
 /* ===============================
+   LEDENADMINISTRATIE
+================================ */
+
+.admin-masthead {
+  padding: clamp(2.25rem, 5vw, 4.5rem) 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(16, 169, 206, 0.34), transparent 28rem),
+    linear-gradient(135deg, var(--color-primary-dark), var(--color-primary) 58%, var(--color-secondary));
+  color: #ffffff;
+}
+
+.admin-masthead__inner {
+  width: min(100% - 2rem, 1280px);
+  margin: 0 auto;
+}
+
+.admin-masthead__eyebrow,
+.admin-section-heading__eyebrow,
+.admin-card__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-masthead__eyebrow {
+  color: #d7f5fc;
+}
+
+.admin-section-heading__eyebrow,
+.admin-card__eyebrow {
+  color: var(--color-primary);
+}
+
+.admin-masthead h1,
+.admin-masthead p {
+  color: #ffffff;
+}
+
+.admin-masthead h1 {
+  margin-bottom: 0.55rem;
+  font-size: clamp(2.15rem, 4vw, 3.65rem);
+}
+
+.admin-masthead p:last-child {
+  max-width: 720px;
+  margin-bottom: 0;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+}
+
+#admin-content {
+  display: none;
+  width: min(100% - 2rem, 1280px);
+  max-width: none;
+  margin: 2rem auto 4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.admin-intro-card,
+.admin-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: var(--shadow-card);
+}
+
+.admin-intro-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.admin-intro-card h2,
+.admin-intro-card p {
+  margin-bottom: 0;
+}
+
+.admin-intro-card p {
+  color: var(--color-text-muted);
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.admin-action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.65rem 1.1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  font-weight: 750;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-action-link:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+#ledenbeheer {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+  margin-top: 2rem;
+}
+
+.admin-section-heading {
+  max-width: 780px;
+}
+
+.admin-section-heading h2 {
+  margin-bottom: 0.55rem;
+}
+
+.admin-section-heading p:last-child {
+  margin-bottom: 0;
+  color: var(--color-text-muted);
+}
+
+.admin-card {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.admin-card--form {
+  width: min(100%, 900px);
+  margin-inline: auto;
+}
+
+.admin-card--list {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-card__header h3 {
+  margin: 0 0 0.35rem;
+  color: var(--color-primary-dark);
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+}
+
+.admin-card__header--list {
+  align-items: center;
+}
+
+.ledenbeheer-total-count {
+  flex: 0 0 auto;
+  padding: 0.42rem 0.8rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-primary-dark);
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ledenbeheer-uitleg {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.ledenbeheer-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.ledenbeheer-form--create {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.2rem;
+  row-gap: 1rem;
+}
+
+.ledenbeheer-form-row {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.ledenbeheer-form--create .ledenbeheer-form-row--full {
+  grid-column: 1 / -1;
+}
+
+.ledenbeheer-form--create .ledenbeheer-form-row--wide {
+  grid-column: span 8;
+}
+
+.ledenbeheer-form--create .ledenbeheer-form-row--narrow {
+  grid-column: span 4;
+}
+
+.ledenbeheer-form--create .ledenbeheer-form-row--half {
+  grid-column: span 6;
+}
+
+.ledenbeheer-form-row label,
+.ledenbeheer-control label,
+.ledenbeheer-control-label {
+  color: var(--color-primary-dark);
+  font-size: 0.92rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.ledenbeheer-form-row input,
+.ledenbeheer-controls input,
+.ledenbeheer-controls select {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #cfc3d8;
+  border-radius: var(--radius-small);
+  background: #ffffff;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.ledenbeheer-form-row input:focus,
+.ledenbeheer-controls input:focus,
+.ledenbeheer-controls select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(16, 169, 206, 0.16);
+  outline: none;
+}
+
+.ledenbeheer-form-row input[readonly] {
+  background: #f3eff6;
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.ledenbeheer-form-row input.field-error {
+  border-color: var(--color-danger);
+  background: #fff7f8;
+}
+
+.ledenbeheer-field-error {
+  display: none;
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.ledenbeheer-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.ledenbeheer-actions button,
+#ledenbeheer-edit-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.72rem 1.35rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #ffffff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(111, 37, 174, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.ledenbeheer-actions button:hover,
+#ledenbeheer-edit-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(111, 37, 174, 0.24);
+}
+
+.ledenbeheer-controls {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+  margin-top: 1.25rem;
+  padding: 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #fbf8fd);
+}
+
+.ledenbeheer-control-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) repeat(4, minmax(130px, 1fr)) minmax(135px, 0.85fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.ledenbeheer-control {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.ledenbeheer-control--reset {
+  align-content: end;
+}
+
+#ledenbeheer-reset-filters {
+  min-height: 46px;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-small);
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+}
+
+#ledenbeheer-reset-filters:hover,
+#ledenbeheer-reset-filters:focus-visible {
+  background: var(--color-accent-soft);
+}
+
+.ledenbeheer-result-count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.ledenbeheer-table-wrapper {
+  min-width: 0;
+  margin-top: 1.25rem;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.ledenbeheer-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.ledenbeheer-table th,
+.ledenbeheer-table td {
+  padding: 0.9rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.ledenbeheer-email-cell {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ledenbeheer-table th {
+  background: #f4eef8;
+  color: var(--color-primary-dark);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.ledenbeheer-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ledenbeheer-table tbody tr:not(.ledenbeheer-empty-row):hover {
+  background: #fcf9fd;
+}
+
+.ledenbeheer-empty-row td {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.ledenbeheer-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ledenbeheer-pagination button {
+  min-height: 42px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.ledenbeheer-pagination button:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+}
+
+.ledenbeheer-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.ledenbeheer-page-status {
+  color: var(--color-text-muted);
+  font-weight: 750;
+}
+
+.status-badge,
+.role-badge {
+  display: inline-block;
+  padding: 0.28rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.status-badge {
+  background: #eee8f1;
+  color: var(--color-text);
+}
+
+.status-badge.active {
+  background: #eaf7ea;
+  color: var(--color-success);
+}
+
+.status-badge.pending {
+  background: #fff4d6;
+  color: var(--color-warning);
+}
+
+.status-badge.inactive {
+  background: #fbeaea;
+  color: var(--color-danger);
+}
+
+.role-badge {
+  background: var(--color-accent-soft);
+  color: var(--color-primary-dark);
+}
+
+.ledenbeheer-action-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.ledenbeheer-action-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  padding: 0.48rem 0.9rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.ledenbeheer-action-trigger:hover,
+.ledenbeheer-action-menu.open .ledenbeheer-action-trigger {
+  background: var(--color-accent-soft);
+}
+
+.ledenbeheer-action-dropdown {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  min-width: 195px;
+  padding: 0.4rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(47, 36, 59, 0.2);
+}
+
+.ledenbeheer-action-menu.open .ledenbeheer-action-dropdown {
+  display: grid;
+}
+
+.ledenbeheer-menu-action {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.6rem 0.95rem;
+  border: 0;
+  background: #ffffff;
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+}
+
+.ledenbeheer-menu-action:hover {
+  background: #f6f0f9;
+}
+
+.ledenbeheer-menu-action.deactivate {
+  color: var(--color-danger);
+}
+
+.ledenbeheer-menu-action.activate {
+  color: var(--color-success);
+}
+
+.ledenbeheer-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(47, 36, 59, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.ledenbeheer-modal.open {
+  display: flex;
+}
+
+.ledenbeheer-modal-panel {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(47, 36, 59, 0.3);
+}
+
+.ledenbeheer-modal-panel h3 {
+  margin-top: 0;
+}
+
+.ledenbeheer-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.ledenbeheer-modal-actions button {
+  min-height: 42px;
+  padding: 0.6rem 1.05rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+}
+
+.ledenbeheer-modal-actions button:hover {
+  background: var(--color-accent-soft);
+}
+
+.ledenbeheer-modal-actions #ledenbeheer-edit-save {
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.ledenbeheer-toast {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.8rem;
+  max-width: min(440px, calc(100vw - 2rem));
+  padding: 1rem 1.05rem 1rem 1.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #f6f2f8;
+  color: var(--color-text);
+  box-shadow: 0 14px 34px rgba(47, 36, 59, 0.2);
+  font-weight: 700;
+}
+
+.ledenbeheer-toast.visible {
+  display: grid;
+}
+
+.ledenbeheer-toast-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ledenbeheer-toast-close:hover,
+.ledenbeheer-toast-close:focus-visible {
+  background: rgba(255, 255, 255, 0.58);
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.ledenbeheer-toast.info {
+  border-color: #b9deea;
+  background: var(--color-accent-soft);
+  color: var(--color-primary-dark);
+}
+
+.ledenbeheer-toast.success {
+  border-color: #b7d8bd;
+  background: #eaf7ea;
+  color: var(--color-success);
+}
+
+.ledenbeheer-toast.error {
+  border-color: #e2b4b4;
+  background: #fbeaea;
+  color: var(--color-danger);
+}
+
+@media (max-width: 1100px) {
+  .ledenbeheer-control-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ledenbeheer-control-row .ledenbeheer-control:first-child {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 820px) {
+  #admin-content {
+    width: min(100% - 1rem, 1280px);
+  }
+
+  .admin-intro-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ledenbeheer-control-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ledenbeheer-control-row .ledenbeheer-control:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-masthead {
+    padding: 2rem 0.5rem;
+  }
+
+  .admin-masthead__inner {
+    width: min(100% - 1rem, 1280px);
+  }
+
+  .admin-card,
+  .admin-intro-card {
+    padding: 1.1rem;
+    border-radius: 14px;
+  }
+
+  .ledenbeheer-form--create,
+  .ledenbeheer-control-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ledenbeheer-form--create .ledenbeheer-form-row,
+  .ledenbeheer-control-row .ledenbeheer-control:first-child {
+    grid-column: 1;
+  }
+
+  .ledenbeheer-actions,
+  .ledenbeheer-actions button,
+  .admin-actions,
+  .admin-action-link {
+    width: 100%;
+  }
+
+  .ledenbeheer-actions button {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .ledenbeheer-pagination {
+    align-items: stretch;
+  }
+
+  .ledenbeheer-pagination button {
+    width: 100%;
+  }
+
+  .ledenbeheer-page-status {
+    width: 100%;
+    text-align: center;
+  }
+
+  .admin-card__header--list {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ledenbeheer-total-count {
+    align-self: flex-start;
+  }
+
+  .ledenbeheer-control--reset,
+  #ledenbeheer-reset-filters {
+    width: 100%;
+  }
+
+  .ledenbeheer-table-wrapper {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .ledenbeheer-table,
+  .ledenbeheer-table tbody,
+  .ledenbeheer-table tr,
+  .ledenbeheer-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ledenbeheer-table {
+    border-collapse: separate;
+  }
+
+  .ledenbeheer-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .ledenbeheer-table tbody {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ledenbeheer-table tr.ledenbeheer-member-row {
+    padding: 0.35rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 15px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(47, 36, 59, 0.08);
+  }
+
+  .ledenbeheer-table tr.ledenbeheer-member-row:hover {
+    background: #ffffff;
+  }
+
+  .ledenbeheer-table tr.ledenbeheer-member-row td {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.42fr) minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .ledenbeheer-table tr.ledenbeheer-member-row td:last-child {
+    border-bottom: 0;
+  }
+
+  .ledenbeheer-table tr.ledenbeheer-member-row td::before {
+    content: attr(data-label);
+    color: var(--color-primary-dark);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .ledenbeheer-actions-cell .ledenbeheer-action-menu,
+  .ledenbeheer-actions-cell .ledenbeheer-action-trigger {
+    width: 100%;
+  }
+
+  .ledenbeheer-empty-row {
+    display: block;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 15px;
+    background: #ffffff;
+  }
+
+  .ledenbeheer-empty-row td {
+    padding: 0;
+    border: 0;
+  }
+
+  .ledenbeheer-modal-panel {
+    width: 100%;
+  }
+
+  .ledenbeheer-toast {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+  }
+}
+
+/* ===============================
    FOOTER
 ================================ */
 
