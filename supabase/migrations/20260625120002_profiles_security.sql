@@ -2,13 +2,15 @@
 -- SPONTAAN-WEBSITE
 -- Profiles security baseline
 --
+-- RLS wordt al in migratie 001 ingeschakeld.
+--
 -- Bewuste afwijking ten opzichte van de huidige productieconfiguratie:
 -- - geen EXECUTE voor PUBLIC of anon op SECURITY DEFINER-functies;
 -- - authenticated krijgt alleen de functioneel noodzakelijke RPC-rechten;
 -- - grants en revokes worden expliciet vastgelegd.
 -- ============================================================================
 
-alter table public.profiles enable row level security;
+begin;
 
 -- --------------------------------------------------------------------------
 -- Controleert of de actuele ingelogde gebruiker een actieve admin is.
@@ -37,6 +39,10 @@ revoke all
 revoke all
   on function public.is_current_user_admin()
   from anon;
+
+revoke all
+  on function public.is_current_user_admin()
+  from authenticated;
 
 grant execute
   on function public.is_current_user_admin()
@@ -86,6 +92,10 @@ revoke all
 revoke all
   on function public.activate_current_user_profile()
   from anon;
+
+revoke all
+  on function public.activate_current_user_profile()
+  from authenticated;
 
 grant execute
   on function public.activate_current_user_profile()
@@ -141,7 +151,7 @@ with check (
 -- --------------------------------------------------------------------------
 -- Expliciete tabelrechten
 --
--- RLS bepaalt vervolgens welke rijen daadwerkelijk toegankelijk zijn.
+-- RLS bepaalt welke rijen daadwerkelijk toegankelijk zijn.
 -- anon krijgt geen directe rechten op profiles.
 -- --------------------------------------------------------------------------
 
@@ -166,3 +176,5 @@ grant select, update
 grant select, insert, update, delete
   on table public.profiles
   to service_role;
+
+commit;

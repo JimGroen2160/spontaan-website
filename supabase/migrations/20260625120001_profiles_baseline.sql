@@ -6,8 +6,10 @@
 -- - reproduceerbare basis voor een afgescheiden Supabase-testomgeving;
 -- - gebaseerd op de read-only inventarisatie van productie;
 -- - bevat geen persoonsgegevens of testdata;
--- - wordt in deze fase niet op productie uitgevoerd.
+-- - wordt niet op productie uitgevoerd.
 -- ============================================================================
+
+begin;
 
 create table public.profiles (
   id uuid not null default gen_random_uuid(),
@@ -55,6 +57,10 @@ create table public.profiles (
     )
 );
 
+-- RLS wordt direct binnen dezelfde transactie ingeschakeld.
+-- Daardoor bestaat de tabel na commit nooit zonder RLS.
+alter table public.profiles enable row level security;
+
 -- Deze twee niet-unieke indexes bestaan ook in productie.
 -- De unieke constraints hierboven maken daarnaast automatisch unieke indexes aan.
 -- Mogelijke dubbele indexdekking wordt pas in een aparte wijziging beoordeeld.
@@ -66,3 +72,5 @@ create index idx_profiles_email
 
 comment on table public.profiles is
   'Ledenprofielen voor authenticatie, autorisatie en ledenbeheer.';
+
+commit;
