@@ -4,8 +4,11 @@
 --
 -- Bewuste beveiligingsverbetering:
 -- - vaste search_path;
--- - geen publieke of anonieme uitvoerrechten.
+-- - geen publieke, anonieme of authenticated uitvoerrechten;
+-- - volledige wijziging wordt atomair uitgevoerd.
 -- ============================================================================
+
+begin;
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -35,3 +38,5 @@ before update
 on public.profiles
 for each row
 execute function public.set_updated_at();
+
+commit;
