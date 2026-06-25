@@ -1,0 +1,5 @@
+# Supabase CLI project configuration.
+# Deze configuratie bevat geen remote projectreferentie en geen secrets.
+# Aanvullende lokale instellingen worden in een latere, apart goedgekeurde stap toegevoegd.
+
+project_id = "spontaan-website"
