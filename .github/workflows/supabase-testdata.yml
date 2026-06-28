@@ -1,0 +1,167 @@
+name: Supabase Testdata
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/supabase-testdata.yml"
+      - ".env.testdata.example"
+      - "scripts/testdata/**"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Typ APPLY_TESTDATA om uitsluitend de Supabase-testomgeving bij te werken"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-testdata
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate testdata tooling
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate script and manifest
+        shell: bash
+        run: |
+          node --check scripts/testdata/seed-test-users.mjs
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const manifest = JSON.parse(
+            fs.readFileSync("scripts/testdata/manifest.json", "utf8"),
+          );
+          const script = fs.readFileSync(
+            "scripts/testdata/seed-test-users.mjs",
+            "utf8",
+          );
+
+          if (!Array.isArray(manifest.users) || manifest.users.length !== 6) {
+            throw new Error("Het manifest moet exact zes allowlist-users bevatten.");
+          }
+
+          const ids = manifest.users.map((user) => user.id);
+          if (new Set(ids).size !== ids.length) {
+            throw new Error("De manifest-id's zijn niet uniek.");
+          }
+
+          if (!script.includes('--profiles-apply')) {
+            throw new Error("--profiles-apply ontbreekt.");
+          }
+
+          if (
+            /\.from\(["']profiles["']\)[\s\S]{0,300}\.(upsert|delete)\s*\(/.test(
+              script,
+            )
+          ) {
+            throw new Error("Onverwachte profile-upsert of delete aangetroffen.");
+          }
+          NODE
+
+      - name: Verify local environment file is not tracked
+        shell: bash
+        run: |
+          if git ls-files --error-unmatch .env.testdata >/dev/null 2>&1; then
+            echo ".env.testdata mag niet door Git worden gevolgd."
+            exit 1
+          fi
+
+      - name: Verify manual confirmation
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [ "${{ inputs.confirm }}" != "APPLY_TESTDATA" ]; then
+            echo "Ongeldige bevestiging. Typ exact APPLY_TESTDATA."
+            exit 1
+          fi
+
+  apply-testdata:
+    name: Apply Supabase testdata
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-test
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+      TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+      TEST_ADMIN_DISPLAY_NAME: ${{ secrets.TEST_ADMIN_DISPLAY_NAME }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
+      TEST_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_DISPLAY_NAME }}
+      TEST_MEMBER_PENDING_EMAIL: ${{ secrets.TEST_MEMBER_PENDING_EMAIL }}
+      TEST_MEMBER_PENDING_PASSWORD: ${{ secrets.TEST_MEMBER_PENDING_PASSWORD }}
+      TEST_MEMBER_PENDING_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_PENDING_DISPLAY_NAME }}
+      TEST_MEMBER_INACTIVE_EMAIL: ${{ secrets.TEST_MEMBER_INACTIVE_EMAIL }}
+      TEST_MEMBER_INACTIVE_PASSWORD: ${{ secrets.TEST_MEMBER_INACTIVE_PASSWORD }}
+      TEST_MEMBER_INACTIVE_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_INACTIVE_DISPLAY_NAME }}
+      TEST_STATUS_MEMBER_EMAIL: ${{ secrets.TEST_STATUS_MEMBER_EMAIL }}
+      TEST_STATUS_MEMBER_PASSWORD: ${{ secrets.TEST_STATUS_MEMBER_PASSWORD }}
+      TEST_STATUS_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_STATUS_MEMBER_DISPLAY_NAME }}
+      TEST_PROFILE_MEMBER_EMAIL: ${{ secrets.TEST_PROFILE_MEMBER_EMAIL }}
+      TEST_PROFILE_MEMBER_PASSWORD: ${{ secrets.TEST_PROFILE_MEMBER_PASSWORD }}
+      TEST_PROFILE_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_PROFILE_MEMBER_DISPLAY_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply Auth allowlist
+        run: node scripts/testdata/seed-test-users.mjs --apply
+
+      - name: Apply profiles
+        run: node scripts/testdata/seed-test-users.mjs --profiles-apply
+
+      - name: Verify profiles
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-test-users.mjs --profiles-dry-run)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*matching: 6[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*different: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*conflict: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*error: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*auth-missing: 0[[:space:]]*$' <<<"$output"
+
+      - name: Verify idempotence
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-test-users.mjs --profiles-apply)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*aangemaakt: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*bijgewerkt: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*ongewijzigd: 6[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*mislukt: 0[[:space:]]*$' <<<"$output"
