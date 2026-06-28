@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "Allowlist voor gecontroleerde testgebruikers ledenbeheer. E-mails en wachtwoorden komen uit omgeving (env-keys), niet uit dit bestand.",
-  "supabaseUrlMustMatch": "https://wqtpngqematpnswetxxj.supabase.co",
+  "supabaseUrlMustMatch": "https://lldmyfvhjypomxfpltlx.supabase.co",
   "testAddress": {
     "street": "Teststraat",
     "house_number": "1",
