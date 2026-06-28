@@ -180,4 +180,35 @@ Mogelijke resultaten:
 - `auth-missing`: de vereiste Auth-user ontbreekt.
 
 `--apply` blijft uitsluitend Auth-users aanmaken of bijwerken.
-Er bestaat nog geen profielmutatiemodus.
+Gebruik voor gecontroleerde profielmutaties uitsluitend `--profiles-apply` in de afgescheiden testomgeving.
+
+## Profielen toepassen en handmatige CI
+
+Lokale gecontroleerde toepassing:
+
+`node scripts/testdata/seed-test-users.mjs --profiles-apply`
+
+De modus voert eerst een volledige voorcontrole uit voor alle zes allowlist-users.
+Bij `conflict`, `error` of `auth-missing` stopt de verwerking vóór de eerste mutatie.
+
+Daarna geldt:
+
+- `missing`: profiel wordt aangemaakt;
+- `different`: bestaand profiel wordt gericht op profiel-id bijgewerkt;
+- `matching`: profiel blijft ongewijzigd;
+- onverwachte profielen buiten de allowlist blokkeren de uitvoering;
+- upsert en delete worden niet gebruikt.
+
+Na afloop moeten exact zes profielen `matching` zijn en mogen geen onverwachte profielen bestaan.
+Een tweede uitvoering moet nul aanmaak- en updateacties rapporteren.
+
+De workflow `Supabase Testdata` staat in `.github/workflows/supabase-testdata.yml`.
+
+- pull requests voeren uitsluitend read-only validaties uit;
+- mutaties starten alleen handmatig via `workflow_dispatch`;
+- de bevestiging moet exact `APPLY_TESTDATA` zijn;
+- de job gebruikt uitsluitend GitHub Environment `supabase-test`;
+- de benodigde waarden worden als Environment secrets opgeslagen;
+- de workflow past Auth-users en profielen toe en controleert daarna profielstatus en idempotentie.
+
+De productieomgeving en productiecredentials mogen niet voor deze workflow worden gebruikt.

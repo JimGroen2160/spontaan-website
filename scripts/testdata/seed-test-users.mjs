@@ -32,12 +32,16 @@ function parseArgs(argv) {
     return { mode: "profiles-dry-run" };
   }
 
+  if (args.length === 1 && args[0] === "--profiles-apply") {
+    return { mode: "profiles-apply" };
+  }
+
   if (args.length === 1 && args[0] === "--apply") {
     return { mode: "apply" };
   }
 
   throw new Error(
-    `Onbekende argumenten: ${args.join(" ")}. Gebruik geen args (dry-run), --dry-run, --profiles-dry-run of --apply.`,
+    `Onbekende argumenten: ${args.join(" ")}. Gebruik geen args (dry-run), --dry-run, --profiles-dry-run, --profiles-apply of --apply.`,
   );
 }
 
@@ -731,6 +735,224 @@ async function runProfilesDryRun(manifest) {
   }
 }
 
+async function collectProfilesApplyPlan(manifest) {
+  const adminClient = createAdminClient();
+  const entries = [];
+
+  for (const manifestUser of manifest.users) {
+    const email =
+      process.env[manifestUser.emailEnvKey]?.trim().toLowerCase() ?? "";
+
+    const { user: authUser, error: authError } =
+      await findAuthUserByEmail(adminClient, email);
+
+    if (authError) {
+      entries.push({ manifestUser, status: "error" });
+      continue;
+    }
+
+    if (!authUser?.id) {
+      entries.push({ manifestUser, status: "auth-missing" });
+      continue;
+    }
+
+    const expected = buildExpectedProfile(
+      manifest,
+      manifestUser,
+      authUser.id,
+    );
+
+    const result = await readProfilesForExpected(
+      adminClient,
+      expected,
+    );
+
+    entries.push({
+      manifestUser,
+      expected,
+      existingProfile: result.byAuth?.[0] ?? null,
+      status: classifyProfileRead(result, expected),
+    });
+  }
+
+  return { adminClient, entries };
+}
+
+async function readUnexpectedProfiles(adminClient, entries) {
+  const expectedPairs = new Set(
+    entries
+      .filter((entry) => entry.expected)
+      .map(
+        (entry) =>
+          `${entry.expected.auth_user_id}|${entry.expected.email}`,
+      ),
+  );
+
+  const { data, error } = await adminClient
+    .from("profiles")
+    .select("id,auth_user_id,email");
+
+  if (error) {
+    return { total: 0, unexpected: 0, error };
+  }
+
+  const profiles = data ?? [];
+  const unexpected = profiles.filter((profile) => {
+    const email = profile.email?.trim().toLowerCase() ?? "";
+    return !expectedPairs.has(`${profile.auth_user_id}|${email}`);
+  });
+
+  return {
+    total: profiles.length,
+    unexpected: unexpected.length,
+    error: null,
+  };
+}
+
+async function applyProfilePlanEntry(adminClient, entry) {
+  if (entry.status === "matching") {
+    return { ok: true, action: "unchanged" };
+  }
+
+  if (entry.status === "missing") {
+    const { data, error } = await adminClient
+      .from("profiles")
+      .insert(entry.expected)
+      .select("id")
+      .single();
+
+    return {
+      ok: !error && Boolean(data?.id),
+      action: "created",
+    };
+  }
+
+  if (entry.status === "different" && entry.existingProfile?.id) {
+    const { data, error } = await adminClient
+      .from("profiles")
+      .update(entry.expected)
+      .eq("id", entry.existingProfile.id)
+      .select("id")
+      .single();
+
+    return {
+      ok: !error && data?.id === entry.existingProfile.id,
+      action: "updated",
+    };
+  }
+
+  return { ok: false, action: "blocked" };
+}
+
+async function runProfilesApply(manifest) {
+  console.log("=== profiles-apply ===");
+
+  const { errors, warnings } = validateEnvironment(manifest);
+  printValidationResult(errors, warnings);
+
+  if (errors.length > 0 || !canRunAuthLookup(manifest)) {
+    console.log("Profiles apply gestopt: configuratie is niet veilig of compleet.");
+    process.exitCode = 1;
+    return;
+  }
+
+  const { adminClient, entries } =
+    await collectProfilesApplyPlan(manifest);
+
+  const blockedStatuses = new Set([
+    "conflict",
+    "error",
+    "auth-missing",
+  ]);
+
+  for (const entry of entries) {
+    console.log(`  [${entry.manifestUser.id}] ${entry.status}`);
+  }
+
+  if (
+    entries.length !== manifest.users.length ||
+    entries.some((entry) => blockedStatuses.has(entry.status))
+  ) {
+    console.log("Profiles apply geblokkeerd door de voorcontrole.");
+    process.exitCode = 1;
+    return;
+  }
+
+  const existingCheck =
+    await readUnexpectedProfiles(adminClient, entries);
+
+  if (existingCheck.error || existingCheck.unexpected > 0) {
+    console.log(
+      `Profiles apply geblokkeerd: onverwachte profielen: ${existingCheck.unexpected}.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  const mutations = {
+    created: 0,
+    updated: 0,
+    unchanged: 0,
+    failed: 0,
+  };
+
+  for (const entry of entries) {
+    const result =
+      await applyProfilePlanEntry(adminClient, entry);
+
+    if (!result.ok) {
+      mutations.failed += 1;
+      console.log(`  [${entry.manifestUser.id}] mislukt`);
+      break;
+    }
+
+    mutations[result.action] += 1;
+    console.log(
+      `  [${entry.manifestUser.id}] ${result.action}`,
+    );
+  }
+
+  console.log("--- Profielmutaties ---");
+  console.log(`  aangemaakt: ${mutations.created}`);
+  console.log(`  bijgewerkt: ${mutations.updated}`);
+  console.log(`  ongewijzigd: ${mutations.unchanged}`);
+  console.log(`  mislukt: ${mutations.failed}`);
+
+  if (mutations.failed > 0) {
+    process.exitCode = 1;
+    return;
+  }
+
+  const verification =
+    await collectProfilesApplyPlan(manifest);
+
+  const finalCheck = await readUnexpectedProfiles(
+    verification.adminClient,
+    verification.entries,
+  );
+
+  const matchingCount = verification.entries.filter(
+    (entry) => entry.status === "matching",
+  ).length;
+
+  console.log("--- Eindcontrole ---");
+  console.log(`  matching: ${matchingCount}`);
+  console.log(`  totaal profiles: ${finalCheck.total}`);
+  console.log(`  onverwachte profiles: ${finalCheck.unexpected}`);
+
+  if (
+    finalCheck.error ||
+    finalCheck.unexpected !== 0 ||
+    finalCheck.total !== manifest.users.length ||
+    matchingCount !== manifest.users.length
+  ) {
+    console.log("Profiles apply eindcontrole mislukt.");
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log("Profiles apply geslaagd.");
+}
 async function main() {
   let options;
 
@@ -749,6 +971,11 @@ async function main() {
   }
 
   const manifest = loadManifest();
+
+  if (options.mode === "profiles-apply") {
+    await runProfilesApply(manifest);
+    return;
+  }
 
   if (options.mode === "profiles-dry-run") {
     await runProfilesDryRun(manifest);
