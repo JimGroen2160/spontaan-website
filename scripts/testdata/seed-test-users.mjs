@@ -12,7 +12,8 @@ import { createClient } from "@supabase/supabase-js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..", "..");
 const MANIFEST_PATH = join(__dirname, "manifest.json");
-const ENV_PATH = join(REPO_ROOT, ".env");
+const ENV_PATH = join(REPO_ROOT, ".env.testdata");
+const ALLOWED_TEST_SUPABASE_URL = "https://lldmyfvhjypomxfpltlx.supabase.co";
 
 const REQUIRED_GLOBAL_ENV = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 
@@ -27,12 +28,16 @@ function parseArgs(argv) {
     return { mode: "dry-run" };
   }
 
+  if (args.length === 1 && args[0] === "--profiles-dry-run") {
+    return { mode: "profiles-dry-run" };
+  }
+
   if (args.length === 1 && args[0] === "--apply") {
     return { mode: "apply" };
   }
 
   throw new Error(
-    `Onbekende argumenten: ${args.join(" ")}. Gebruik geen args (dry-run), --dry-run of --apply.`,
+    `Onbekende argumenten: ${args.join(" ")}. Gebruik geen args (dry-run), --dry-run, --profiles-dry-run of --apply.`,
   );
 }
 
@@ -114,7 +119,9 @@ function canRunAuthLookup(manifest) {
   return (
     isSet(process.env.SUPABASE_URL) &&
     isSet(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
-    (!expectedUrl || supabaseUrl === expectedUrl)
+    expectedUrl === ALLOWED_TEST_SUPABASE_URL &&
+    supabaseUrl === ALLOWED_TEST_SUPABASE_URL &&
+    supabaseUrl === expectedUrl
   );
 }
 
@@ -347,9 +354,21 @@ function validateEnvironment(manifest) {
   const supabaseUrl = process.env.SUPABASE_URL?.trim() ?? "";
   const expectedUrl = manifest.supabaseUrlMustMatch?.trim() ?? "";
 
+  if (expectedUrl !== ALLOWED_TEST_SUPABASE_URL) {
+    errors.push(
+      `Manifest verwijst niet naar het toegestane testproject (${ALLOWED_TEST_SUPABASE_URL}).`,
+    );
+  }
+
+  if (supabaseUrl && supabaseUrl !== ALLOWED_TEST_SUPABASE_URL) {
+    errors.push(
+      `Veiligheidsblokkade: SUPABASE_URL moet exact het afgescheiden testproject zijn (${ALLOWED_TEST_SUPABASE_URL}).`,
+    );
+  }
+
   if (expectedUrl && supabaseUrl && supabaseUrl !== expectedUrl) {
     errors.push(
-      `SUPABASE_URL komt niet overeen met manifest (${expectedUrl}). Controleer js/auth.js en .env.`,
+      `SUPABASE_URL komt niet overeen met manifest (${expectedUrl}). Controleer manifest.json en de testomgeving.`,
     );
   }
 
@@ -431,7 +450,7 @@ function printPlannedActions(manifest) {
       `    Zou wachtwoord zetten via ${user.passwordEnvKey} (waarde niet getoond).`,
     );
     console.log(
-      `    Zou profiel upserten: full_name uit ${user.displayNameEnvKey}` +
+      `    Profielconfiguratie voor latere stap (nu niet uitgevoerd): full_name uit ${user.displayNameEnvKey}` +
         (displayName ? ` ("${displayName}")` : " (nog leeg)") +
         `, role=${user.role}, status=${user.status}.`,
     );
@@ -541,6 +560,177 @@ async function runApplyPrecheck(manifest) {
   }
 }
 
+function buildExpectedProfile(manifest, manifestUser, authUserId) {
+  return {
+    auth_user_id: authUserId,
+    full_name: process.env[manifestUser.displayNameEnvKey]?.trim() ?? "",
+    street: manifest.testAddress.street,
+    house_number: manifest.testAddress.house_number,
+    postal_code: manifest.testAddress.postal_code,
+    city: manifest.testAddress.city,
+    phone: manifest.testAddress.phone,
+    email: process.env[manifestUser.emailEnvKey]?.trim().toLowerCase() ?? "",
+    role: manifestUser.role,
+    status: manifestUser.status,
+  };
+}
+
+function profileMatchesExpected(profile, expected) {
+  return (
+    profile?.auth_user_id === expected.auth_user_id &&
+    profile?.full_name === expected.full_name &&
+    profile?.street === expected.street &&
+    profile?.house_number === expected.house_number &&
+    profile?.postal_code === expected.postal_code &&
+    profile?.city === expected.city &&
+    profile?.phone === expected.phone &&
+    profile?.email?.toLowerCase() === expected.email &&
+    profile?.role === expected.role &&
+    profile?.status === expected.status
+  );
+}
+
+const PROFILE_SELECT_COLUMNS =
+  "id, auth_user_id, full_name, street, house_number, postal_code, city, phone, email, role, status";
+
+async function readProfilesForExpected(adminClient, expected) {
+  const { data: byAuth, error: authError } = await adminClient
+    .from("profiles")
+    .select(PROFILE_SELECT_COLUMNS)
+    .eq("auth_user_id", expected.auth_user_id);
+
+  if (authError) {
+    return { byAuth: [], byEmail: [], error: authError };
+  }
+
+  const { data: byEmail, error: emailError } = await adminClient
+    .from("profiles")
+    .select(PROFILE_SELECT_COLUMNS)
+    .eq("email", expected.email);
+
+  if (emailError) {
+    return { byAuth: byAuth ?? [], byEmail: [], error: emailError };
+  }
+
+  return {
+    byAuth: byAuth ?? [],
+    byEmail: byEmail ?? [],
+    error: null,
+  };
+}
+function classifyProfileRead(result, expected) {
+  if (result.error) {
+    return "error";
+  }
+
+  const byAuth = result.byAuth ?? [];
+  const byEmail = result.byEmail ?? [];
+
+  if (byAuth.length > 1 || byEmail.length > 1) {
+    return "conflict";
+  }
+
+  const authProfile = byAuth[0] ?? null;
+  const emailProfile = byEmail[0] ?? null;
+
+  if (!authProfile && !emailProfile) {
+    return "missing";
+  }
+
+  if (
+    authProfile &&
+    emailProfile &&
+    authProfile.id !== emailProfile.id
+  ) {
+    return "conflict";
+  }
+
+  if (!authProfile && emailProfile) {
+    return "conflict";
+  }
+
+  const profile = authProfile ?? emailProfile;
+
+  return profileMatchesExpected(profile, expected)
+    ? "matching"
+    : "different";
+}
+async function runProfilesDryRun(manifest) {
+  console.log("=== profiles-dry-run ===");
+
+  const { errors, warnings } = validateEnvironment(manifest);
+  printValidationResult(errors, warnings);
+
+  if (errors.length > 0 || !canRunAuthLookup(manifest)) {
+    console.log("Profiles dry-run gestopt: configuratie is niet veilig of compleet.");
+    process.exitCode = 1;
+    return;
+  }
+
+  const adminClient = createAdminClient();
+  const counts = {
+    missing: 0,
+    matching: 0,
+    different: 0,
+    conflict: 0,
+    error: 0,
+    authMissing: 0,
+  };
+
+  for (const manifestUser of manifest.users) {
+    const email =
+      process.env[manifestUser.emailEnvKey]?.trim().toLowerCase() ?? "";
+
+    const { user: authUser, error: authError } =
+      await findAuthUserByEmail(adminClient, email);
+
+    if (authError) {
+      counts.error += 1;
+      console.log(`  [${manifestUser.id}] error`);
+      continue;
+    }
+
+    if (!authUser?.id) {
+      counts.authMissing += 1;
+      console.log(`  [${manifestUser.id}] auth-missing`);
+      continue;
+    }
+
+    const expected = buildExpectedProfile(
+      manifest,
+      manifestUser,
+      authUser.id,
+    );
+
+    const result = await readProfilesForExpected(
+      adminClient,
+      expected,
+    );
+
+    const status = classifyProfileRead(result, expected);
+    counts[status] += 1;
+
+    console.log(`  [${manifestUser.id}] ${status}`);
+  }
+
+  console.log("--- Samenvatting profiles-dry-run ---");
+  console.log(`  missing: ${counts.missing}`);
+  console.log(`  matching: ${counts.matching}`);
+  console.log(`  different: ${counts.different}`);
+  console.log(`  conflict: ${counts.conflict}`);
+  console.log(`  error: ${counts.error}`);
+  console.log(`  auth-missing: ${counts.authMissing}`);
+  console.log("  profile-mutaties: 0");
+
+  if (
+    counts.conflict > 0 ||
+    counts.error > 0 ||
+    counts.authMissing > 0
+  ) {
+    process.exitCode = 1;
+  }
+}
+
 async function main() {
   let options;
 
@@ -559,6 +749,11 @@ async function main() {
   }
 
   const manifest = loadManifest();
+
+  if (options.mode === "profiles-dry-run") {
+    await runProfilesDryRun(manifest);
+    return;
+  }
 
   if (options.mode === "apply") {
     await runApplyPrecheck(manifest);
