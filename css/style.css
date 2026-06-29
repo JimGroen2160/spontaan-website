@@ -2116,3 +2116,69 @@ li + li {
 }
 
 /* === EINDE RAPPORTAGEPAGINA CONTENTMANAGERS — DEFINITIEF DASHBOARD === */
+
+/* MOBIELE HISTORIEKAARTEN */
+@media (max-width: 720px) {
+  .rapportage-historie-scroll {
+    max-height: none;
+    overflow: visible;
+    border: 0;
+  }
+
+  .rapportage-historietabel,
+  .rapportage-historietabel tbody,
+  .rapportage-historietabel tr,
+  .rapportage-historietabel th,
+  .rapportage-historietabel td {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rapportage-historietabel thead {
+    position: absolute;
+    left: -9999px;
+  }
+
+  .rapportage-historietabel tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .rapportage-historietabel tr {
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #e2dce8;
+    border-radius: 0.55rem;
+    background: #ffffff;
+  }
+
+  .rapportage-historietabel th,
+  .rapportage-historietabel td {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #eee8f2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .rapportage-historietabel td:last-child {
+    border-bottom: 0;
+  }
+
+  .rapportage-historietabel th::before,
+  .rapportage-historietabel td::before {
+    color: #5b406e;
+    font-weight: 750;
+  }
+
+  .rapportage-historietabel th::before { content: "Maand"; }
+  .rapportage-historietabel td:nth-child(2)::before { content: "Bezoeken"; }
+  .rapportage-historietabel td:nth-child(3)::before { content: "Snelheid"; }
+  .rapportage-historietabel td:nth-child(4)::before { content: "Toegankelijkheid"; }
+  .rapportage-historietabel td:nth-child(5)::before { content: "Beste praktijken"; }
+  .rapportage-historietabel td:nth-child(6)::before { content: "SEO"; }
+  .rapportage-historietabel td:nth-child(7)::before { content: "Status"; }
+}

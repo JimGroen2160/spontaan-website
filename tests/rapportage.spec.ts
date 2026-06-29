@@ -237,4 +237,47 @@ test.describe('Rapportagepagina voor contentmanagers', () => {
     await select.focus();
     await expect(select).toBeFocused();
   });
+
+  test('mobiele historie blijft volledig binnen de viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openReportAsAdmin(page);
+
+    const row = page.locator(
+      '#rapportage-historie-body tr[data-period="2026-06"]'
+    );
+
+    await expect(row).toBeVisible();
+    const cells = row.locator('th, td');
+    await expect(cells).toHaveCount(7);
+
+    for (let index = 0; index < 7; index += 1) {
+      await expect(cells.nth(index)).toBeVisible();
+    }
+
+    const layout = await row.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+
+      return {
+        left: rect.left,
+        right: rect.right,
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      };
+    });
+
+    expect(layout.left).toBeGreaterThanOrEqual(0);
+    expect(layout.right).toBeLessThanOrEqual(layout.viewport + 1);
+    expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewport + 1);
+  });
+
+  test('beheerpagina toont correcte tekst en correct sluitteken', async ({ page }) => {
+    await openReportAsAdmin(page);
+    await page.goto('/admin/index.html');
+
+    await expect(page.locator('#ledenbeheer-toast-close')).toHaveText('×');
+    await expect(page.locator('.admin-section-heading')).toContainText(
+      'één overzicht'
+    );
+    await expect(page.locator('body')).not.toContainText('Ã');
+  });
 });
