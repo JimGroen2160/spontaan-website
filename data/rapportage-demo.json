@@ -1,0 +1,134 @@
+{
+  "source": "demo",
+  "sourceLabel": "Demonstratiegegevens",
+  "updatedAt": "2026-06-29T12:00:00Z",
+  "disclaimer": "Deze rapportage gebruikt demonstratiegegevens en bevat nog geen actuele productiegegevens.",
+  "metrics": {
+    "performance": {
+      "label": "Snelheid",
+      "description": "Geeft aan hoe snel pagina's laden en reageren."
+    },
+    "accessibility": {
+      "label": "Toegankelijkheid",
+      "description": "Geeft aan hoe goed de website voor iedereen te gebruiken is."
+    },
+    "bestPractices": {
+      "label": "Beste praktijken",
+      "description": "Geeft aan of de website technisch veilig, betrouwbaar en modern is opgebouwd."
+    },
+    "seo": {
+      "label": "SEO",
+      "description": "Geeft aan hoe goed zoekmachines de website kunnen begrijpen en tonen."
+    },
+    "visitors": {
+      "label": "Bezoeken",
+      "description": "Toont het aantal bezoeken in de gekozen periode."
+    }
+  },
+  "measurements": [
+    {
+      "period": "2025-06",
+      "performance": 87,
+      "accessibility": 91,
+      "bestPractices": 72,
+      "seo": 85,
+      "visitors": 800
+    },
+    {
+      "period": "2025-07",
+      "performance": 88,
+      "accessibility": 92,
+      "bestPractices": 73,
+      "seo": 87,
+      "visitors": 842
+    },
+    {
+      "period": "2025-08",
+      "performance": 87,
+      "accessibility": 93,
+      "bestPractices": 74,
+      "seo": 88,
+      "visitors": 957
+    },
+    {
+      "period": "2025-09",
+      "performance": 86,
+      "accessibility": 93,
+      "bestPractices": 76,
+      "seo": 89,
+      "visitors": 1025
+    },
+    {
+      "period": "2025-10",
+      "performance": 85,
+      "accessibility": null,
+      "bestPractices": 75,
+      "seo": 85,
+      "visitors": 1031
+    },
+    {
+      "period": "2025-11",
+      "performance": 86,
+      "accessibility": 92,
+      "bestPractices": 75,
+      "seo": 87,
+      "visitors": 1084
+    },
+    {
+      "period": "2025-12",
+      "performance": 87,
+      "accessibility": 93,
+      "bestPractices": 76,
+      "seo": 88,
+      "visitors": 1112
+    },
+    {
+      "period": "2026-01",
+      "performance": 87,
+      "accessibility": 93,
+      "bestPractices": 77,
+      "seo": 89,
+      "visitors": 1195
+    },
+    {
+      "period": "2026-02",
+      "performance": 87,
+      "accessibility": 92,
+      "bestPractices": 77,
+      "seo": 89,
+      "visitors": 1278
+    },
+    {
+      "period": "2026-03",
+      "performance": 72,
+      "accessibility": 92,
+      "bestPractices": 78,
+      "seo": 89,
+      "visitors": 1345
+    },
+    {
+      "period": "2026-04",
+      "performance": 80,
+      "accessibility": 92,
+      "bestPractices": 78,
+      "seo": 89,
+      "visitors": 1412
+    },
+    {
+      "period": "2026-05",
+      "performance": 82,
+      "accessibility": 92,
+      "bestPractices": 78,
+      "seo": 88,
+      "visitors": 1509
+    },
+    {
+      "period": "2026-06",
+      "performance": 86,
+      "accessibility": 92,
+      "bestPractices": 78,
+      "seo": 88,
+      "visitors": 1647
+    }
+  ]
+}
