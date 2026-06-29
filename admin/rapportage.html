@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Websiteprestaties | Zanggroep Spontaan</title>
+  <link rel="stylesheet" href="../css/style.css?v=20260629-dashboard4">
+</head>
+<body class="rapportage-pagina">
+  <div class="rapportage-dashboard-shell">
+    <aside class="rapportage-beheerzijbalk" aria-label="Beheernavigatie">
+      <a class="rapportage-beheerlogo" href="../index.html" aria-label="Naar de website van Zanggroep Spontaan">
+        <img src="../images/spontaan-logo.png" alt="Zanggroep Spontaan">
+      </a>
+
+      <p class="rapportage-beheerzijbalk__label">Beheeromgeving</p>
+      <nav class="rapportage-beheermenu" aria-label="Beheermenu">
+        <a href="./index.html">
+          <span class="rapportage-menu-icoon" aria-hidden="true">▤</span>
+          <span>Ledenadministratie</span>
+        </a>
+        <a href="./rapportage.html" class="is-active" aria-current="page">
+          <span class="rapportage-menu-icoon" aria-hidden="true">▥</span>
+          <span>Websiteprestaties</span>
+        </a>
+        <a href="../leden/dashboard.html">
+          <span class="rapportage-menu-icoon" aria-hidden="true">⌂</span>
+          <span>Naar ledenomgeving</span>
+        </a>
+      </nav>
+
+      <div class="rapportage-demo-indicator" role="note">
+        <strong>Demo-modus</strong>
+        <span>Deze rapportage toont demonstratiegegevens. Er worden geen productiegegevens gewijzigd.</span>
+      </div>
+    </aside>
+
+    <div class="rapportage-dashboard-content">
+      <header class="rapportage-hero">
+        <div class="rapportage-hero__inner">
+          <p class="rapportage-hero__eyebrow">Beheeromgeving</p>
+          <h1>Websiteprestaties</h1>
+          <p>Overzicht van prestaties, kwaliteit en gebruik van de website.</p>
+        </div>
+      </header>
+
+      <main id="rapportage-content" class="rapportage-main" hidden>
+        <p class="rapportage-demo-banner" role="note">
+          <strong>Demonstratiegegevens</strong>
+          De waarden op deze pagina zijn uitsluitend bedoeld om de rapportagepagina te bouwen en te testen.
+        </p>
+
+        <section class="rapportage-top-grid" aria-label="Periode en algemene status">
+          <div class="rapportage-period-panel">
+            <p class="rapportage-section-label">Periode</p>
+            <label for="rapportage-periode">Rapportageperiode</label>
+            <select id="rapportage-periode" name="rapportage-periode">
+              <option value="1">Afgelopen maand</option>
+              <option value="3">Afgelopen 3 maanden</option>
+              <option value="6">Afgelopen 6 maanden</option>
+              <option value="12" selected>Afgelopen 12 maanden</option>
+            </select>
+            <p id="rapportage-laatste-meting" class="rapportage-meta" aria-live="polite">
+              Laatste meting wordt geladen.
+            </p>
+          </div>
+
+          <section id="rapportage-algemene-status" class="rapportage-status-panel" aria-labelledby="rapportage-status-title">
+            <div class="rapportage-status-samenvatting">
+              <p class="rapportage-section-label">Algemene status</p>
+              <div class="rapportage-status-regel">
+                <span class="rapportage-status-icoon" aria-hidden="true">!</span>
+                <h2 id="rapportage-status-title">Status wordt geladen</h2>
+              </div>
+              <p id="rapportage-status-uitleg" aria-live="polite">De demonstratiegegevens worden gecontroleerd.</p>
+              <details class="rapportage-statushulp">
+                <summary>Wat betekenen de statussen?</summary>
+                <p><strong>Goed:</strong> alle beschikbare scores zijn 90 of hoger.</p>
+                <p><strong>Aandacht:</strong> een score ligt tussen 75 en 89 of een meting ontbreekt.</p>
+                <p><strong>Actie aanbevolen:</strong> een score is lager dan 75.</p>
+              </details>
+            </div>
+
+            <div id="rapportage-aandachtspunten" class="rapportage-aandachtspunten" aria-labelledby="rapportage-aandachtspunten-title">
+              <h3 id="rapportage-aandachtspunten-title">Aandachtspunten in de gekozen periode</h3>
+              <ul id="rapportage-aandachtspunten-lijst">
+                <li>Aandachtspunten worden geladen.</li>
+              </ul>
+            </div>
+          </section>
+        </section>
+
+        <section id="rapportage-kpis" class="rapportage-kpi-grid" aria-label="Belangrijkste prestaties">
+          <article class="rapportage-kpi-card rapportage-kpi-card--visitors" data-kpi="visitors">
+            <span class="rapportage-kpi-icoon rapportage-kpi-icoon--visitors" aria-hidden="true">●●●</span>
+            <div>
+              <h2>Bezoeken (totaal)</h2>
+              <p id="rapportage-bezoekers-kpi" class="rapportage-kpi-waarde">–</p>
+              <p class="rapportage-kpi-eenheid">in de gekozen periode</p>
+              <p id="rapportage-bezoekers-kpi-vergelijking" class="rapportage-kpi-vergelijking"></p>
+            </div>
+          </article>
+
+          <article class="rapportage-kpi-card rapportage-scorekaart" data-kpi="performance" data-metric="performance" aria-labelledby="rapportage-snelheid-title">
+            <span class="rapportage-kpi-icoon rapportage-kpi-icoon--performance" aria-hidden="true">◴</span>
+            <div>
+              <h2 id="rapportage-snelheid-title">Snelheid</h2>
+              <p class="rapportage-kpi-waarde"><span data-score>–</span><span class="rapportage-kpi-schaal"> / 100</span></p>
+              <p class="rapportage-kpi-status" data-status>Wordt geladen</p>
+              <p class="visually-hidden" data-comparison></p>
+            </div>
+          </article>
+
+          <article class="rapportage-kpi-card rapportage-scorekaart" data-kpi="accessibility" data-metric="accessibility" aria-labelledby="rapportage-toegankelijkheid-title">
+            <span class="rapportage-kpi-icoon rapportage-kpi-icoon--accessibility" aria-hidden="true">◎</span>
+            <div>
+              <h2 id="rapportage-toegankelijkheid-title">Toegankelijkheid</h2>
+              <p class="rapportage-kpi-waarde"><span data-score>–</span><span class="rapportage-kpi-schaal"> / 100</span></p>
+              <p class="rapportage-kpi-status" data-status>Wordt geladen</p>
+              <p class="visually-hidden" data-comparison></p>
+            </div>
+          </article>
+
+          <article class="rapportage-kpi-card rapportage-scorekaart" data-kpi="bestPractices" data-metric="bestPractices" aria-labelledby="rapportage-beste-praktijken-title">
+            <span class="rapportage-kpi-icoon rapportage-kpi-icoon--best-practices" aria-hidden="true">&lt;/&gt;</span>
+            <div>
+              <h2 id="rapportage-beste-praktijken-title">Beste praktijken</h2>
+              <p class="rapportage-kpi-waarde"><span data-score>–</span><span class="rapportage-kpi-schaal"> / 100</span></p>
+              <p class="rapportage-kpi-status" data-status>Wordt geladen</p>
+              <p class="visually-hidden" data-comparison></p>
+            </div>
+          </article>
+
+          <article class="rapportage-kpi-card rapportage-scorekaart" data-kpi="seo" data-metric="seo" aria-labelledby="rapportage-seo-title">
+            <span class="rapportage-kpi-icoon rapportage-kpi-icoon--seo" aria-hidden="true">⌕</span>
+            <div>
+              <h2 id="rapportage-seo-title">SEO</h2>
+              <p class="rapportage-kpi-waarde"><span data-score>–</span><span class="rapportage-kpi-schaal"> / 100</span></p>
+              <p class="rapportage-kpi-status" data-status>Wordt geladen</p>
+              <p class="visually-hidden" data-comparison></p>
+            </div>
+          </article>
+        </section>
+
+        <details id="rapportage-begrippen" class="rapportage-begrippen">
+          <summary>Wat betekenen deze begrippen?</summary>
+          <div class="rapportage-begrippen__content">
+            <dl class="rapportage-begrippenlijst">
+              <div><dt>Snelheid</dt><dd>Geeft aan hoe snel pagina's laden en reageren. Grote afbeeldingen, trage onderdelen en zware pagina-inhoud kunnen deze score verlagen.</dd></div>
+              <div><dt>Toegankelijkheid</dt><dd>Geeft aan hoe goed de website te gebruiken is voor iedereen, ook met een toetsenbord, schermlezer of verminderd zicht.</dd></div>
+              <div><dt>Beste praktijken</dt><dd>Geeft aan of de website technisch veilig, betrouwbaar en modern is opgebouwd en aanbevolen webstandaarden volgt.</dd></div>
+              <div><dt>SEO</dt><dd>Geeft aan hoe goed zoekmachines de inhoud en structuur van de website kunnen begrijpen en tonen.</dd></div>
+            </dl>
+          </div>
+        </details>
+
+        <section class="rapportage-grafieken-grid" aria-label="Grafieken en trends">
+          <section id="rapportage-bezoekers" class="rapportage-dashboard-card" aria-labelledby="rapportage-bezoekers-title">
+            <div class="rapportage-card-heading">
+              <h2 id="rapportage-bezoekers-title">Bezoeken per maand</h2>
+            </div>
+            <div id="rapportage-bezoekers-grafiek" class="rapportage-bezoekers-grafiek" role="img" aria-label="Bezoekersgrafiek wordt geladen">
+              <p>Bezoekersgrafiek wordt geladen.</p>
+            </div>
+            <p id="rapportage-bezoekers-vergelijking" class="rapportage-grafiek-conclusie"></p>
+          </section>
+
+          <section id="rapportage-trends" class="rapportage-dashboard-card" aria-labelledby="rapportage-trends-title">
+            <div class="rapportage-card-heading">
+              <h2 id="rapportage-trends-title">Trends in kwaliteitsscores</h2>
+            </div>
+            <div id="rapportage-trendgrafiek" class="rapportage-trendgrafiek" role="img" aria-label="Trendgrafiek wordt geladen">
+              <p>Trendgegevens worden geladen.</p>
+            </div>
+            <div id="rapportage-trend-samenvatting" class="rapportage-trend-samenvatting" aria-labelledby="rapportage-trend-samenvatting-title">
+              <h3 id="rapportage-trend-samenvatting-title">Wat valt op?</h3>
+              <ul id="rapportage-trend-samenvatting-lijst"><li>De trends worden geanalyseerd.</li></ul>
+            </div>
+          </section>
+        </section>
+
+        <section id="rapportage-historie" class="rapportage-dashboard-card rapportage-historie" aria-labelledby="rapportage-historie-title">
+          <div class="rapportage-card-heading">
+            <h2 id="rapportage-historie-title">Historie per maand</h2>
+          </div>
+          <div class="rapportage-historie-scroll">
+            <table class="rapportage-historietabel">
+              <caption class="visually-hidden">Historische websiteprestaties per maand</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Maand</th>
+                  <th scope="col">Bezoeken</th>
+                  <th scope="col">Snelheid</th>
+                  <th scope="col">Toegankelijkheid</th>
+                  <th scope="col">Beste praktijken</th>
+                  <th scope="col">SEO</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="rapportage-historie-body">
+                <tr><td colspan="7">Historie wordt geladen.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="rapportage-foutmelding" class="ledenbeheer-toast error" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+          <span id="rapportage-foutmelding-tekst">De rapportage kon niet worden geladen.</span>
+        </section>
+      </main>
+
+      <footer class="rapportage-beheerfooter">Beheeromgeving Zanggroep Spontaan</footer>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/auth.js"></script>
+  <script src="./rapportage.js?v=20260629-dashboard4"></script>
+  <script>
+    window.addEventListener("load", async () => {
+      const loginPath = "../leden/login.html";
+      const rapportageContent = document.getElementById("rapportage-content");
+
+      try {
+        const session = await window.authHelpers.getCurrentSession();
+        if (!session) {
+          window.location.href = loginPath;
+          return;
+        }
+
+        const profile = await window.authHelpers.getCurrentProfile();
+        if (!profile || profile.role !== "admin" || profile.status !== "active") {
+          window.location.href = loginPath;
+          return;
+        }
+
+        if (rapportageContent) {
+          rapportageContent.hidden = false;
+        }
+
+        if (window.rapportage && typeof window.rapportage.init === "function") {
+          await window.rapportage.init();
+        }
+      } catch (error) {
+        console.error("Fout bij rapportage-autorisatie:", error);
+        window.location.href = loginPath;
+      }
+    });
+  </script>
+</body>
+</html>
