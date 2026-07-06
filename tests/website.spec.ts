@@ -6,9 +6,8 @@ const publicRoutes = [
   '/pages/agenda.html',
   '/pages/media.html',
   '/pages/repertoire.html',
-  '/pages/historie.html',
+  '/pages/nieuws.html',
   '/pages/vrienden.html',
-  '/pages/links.html',
   '/pages/contact.html',
   '/leden/login.html',
   '/leden/wachtwoord-vergeten.html',
@@ -139,7 +138,7 @@ test.describe('Website basis en huisstijl', () => {
 
     await expect(hamburger).toBeHidden();
     await expect(navMenu).toBeVisible();
-    await expect(navLinks).toHaveCount(10);
+    await expect(navLinks).toHaveCount(9);
 
     for (const link of await navLinks.all()) {
       await expect(link).toBeVisible();
