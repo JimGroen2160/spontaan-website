@@ -2182,3 +2182,264 @@ li + li {
   .rapportage-historietabel td:nth-child(6)::before { content: "SEO"; }
   .rapportage-historietabel td:nth-child(7)::before { content: "Status"; }
 }
+/* ===============================
+   HOMEPAGE
+================================ */
+
+.homepage {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4.5rem);
+  padding: clamp(2.5rem, 6vw, 5rem) 1rem;
+}
+
+.hero-eyebrow,
+.homepage-section__eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--color-secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-eyebrow {
+  color: #ffffff;
+  opacity: 0.9;
+}
+
+.hero-actions,
+.homepage-actions,
+.homepage-section__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 1.4rem 0 0;
+}
+
+.btn--secondary {
+  border-color: rgba(111, 37, 174, 0.18);
+  background: #ffffff;
+  color: var(--color-primary);
+}
+
+.btn--secondary:hover {
+  color: var(--color-secondary-dark);
+  box-shadow: 0 12px 24px rgba(47, 36, 59, 0.14);
+}
+
+.homepage-section {
+  width: min(100%, var(--content-width));
+  margin: 0 auto;
+}
+
+.homepage-section__header {
+  width: min(100%, 760px);
+  margin: 0 auto 1.6rem;
+  text-align: center;
+}
+
+.homepage-section__header h2,
+.homepage-welcome-card h2,
+.homepage-visit-card h2 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.homepage-section__header p:last-child,
+.homepage-welcome-card p,
+.homepage-visit-card p {
+  color: var(--color-text-muted);
+}
+
+.homepage-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.homepage-card,
+.homepage-welcome-card,
+.homepage-visit-card {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.homepage-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.homepage-card__media {
+  min-height: 170px;
+  background:
+    linear-gradient(135deg, rgba(79, 23, 127, 0.82), rgba(217, 13, 135, 0.58)),
+    url("../images/hero.webp");
+  background-position: center;
+  background-size: cover;
+}
+
+.homepage-card__media--agenda {
+  background:
+    linear-gradient(135deg, rgba(16, 169, 206, 0.75), rgba(79, 23, 127, 0.62)),
+    url("../images/hero.webp");
+  background-position: center;
+  background-size: cover;
+}
+
+.homepage-card__media--media {
+  background:
+    linear-gradient(135deg, rgba(217, 13, 135, 0.72), rgba(16, 169, 206, 0.56)),
+    url("../images/hero.webp");
+  background-position: center;
+  background-size: cover;
+}
+
+.homepage-card__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1.25rem;
+}
+
+.homepage-card__content h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.homepage-card__content p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.homepage-card__content .btn {
+  margin-top: auto;
+}
+
+.homepage-welcome-card,
+.homepage-visit-card {
+  padding: clamp(1.5rem, 4vw, 2.6rem);
+  text-align: center;
+}
+
+.homepage-welcome-card {
+  background:
+    radial-gradient(circle at top right, rgba(16, 169, 206, 0.12), transparent 18rem),
+    var(--color-surface);
+}
+
+.homepage-visit-card {
+  background:
+    linear-gradient(135deg, rgba(79, 23, 127, 0.95), rgba(217, 13, 135, 0.82));
+  color: #ffffff;
+}
+
+.homepage-visit-card .homepage-section__eyebrow,
+.homepage-visit-card h2,
+.homepage-visit-card p {
+  color: #ffffff;
+}
+
+.homepage-visit-card p {
+  opacity: 0.94;
+}
+
+@media (max-width: 900px) {
+  .homepage-card-grid {
+    grid-template-columns: 1fr;
+  }
+.homepage-card__media {
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 620px) {
+  .homepage {
+    padding-inline: 0.9rem;
+  }
+
+  .hero-actions,
+  .homepage-actions,
+  .homepage-section__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-actions .btn,
+  .homepage-actions .btn,
+  .homepage-section__footer .btn {
+    width: 100%;
+  }
+}
+
+/* Homepage: bredere hoofdcontainer en kaartpresentatie op desktop */
+main.homepage {
+  width: min(100% - 2rem, 1480px);
+}
+
+@media (min-width: 1200px) {
+  .homepage-section {
+    width: min(100% - 4rem, 1480px);
+  }
+
+  .homepage-section__header {
+    width: min(100%, 860px);
+  }
+
+  .homepage-card__media {
+    min-height: 190px;
+  }
+
+  .homepage-card__content {
+    padding: 1.6rem;
+  }
+}
+
+.homepage-invite-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.6rem auto 0;
+  width: min(100%, 980px);
+}
+
+.homepage-invite-points div {
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius-medium);
+  background: rgba(255, 255, 255, 0.12);
+  text-align: left;
+}
+
+.homepage-invite-points strong,
+.homepage-invite-points span {
+  display: block;
+  color: #ffffff;
+}
+
+.homepage-invite-points strong {
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+}
+
+.homepage-invite-points span {
+  opacity: 0.92;
+}
+
+@media (max-width: 760px) {
+  .homepage-invite-points {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-invite-points div {
+    text-align: center;
+  }
+}
