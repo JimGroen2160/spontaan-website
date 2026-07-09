@@ -203,7 +203,7 @@ test.describe('Homepage Sanity-content en fallback', () => {
 
     await expect(page.locator('[data-homepage-hero-title]')).toContainText('Zangkoor Spontaan');
     await expect(page.locator('[data-homepage-hero-subtitle]')).toContainText('Samen zingen, samen beleven');
-    await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Welkom');
+    await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Samen zingen met plezier');
     await expect(page.locator('[data-homepage-welcome-text]')).toContainText('Zangkoor Spontaan is een enthousiast koor uit Angerlo.');
     await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
   });
