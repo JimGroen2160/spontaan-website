@@ -189,3 +189,80 @@ test.describe('Website basis en huisstijl', () => {
     }
   });
 });
+
+test.describe('Homepage Sanity-content en fallback', () => {
+  const sanityQueryUrl = '**/data/query/development**';
+
+  test('homepage toont statische fallback als Sanity niet bereikbaar is', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.abort('failed');
+    });
+
+    await page.goto('/');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Zangkoor Spontaan');
+    await expect(page.locator('[data-homepage-hero-subtitle]')).toContainText('Samen zingen, samen beleven');
+    await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Welkom');
+    await expect(page.locator('[data-homepage-welcome-text]')).toContainText('Zangkoor Spontaan is een enthousiast koor uit Angerlo.');
+    await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
+  });
+
+  test('homepage toont Sanity-content en veilige CTA als Sanity content levert', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            heroTitle: 'Sanity hero titel',
+            heroSubtitle: 'Sanity hero subtitel',
+            welcomeTitle: 'Sanity welkom titel',
+            welcomeText: 'Sanity welkom tekst voor de homepage.',
+            ctaLabel: 'Bekijk nieuws',
+            ctaLink: '/pages/nieuws.html',
+          },
+        }),
+      });
+    });
+
+    await page.goto('/');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Sanity hero titel');
+    await expect(page.locator('[data-homepage-hero-subtitle]')).toContainText('Sanity hero subtitel');
+    await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Sanity welkom titel');
+    await expect(page.locator('[data-homepage-welcome-text]')).toContainText('Sanity welkom tekst voor de homepage.');
+
+    const cta = page.locator('[data-homepage-cta-container] a');
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveText('Bekijk nieuws');
+    await expect(cta).toHaveAttribute('href', '/pages/nieuws.html');
+  });
+
+  test('homepage verbergt CTA bij onveilige Sanity-link', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            heroTitle: 'Sanity titel met onveilige link',
+            heroSubtitle: 'Sanity subtitel',
+            welcomeTitle: 'Sanity welkom',
+            welcomeText: 'Sanity tekst.',
+            ctaLabel: 'Onveilige knop',
+            ctaLink: 'javascript:alert("xss")',
+          },
+        }),
+      });
+    });
+
+    await page.goto('/');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Sanity titel met onveilige link');
+    await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
+    await expect(page.locator('[data-homepage-cta-container] a')).toHaveCount(0);
+  });
+});
