@@ -1,3 +1,4 @@
-﻿import {homePage} from './homePage'
+import {homePage} from './homePage'
+import {newsItem} from './newsItem'
 
-export const schemaTypes = [homePage]
+export const schemaTypes = [homePage, newsItem]
