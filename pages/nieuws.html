@@ -1,11 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nieuws | Zangkoor Spontaan</title>
-  <meta name="description" content="Nieuws en berichten van Zangkoor Spontaan uit Angerlo.">
+  <title>Nieuws | Zanggroep Spontaan</title>
+  <meta
+    name="description"
+    content="Lees het laatste nieuws, verhalen en updates van Zanggroep Spontaan uit Angerlo."
+  >
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
@@ -13,20 +16,251 @@
 
 <div id="nav-placeholder"></div>
 
-<main>
-  <section>
-    <h1>Nieuws</h1>
+<header class="news-hero">
+  <div class="news-hero__overlay"></div>
+
+  <div class="news-hero__content">
+    <p class="news-hero__eyebrow">Home / Nieuws</p>
+    <h1>Nieuws uit de wereld van Spontaan</h1>
     <p>
-      Op deze pagina delen we straks nieuws, updates en berichten van Zangkoor Spontaan.
+      Verhalen, optredens en meer achter de muziek.
     </p>
-    <p>
-      De inhoud wordt in een volgende fase verder uitgewerkt, zodat nieuws en blogberichten eenvoudig beheerd kunnen worden.
-    </p>
+  </div>
+</header>
+
+<main class="news-page">
+  <section class="news-overview" aria-label="Nieuwsoverzicht">
+<div class="news-controls" aria-label="Nieuws zoeken, filteren en sorteren">
+      <div class="news-search">
+        <label for="news-search-input">Zoeken in nieuws</label>
+        <input
+          id="news-search-input"
+          type="search"
+          placeholder="Zoek op titel of onderwerp"
+          autocomplete="off"
+        >
+      </div>
+
+      <fieldset class="news-categories">
+        <legend>Categorie</legend>
+
+        <div class="news-category-buttons">
+          <button type="button" class="news-category-button active" aria-pressed="true">
+            Alles
+          </button>
+          <button type="button" class="news-category-button" aria-pressed="false">
+            Optredens
+          </button>
+          <button type="button" class="news-category-button" aria-pressed="false">
+            Vereniging
+          </button>
+          <button type="button" class="news-category-button" aria-pressed="false">
+            Media
+          </button>
+          <button type="button" class="news-category-button" aria-pressed="false">
+            Overig
+          </button>
+        </div>
+      </fieldset>
+
+      <div class="news-sort">
+        <label for="news-sort-select">Sorteren</label>
+        <select id="news-sort-select">
+          <option value="newest">Nieuwste eerst</option>
+          <option value="oldest">Oudste eerst</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="news-result-summary" aria-live="polite">
+      <p>6 nieuwsberichten gevonden</p>
+    </div>
+
+    <div class="news-grid">
+      <article class="news-card">
+        <div class="news-card__image">
+          <img
+            src="../images/news/nieuws-zomeravond.webp"
+            alt="Zanggroep Spontaan tijdens een optreden"
+            width="1200"
+            height="675"
+            loading="lazy"
+          >
+          <span class="news-card__category">Optredens</span>
+        </div>
+
+        <div class="news-card__content">
+          <p class="news-card__date">
+            <time datetime="2026-06-21">21 juni 2026</time>
+          </p>
+          <h2>Spontaan zingt tijdens een sfeervolle zomeravond</h2>
+          <p>
+            Een avond vol muziek, ontmoeting en bekende nummers die het publiek
+            enthousiast meezong.
+          </p>
+          <a href="./nieuwsbericht.html?slug=spontaan-zingt-tijdens-een-sfeervolle-zomeravond" aria-label="Lees meer over de sfeervolle zomeravond">
+            Lees verder
+          </a>
+        </div>
+      </article>
+
+      <article class="news-card">
+        <div class="news-card__image">
+          <img
+            src="../images/news/nieuws-nieuwe-stemmen.webp"
+            alt="Leden van Zanggroep Spontaan tijdens een repetitie"
+            width="1200"
+            height="675"
+            loading="lazy"
+          >
+          <span class="news-card__category news-card__category--pink">Vereniging</span>
+        </div>
+
+        <div class="news-card__content">
+          <p class="news-card__date">
+            <time datetime="2026-06-14">14 juni 2026</time>
+          </p>
+          <h2>Nieuwe stemmen zijn van harte welkom</h2>
+          <p>
+            Houd je van zingen en gezelligheid? Kom vrijblijvend kennismaken tijdens
+            een van onze repetities.
+          </p>
+          <a href="./nieuwsbericht.html?slug=nieuwe-stemmen-zijn-van-harte-welkom" aria-label="Lees meer over nieuwe leden bij Spontaan">
+            Lees verder
+          </a>
+        </div>
+      </article>
+
+      <article class="news-card">
+        <div class="news-card__image">
+          <img
+            src="../images/news/nieuws-optreden-voorbereiden.webp"
+            alt="Microfoon en bladmuziek tijdens een repetitie"
+            width="1200"
+            height="675"
+            loading="lazy"
+          >
+          <span class="news-card__category news-card__category--blue">
+            Media
+          </span>
+        </div>
+
+        <div class="news-card__content">
+          <p class="news-card__date">
+            <time datetime="2026-06-07">7 juni 2026</time>
+          </p>
+          <h2>Zo bereiden wij een nieuw optreden voor</h2>
+          <p>
+            Van de eerste repetitie tot het podium: een kijkje achter de schermen
+            bij Zanggroep Spontaan.
+          </p>
+          <a href="./nieuwsbericht.html?slug=zo-bereiden-wij-een-nieuw-optreden-voor" aria-label="Lees meer over de voorbereiding van een optreden">
+            Lees verder
+          </a>
+        </div>
+      </article>
+
+      <article class="news-card">
+        <div class="news-card__image">
+          <img
+            src="../images/news/nieuws-terugblik-optreden.webp"
+            alt="Zanggroep Spontaan samen op het podium"
+            width="1200"
+            height="675"
+            loading="lazy"
+          >
+          <span class="news-card__category">Optredens</span>
+        </div>
+
+        <div class="news-card__content">
+          <p class="news-card__date">
+            <time datetime="2026-05-30">30 mei 2026</time>
+          </p>
+          <h2>Terugblik op een warm ontvangen optreden</h2>
+          <p>
+            Muziek verbindt. Dat bleek opnieuw tijdens een bijzonder optreden
+            voor een enthousiast publiek.
+          </p>
+          <a href="./nieuwsbericht.html?slug=terugblik-op-een-warm-ontvangen-optreden" aria-label="Lees de terugblik op het optreden">
+            Lees verder
+          </a>
+        </div>
+      </article>
+
+      <article class="news-card">
+        <div class="news-card__image">
+          <img
+            src="../images/news/nieuws-samen-zingen.webp"
+            alt="Zangers van Spontaan tijdens een gezamenlijke repetitie"
+            width="1200"
+            height="675"
+            loading="lazy"
+          >
+          <span class="news-card__category news-card__category--pink">Vereniging</span>
+        </div>
+
+        <div class="news-card__content">
+          <p class="news-card__date">
+            <time datetime="2026-05-18">18 mei 2026</time>
+          </p>
+          <h2>Samen zingen geeft energie en plezier</h2>
+          <p>
+            Onze leden vertellen waarom de wekelijkse repetitie voor hen een
+            waardevol moment is.
+          </p>
+          <a href="./nieuwsbericht.html?slug=samen-zingen-geeft-energie-en-plezier" aria-label="Lees waarom samen zingen energie geeft">
+            Lees verder
+          </a>
+        </div>
+      </article>
+
+      <article class="news-card">
+        <div class="news-card__image">
+          <img
+            src="../images/news/nieuws-repertoire.webp"
+            alt="Bladmuziek en microfoon van Zanggroep Spontaan"
+            width="1200"
+            height="675"
+            loading="lazy"
+          >
+          <span class="news-card__category news-card__category--blue">
+            Media
+          </span>
+        </div>
+
+        <div class="news-card__content">
+          <p class="news-card__date">
+            <time datetime="2026-05-10">10 mei 2026</time>
+          </p>
+          <h2>Een kijkje in het repertoire van Spontaan</h2>
+          <p>
+            Bekende klassiekers, verrassende nummers en muziek die uitnodigt
+            om mee te zingen.
+          </p>
+          <a href="./nieuwsbericht.html?slug=een-kijkje-in-het-repertoire-van-spontaan" aria-label="Lees meer over het repertoire van Spontaan">
+            Lees verder
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <nav class="news-pagination" aria-label="Paginering nieuwsberichten">
+      <button type="button" disabled aria-label="Vorige nieuwspagina">
+        Vorige
+      </button>
+      <button type="button" class="active" aria-current="page">1</button>
+      <button type="button">2</button>
+      <button type="button">3</button>
+      <button type="button" aria-label="Volgende nieuwspagina">
+        Volgende
+      </button>
+    </nav>
   </section>
 </main>
 
 <div id="footer-placeholder"></div>
 
+<script src="../js/nieuws.js" defer></script>
 <script src="../components/menu.js" defer></script>
 
 </body>
