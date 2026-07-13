@@ -9,7 +9,7 @@ export const newsItem = defineType({
       name: 'title',
       title: 'Titel',
       type: 'string',
-      validation: (rule) => rule.required(),
+      validation: (rule) => rule.required().max(96),
     }),
     defineField({
       name: 'slug',
@@ -48,12 +48,30 @@ export const newsItem = defineType({
       options: {
         hotspot: true,
       },
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'mainImageAlt',
       title: 'Alt-tekst hoofdafbeelding',
       type: 'string',
       description: 'Korte omschrijving van de afbeelding voor toegankelijkheid.',
+      validation: (rule) => rule.required().max(160),
+    }),
+    defineField({
+      name: 'category',
+      title: 'Categorie',
+      type: 'string',
+      initialValue: 'overig',
+      options: {
+        list: [
+          {title: 'Optredens', value: 'optredens'},
+          {title: 'Vereniging', value: 'vereniging'},
+          {title: 'Media', value: 'media'},
+          {title: 'Overig', value: 'overig'},
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'summary',
@@ -61,13 +79,14 @@ export const newsItem = defineType({
       type: 'text',
       rows: 3,
       description: 'Korte tekst voor nieuwskaarten en overzichten.',
-      validation: (rule) => rule.required(),
+      validation: (rule) => rule.required().max(240),
     }),
     defineField({
       name: 'body',
       title: 'Volledige tekst',
       type: 'array',
       of: [{type: 'block'}],
+      validation: (rule) => rule.required().min(1),
     }),
     defineField({
       name: 'audioFiles',
@@ -87,6 +106,10 @@ export const newsItem = defineType({
       title: 'Video-url',
       type: 'url',
       description: 'Bijvoorbeeld een YouTube- of Vimeo-link.',
+      validation: (rule) =>
+        rule.uri({
+          scheme: ['http', 'https'],
+        }),
     }),
     defineField({
       name: 'attachments',

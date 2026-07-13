@@ -7,6 +7,7 @@ const publicRoutes = [
   '/pages/media.html',
   '/pages/repertoire.html',
   '/pages/nieuws.html',
+  '/pages/nieuwsbericht.html?slug=nieuwe-stemmen-zijn-van-harte-welkom',
   '/pages/vrienden.html',
   '/pages/contact.html',
   '/leden/login.html',
@@ -365,5 +366,480 @@ test.describe('Homepage Sanity-content en fallback', () => {
     await expect(page.locator('[data-homepage-hero-title]')).toContainText('Sanity titel met onveilige link');
     await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
     await expect(page.locator('[data-homepage-cta-container] a')).toHaveCount(0);
+  });
+});
+test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+  });
+
+  test('toont zes nieuwskaarten met afzonderlijke afbeeldingen', async ({ page }) => {
+    const cards = page.locator('.news-card:not([hidden])');
+    const images = cards.locator('.news-card__image img');
+
+    await expect(cards).toHaveCount(6);
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '6 nieuwsberichten gevonden',
+    );
+    await expect(page.locator('.news-pagination')).toBeHidden();
+
+    const imageSources = await images.evaluateAll((elements) =>
+      elements.map((element) => (element as HTMLImageElement).src),
+    );
+
+    expect(new Set(imageSources).size).toBe(6);
+    expect(imageSources.every((source) => source.includes('/images/news/'))).toBe(true);
+  });
+
+  test('zoeken beperkt het overzicht tot passende nieuwsberichten', async ({ page }) => {
+    await page.locator('#news-search-input').fill('repertoire');
+
+    const visibleCards = page.locator('.news-card:not([hidden])');
+
+    await expect(visibleCards).toHaveCount(1);
+    await expect(visibleCards.locator('h2')).toHaveText(
+      'Een kijkje in het repertoire van Spontaan',
+    );
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '1 nieuwsbericht gevonden',
+    );
+  });
+
+  test('categoriefilter toont uitsluitend berichten uit de gekozen categorie', async ({ page }) => {
+    const optredensButton = page.getByRole('button', { name: 'Optredens' });
+
+    await optredensButton.click();
+
+    await expect(optredensButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Alles' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+
+    const visibleCards = page.locator('.news-card:not([hidden])');
+
+    await expect(visibleCards).toHaveCount(2);
+    await expect(visibleCards.locator('.news-card__category')).toHaveText([
+      'Optredens',
+      'Optredens',
+    ]);
+  });
+
+  test('sorteren op oudste plaatst het oudste nieuwsbericht vooraan', async ({ page }) => {
+    await page.locator('#news-sort-select').selectOption('oldest');
+
+    const firstVisibleCard = page.locator('.news-card:not([hidden])').first();
+
+    await expect(firstVisibleCard.locator('time')).toHaveAttribute(
+      'datetime',
+      '2026-05-10',
+    );
+    await expect(firstVisibleCard.locator('h2')).toHaveText(
+      'Een kijkje in het repertoire van Spontaan',
+    );
+  });
+
+  test('detailnavigatie toont het gekozen bericht met de juiste afbeelding', async ({ page }) => {
+    await page
+      .getByRole('link', { name: 'Lees meer over nieuwe leden bij Spontaan' })
+      .click();
+
+    await expect(page).toHaveURL(
+      /nieuwsbericht\.html\?slug=nieuwe-stemmen-zijn-van-harte-welkom$/,
+    );
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwe stemmen zijn van harte welkom',
+    );
+    await expect(page.locator('[data-news-detail-image]')).toHaveAttribute(
+      'src',
+      '../images/news/nieuws-nieuwe-stemmen.webp',
+    );
+  });
+
+  test('onbekende en geërfde slugs worden veilig als niet gevonden behandeld', async ({ page }) => {
+    await page.goto('/pages/nieuwsbericht.html?slug=__proto__');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwsbericht niet gevonden',
+    );
+    await expect(page.locator('.news-detail__media')).toBeHidden();
+    await expect(page.locator('[data-news-detail-body]')).toContainText(
+      'Ga terug naar het nieuwsoverzicht',
+    );
+  });
+});
+test.describe('Nieuws Sanity-content en fallback', () => {
+  const sanityQueryUrl = '**/data/query/development**';
+
+  test('nieuwsoverzicht toont geldige Sanity-berichten', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: [
+            {
+              title: 'Sanity nieuwsbericht',
+              slug: 'sanity-nieuwsbericht',
+              publishedAt: '2026-07-12T10:00:00.000Z',
+              category: 'vereniging',
+              summary: 'Dit bericht komt rechtstreeks uit Sanity.',
+              mainImageAlt: 'Zangers tijdens een repetitie',
+              imageUrl:
+                'https://cdn.sanity.io/images/u66p1mxm/development/news-test.jpg',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    const cards = page.locator('.news-card:not([hidden])');
+
+    await expect(cards).toHaveCount(1);
+    await expect(cards.locator('h2')).toHaveText('Sanity nieuwsbericht');
+    await expect(cards.locator('.news-card__category')).toHaveText(
+      'Vereniging',
+    );
+    await expect(cards.locator('img')).toHaveAttribute(
+      'src',
+      'https://cdn.sanity.io/images/u66p1mxm/development/news-test.jpg',
+    );
+    await expect(cards.locator('a')).toHaveAttribute(
+      'href',
+      './nieuwsbericht.html?slug=sanity-nieuwsbericht',
+    );
+  });
+
+  test('nieuwsoverzicht behoudt statische fallback bij mislukte Sanity-request', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.abort('failed');
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.news-card:not([hidden])')).toHaveCount(6);
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '6 nieuwsberichten gevonden',
+    );
+  });
+
+  test('nieuwsdetail toont geldige Sanity-content', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            title: 'Sanity detailbericht',
+            slug: 'sanity-detailbericht',
+            publishedAt: '2026-07-11T12:00:00.000Z',
+            category: 'media',
+            summary: 'Dit is de Sanity-samenvatting.',
+            mainImageAlt: 'Microfoon tijdens een optreden',
+            imageUrl:
+              'https://cdn.sanity.io/images/u66p1mxm/development/detail-test.jpg',
+            body: [
+              {
+                _type: 'block',
+                children: [
+                  {
+                    _type: 'span',
+                    text: 'Eerste alinea uit Sanity.',
+                  },
+                ],
+              },
+              {
+                _type: 'block',
+                children: [
+                  {
+                    _type: 'span',
+                    text: 'Tweede alinea uit Sanity.',
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.goto(
+      '/pages/nieuwsbericht.html?slug=sanity-detailbericht',
+    );
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Sanity detailbericht',
+    );
+    await expect(page.locator('[data-news-detail-category]').first()).toHaveText(
+      'Media',
+    );
+    await expect(page.locator('[data-news-detail-summary]')).toHaveText(
+      'Dit is de Sanity-samenvatting.',
+    );
+    await expect(page.locator('[data-news-detail-image]')).toHaveAttribute(
+      'src',
+      'https://cdn.sanity.io/images/u66p1mxm/development/detail-test.jpg',
+    );
+    await expect(page.locator('[data-news-detail-body] p')).toHaveText([
+      'Eerste alinea uit Sanity.',
+      'Tweede alinea uit Sanity.',
+    ]);
+  });
+
+  test('nieuwsdetail gebruikt statische fallback bij mislukte Sanity-request', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.abort('failed');
+    });
+
+    await page.goto(
+      '/pages/nieuwsbericht.html?slug=nieuwe-stemmen-zijn-van-harte-welkom',
+    );
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwe stemmen zijn van harte welkom',
+    );
+    await expect(page.locator('[data-news-detail-image]')).toHaveAttribute(
+      'src',
+      '../images/news/nieuws-nieuwe-stemmen.webp',
+    );
+  });
+});
+test.describe('Nieuwsoverzicht unhappy flows', () => {
+  const sanityQueryUrl = '**/data/query/development**';
+
+  test('zoeken zonder resultaat toont een duidelijke gebruikersmelding', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.abort('failed');
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    const searchInput = page.locator('#news-search-input');
+    await searchInput.fill('niet-bestaand-bericht-12345');
+
+    await expect(page.locator('.news-card:not([hidden])')).toHaveCount(0);
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '0 nieuwsberichten gevonden',
+    );
+    await expect(page.locator('.news-pagination')).toBeHidden();
+    await expect(searchInput).toBeEditable();
+  });
+
+  test('HTTP 500 van Sanity behoudt een bruikbaar nieuwsoverzicht zonder technische fouttekst', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'Internal server error',
+        }),
+      });
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.news-card:not([hidden])')).toHaveCount(6);
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '6 nieuwsberichten gevonden',
+    );
+
+    await page.locator('#news-search-input').fill('repertoire');
+    await expect(page.locator('.news-card:not([hidden])')).toHaveCount(1);
+
+    const visibleText = await page.locator('body').innerText();
+    expect(visibleText).not.toContain('Sanity request failed');
+    expect(visibleText).not.toContain('Internal server error');
+    expect(visibleText).not.toContain('status 500');
+  });
+
+  test('ongeldige JSON van Sanity toont de statische fallback zonder technische details', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{ ongeldige-json',
+      });
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.news-card:not([hidden])')).toHaveCount(6);
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '6 nieuwsberichten gevonden',
+    );
+
+    const visibleText = await page.locator('body').innerText();
+    expect(visibleText).not.toContain('SyntaxError');
+    expect(visibleText).not.toContain('Unexpected token');
+    expect(visibleText).not.toContain('ongeldige-json');
+  });
+
+  test('ongeldig bericht tussen geldige Sanity-data wordt veilig overgeslagen', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: [
+            {
+              title: 'Geldig Sanity-bericht',
+              slug: 'geldig-sanity-bericht',
+              publishedAt: '2026-07-12T10:00:00.000Z',
+              category: 'optredens',
+              summary: 'Dit geldige bericht moet zichtbaar blijven.',
+              mainImageAlt: 'Zanggroep tijdens een optreden',
+              imageUrl:
+                'https://cdn.sanity.io/images/u66p1mxm/development/geldig.jpg',
+            },
+            {
+              title: 'Ongeldig Sanity-bericht',
+              slug: 'ongeldig-sanity-bericht',
+              publishedAt: 'geen-geldige-datum',
+              category: 'media',
+              summary: '',
+              mainImageAlt: '',
+              imageUrl: 'javascript:alert("xss")',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    const cards = page.locator('.news-card:not([hidden])');
+
+    await expect(cards).toHaveCount(1);
+    await expect(cards.locator('h2')).toHaveText('Geldig Sanity-bericht');
+    await expect(page.locator('.news-result-summary p')).toHaveText(
+      '1 nieuwsbericht gevonden',
+    );
+    await expect(page.getByText('Ongeldig Sanity-bericht')).toHaveCount(0);
+  });
+});
+test.describe('Nieuwsdetail unhappy flows', () => {
+  const sanityQueryUrl = '**/data/query/development**';
+
+  test('ontbrekende slug toont een duidelijke melding en terugmogelijkheid', async ({ page }) => {
+    await page.goto('/pages/nieuwsbericht.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwsbericht niet gevonden',
+    );
+    await expect(page.locator('[data-news-detail-summary]')).toHaveText(
+      'Het opgevraagde nieuwsbericht bestaat niet of is niet meer beschikbaar.',
+    );
+    await expect(page.locator('[data-news-detail-body]')).toContainText(
+      'Ga terug naar het nieuwsoverzicht',
+    );
+    await expect(
+      page.getByRole('link', { name: 'Terug naar al het nieuws' }),
+    ).toBeVisible();
+    await expect(page.locator('.news-detail__media')).toBeHidden();
+  });
+
+  test('HTTP 500 bij onbekende slug toont geen technische details', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'Internal server error',
+        }),
+      });
+    });
+
+    await page.goto(
+      '/pages/nieuwsbericht.html?slug=volledig-onbekend-bericht',
+    );
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwsbericht niet gevonden',
+    );
+    await expect(page.locator('[data-news-detail-body]')).toContainText(
+      'Ga terug naar het nieuwsoverzicht',
+    );
+
+    const visibleText = await page.locator('body').innerText();
+    expect(visibleText).not.toContain('Sanity request failed');
+    expect(visibleText).not.toContain('Internal server error');
+    expect(visibleText).not.toContain('status 500');
+  });
+
+  test('ongeldige JSON op detailpagina leidt tot veilige fallback', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{ ongeldige-json',
+      });
+    });
+
+    await page.goto(
+      '/pages/nieuwsbericht.html?slug=nieuwe-stemmen-zijn-van-harte-welkom',
+    );
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwe stemmen zijn van harte welkom',
+    );
+    await expect(page.locator('[data-news-detail-body] p')).toHaveCount(3);
+
+    const visibleText = await page.locator('body').innerText();
+    expect(visibleText).not.toContain('SyntaxError');
+    expect(visibleText).not.toContain('Unexpected token');
+    expect(visibleText).not.toContain('ongeldige-json');
+  });
+
+  test('ongeldig Sanity-detail met lege body wordt niet getoond', async ({ page }) => {
+    await page.route(sanityQueryUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            title: 'Onvolledig Sanity-detail',
+            slug: 'onvolledig-sanity-detail',
+            publishedAt: '2026-07-12T10:00:00.000Z',
+            category: 'media',
+            summary: 'Deze inhoud is technisch onvolledig.',
+            mainImageAlt: 'Testafbeelding',
+            imageUrl:
+              'https://cdn.sanity.io/images/u66p1mxm/development/onvolledig.jpg',
+            body: [],
+          },
+        }),
+      });
+    });
+
+    await page.goto(
+      '/pages/nieuwsbericht.html?slug=onvolledig-sanity-detail',
+    );
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-news-detail-title]')).toHaveText(
+      'Nieuwsbericht niet gevonden',
+    );
+    await expect(page.locator('[data-news-detail-body]')).toContainText(
+      'Ga terug naar het nieuwsoverzicht',
+    );
+    await expect(page.getByText('Onvolledig Sanity-detail')).toHaveCount(0);
+    await expect(page.locator('.news-detail__media')).toBeHidden();
   });
 });
