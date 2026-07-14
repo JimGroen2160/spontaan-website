@@ -1,43 +1,316 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Agenda - Zangkoor Spontaan</title>
+  <title>Agenda | Zanggroep Spontaan</title>
 
-  <meta name="description" content="Bekijk de agenda van Zangkoor Spontaan en kom luisteren bij onze optredens.">
+  <meta
+    name="description"
+    content="Bekijk komende optredens en openbare activiteiten van Zanggroep Spontaan uit Angerlo."
+  >
 
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
 
-  <!-- NAV COMPONENT -->
-  <div id="nav-placeholder"></div>
+<div id="nav-placeholder"></div>
 
-  <main>
+<header class="agenda-hero">
+  <div class="agenda-hero__overlay"></div>
 
-    <section id="agenda">
+  <div class="agenda-hero__content">
+    <h1>Agenda</h1>
 
-      <h1>Agenda</h1>
+    <p>
+      Bekijk waar en wanneer Zanggroep Spontaan te horen is.
+    </p>
+  </div>
+</header>
 
-      <ul>
-        <li>12 juni – Zomerconcert</li>
-        <li>5 oktober – Herfstoptreden</li>
-        <li>15 december – Kerstconcert</li>
-      </ul>
+<main class="agenda-page">
 
+  <div
+    class="agenda-status"
+    data-agenda-status
+    role="status"
+    aria-live="polite"
+    hidden
+  ></div>
+
+  <div class="agenda-layout">
+
+    <section
+      class="agenda-overview"
+      aria-labelledby="agenda-overview-title"
+    >
+      <div class="agenda-section-heading">
+        <p class="agenda-section-heading__eyebrow">
+          Kom luisteren
+        </p>
+
+        <h2 id="agenda-overview-title">
+          Komende evenementen
+        </h2>
+
+        <p>
+          Ontdek onze openbare optredens en activiteiten.
+        </p>
+      </div>
+
+      <p
+        class="agenda-result-summary"
+        data-agenda-result-summary
+        aria-live="polite"
+      >
+        Er staan momenteel geen openbare activiteiten gepland.
+      </p>
+
+      <div
+        class="agenda-events"
+        data-agenda-events
+      >
+        <div
+          class="agenda-empty-state"
+          data-agenda-empty-state
+        >
+          <span
+            class="agenda-empty-state__icon"
+            aria-hidden="true"
+          >
+            ♫
+          </span>
+
+          <h3>
+            Er staan momenteel geen openbare optredens gepland
+          </h3>
+
+          <p>
+            Nieuwe activiteiten worden hier gepubliceerd zodra
+            de data bekend zijn.
+          </p>
+
+          <a
+            class="btn"
+            href="./contact.html"
+          >
+            Neem contact op
+          </a>
+        </div>
+      </div>
     </section>
 
-  </main>
+    <aside
+      class="agenda-sidebar"
+      aria-label="Agenda bekijken en filteren"
+    >
+      <section
+        class="agenda-calendar"
+        aria-labelledby="agenda-calendar-title"
+      >
+        <div class="agenda-calendar__header">
+          <button
+            class="agenda-calendar__button"
+            type="button"
+            data-agenda-previous-month
+            aria-label="Vorige maand"
+          >
+            ‹
+          </button>
 
-  <div id="footer-placeholder"></div>
+          <h2
+            id="agenda-calendar-title"
+            data-agenda-calendar-title
+            aria-live="polite"
+          >
+            Kalender
+          </h2>
 
-  <!-- SCRIPT (CENTRAAL) -->
-  <script src="../components/menu.js"></script>
+          <button
+            class="agenda-calendar__button"
+            type="button"
+            data-agenda-next-month
+            aria-label="Volgende maand"
+          >
+            ›
+          </button>
+        </div>
+
+        <div
+          class="agenda-calendar__weekdays"
+          aria-hidden="true"
+        >
+          <span>Ma</span>
+          <span>Di</span>
+          <span>Wo</span>
+          <span>Do</span>
+          <span>Vr</span>
+          <span>Za</span>
+          <span>Zo</span>
+        </div>
+
+        <div
+          class="agenda-calendar__grid"
+          data-agenda-calendar
+          role="group"
+          aria-label="Kalender met activiteiten"
+        ></div>
+
+        <button
+          class="agenda-calendar__clear"
+          type="button"
+          data-agenda-clear-date
+          hidden
+        >
+          Dagselectie wissen
+        </button>
+      </section>
+
+      <section
+        class="agenda-filters"
+        aria-labelledby="agenda-filters-title"
+      >
+        <h2 id="agenda-filters-title">
+          Filter evenementen
+        </h2>
+
+        <div class="agenda-filter-field">
+          <label for="agenda-type-filter">
+            Soort evenement
+          </label>
+
+          <select
+            id="agenda-type-filter"
+            data-agenda-type-filter
+          >
+            <option value="alles">Alle soorten</option>
+            <option value="optreden">Optreden</option>
+            <option value="concert">Concert</option>
+            <option value="repetitie">Repetitie</option>
+            <option value="overig">Overig</option>
+          </select>
+        </div>
+
+        <div class="agenda-filter-field">
+          <label for="agenda-location-filter">
+            Locatie
+          </label>
+
+          <select
+            id="agenda-location-filter"
+            data-agenda-location-filter
+          >
+            <option value="alles">Alle locaties</option>
+          </select>
+        </div>
+
+        <div class="agenda-filter-field">
+          <label for="agenda-month-filter">
+            Maand
+          </label>
+
+          <select
+            id="agenda-month-filter"
+            data-agenda-month-filter
+          >
+            <option value="alles">Alle maanden</option>
+          </select>
+        </div>
+
+        <button
+          class="btn btn--secondary agenda-filters__reset"
+          type="button"
+          data-agenda-reset-filters
+        >
+          Filters wissen
+        </button>
+      </section>
+
+      <section
+        class="agenda-information"
+        aria-labelledby="agenda-information-title"
+      >
+        <span
+          class="agenda-information__icon"
+          aria-hidden="true"
+        >
+          ♪
+        </span>
+
+        <h2 id="agenda-information-title">
+          Meer informatie?
+        </h2>
+
+        <p>
+          Wil je meer weten over een optreden of ons uitnodigen?
+          Neem dan gerust contact met ons op.
+        </p>
+
+        <a
+          class="btn"
+          href="./contact.html"
+        >
+          Neem contact op
+        </a>
+      </section>
+    </aside>
+
+  </div>
+
+  <figure class="agenda-quote">
+    <blockquote>
+      <p>
+        Samen zingen wordt nog mooier wanneer we onze muziek
+        met publiek mogen delen.
+      </p>
+    </blockquote>
+  </figure>
+
+  <section
+    class="agenda-cta"
+    aria-labelledby="agenda-cta-title"
+  >
+    <div>
+      <p class="agenda-section-heading__eyebrow">
+        Nieuwsgierig geworden?
+      </p>
+
+      <h2 id="agenda-cta-title">
+        Beleef Spontaan van dichtbij
+      </h2>
+
+      <p>
+        Kom luisteren bij een optreden of neem contact op
+        om kennis te maken met onze zanggroep.
+      </p>
+    </div>
+
+    <div class="agenda-cta__actions">
+      <a
+        class="btn"
+        href="./contact.html"
+      >
+        Neem contact op
+      </a>
+
+      <a
+        class="btn btn--secondary"
+        href="./over.html"
+      >
+        Over Spontaan
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script src="../components/menu.js" defer></script>
+<script src="../js/agenda.js" defer></script>
 
 </body>
 

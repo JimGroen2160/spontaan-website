@@ -5,6 +5,7 @@ const pages = [
   { name: 'homepage', path: '/' },
   { name: 'over Spontaan', path: '/pages/over.html' },
   { name: 'agenda', path: '/pages/agenda.html' },
+  { name: 'agenda met activiteiten', path: '/pages/agenda.html?demo=1' },
   { name: 'media', path: '/pages/media.html' },
   { name: 'repertoire', path: '/pages/repertoire.html' },
   { name: 'nieuws', path: '/pages/nieuws.html' },
