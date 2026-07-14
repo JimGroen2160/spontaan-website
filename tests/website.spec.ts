@@ -874,15 +874,20 @@ test.describe('Over Spontaan pagina', () => {
     await expect(contentImages).toHaveCount(2);
 
     for (const image of await contentImages.all()) {
+      await image.scrollIntoViewIfNeeded();
       await expect(image).toBeVisible();
 
-      const loaded = await image.evaluate((element: HTMLImageElement) => (
-        element.complete &&
-        element.naturalWidth > 0 &&
-        element.naturalHeight > 0
-      ));
-
-      expect(loaded).toBe(true);
+      await expect.poll(
+        async () => image.evaluate((element: HTMLImageElement) => (
+          element.complete &&
+          element.naturalWidth > 0 &&
+          element.naturalHeight > 0
+        )),
+        {
+          message: 'De afbeelding moet volledig geladen zijn',
+          timeout: 10_000,
+        },
+      ).toBe(true);
     }
 
     const heroImage = await page.locator('.about-hero').evaluate((element) => (
