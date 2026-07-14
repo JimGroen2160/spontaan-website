@@ -843,3 +843,79 @@ test.describe('Nieuwsdetail unhappy flows', () => {
     await expect(page.locator('.news-detail__media')).toBeHidden();
   });
 });
+
+test.describe('Over Spontaan pagina', () => {
+  test('toont de vastgestelde inhoud en geladen afbeeldingen', async ({ page }) => {
+    await page.goto('/pages/over.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.about-hero h1')).toHaveText('Over Spontaan');
+    await expect(page.getByRole('heading', { name: 'Samen groeien in muziek' })).toBeVisible();
+
+    const timelineHeadings = page.locator('.about-timeline h3');
+    await expect(timelineHeadings).toHaveText([
+      'Het begin',
+      'Ontwikkeling',
+      'Vandaag',
+      'Vooruitkijken',
+    ]);
+
+    await expect(page.locator('.about-quote')).toContainText(
+      'Samen zingen geeft energie, verbinding en veel mooie momenten.',
+    );
+
+    await expect(page.getByRole('heading', { name: 'Maak kennis met Spontaan' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Neem contact op' })).toHaveAttribute(
+      'href',
+      './contact.html',
+    );
+
+    const contentImages = page.locator('.about-media img');
+    await expect(contentImages).toHaveCount(2);
+
+    for (const image of await contentImages.all()) {
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toBeVisible();
+
+      await expect.poll(
+        async () => image.evaluate((element: HTMLImageElement) => (
+          element.complete &&
+          element.naturalWidth > 0 &&
+          element.naturalHeight > 0
+        )),
+        {
+          message: 'De afbeelding moet volledig geladen zijn',
+          timeout: 10_000,
+        },
+      ).toBe(true);
+    }
+
+    const heroImage = await page.locator('.about-hero').evaluate((element) => (
+      getComputedStyle(element).backgroundImage
+    ));
+
+    expect(heroImage).toContain('over-hero-mannenkoor.jpg');
+  });
+
+  for (const viewport of [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'mobiel', width: 390, height: 844 },
+  ]) {
+    test(`heeft geen horizontale overflow op ${viewport.name}`, async ({ page }) => {
+      await page.setViewportSize({
+        width: viewport.width,
+        height: viewport.height,
+      });
+
+      await page.goto('/pages/over.html');
+      await waitForSharedLayout(page);
+
+      const dimensions = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    });
+  }
+});
