@@ -919,3 +919,245 @@ test.describe('Over Spontaan pagina', () => {
     });
   }
 });
+
+test.describe('Agenda pagina', () => {
+  test('toont demoactiviteiten, mannenkoor-hero en werkende filters', async ({ page }) => {
+    await page.goto('/pages/agenda.html?demo=1');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.agenda-hero h1')).toHaveText('Agenda');
+
+    const heroImage = await page.locator('.agenda-hero').evaluate((element) => (
+      getComputedStyle(element).backgroundImage
+    ));
+
+    expect(heroImage).toContain('over-hero-mannenkoor.jpg');
+
+    const cards = page.locator('.agenda-event-card');
+    await expect(cards).toHaveCount(5);
+
+    await expect(page.getByText('Zomeravondconcert')).toBeVisible();
+    await expect(page.getByText('Open repetitieavond')).toBeVisible();
+    await expect(page.getByText('Najaarsconcert')).toBeVisible();
+    await expect(page.locator('[data-agenda-result-summary]')).toHaveText(
+      '5 activiteiten gevonden',
+    );
+
+    await page.locator('[data-agenda-type-filter]').selectOption('concert');
+
+    await expect(cards).toHaveCount(2);
+    await expect(page.getByText('Zomeravondconcert')).toBeVisible();
+    await expect(page.getByText('Najaarsconcert')).toBeVisible();
+    await expect(page.getByText('Open repetitieavond')).toHaveCount(0);
+
+    await page.locator('[data-agenda-location-filter]').selectOption('angerlo');
+
+    await expect(cards).toHaveCount(1);
+    await expect(page.getByText('Zomeravondconcert')).toBeVisible();
+    await expect(page.locator('[data-agenda-result-summary]')).toHaveText(
+      '1 activiteit gevonden',
+    );
+
+    await page.locator('[data-agenda-reset-filters]').click();
+
+    await expect(cards).toHaveCount(5);
+    await expect(page.locator('[data-agenda-type-filter]')).toHaveValue('alles');
+    await expect(page.locator('[data-agenda-location-filter]')).toHaveValue('alles');
+    await expect(page.locator('[data-agenda-month-filter]')).toHaveValue('alles');
+  });
+
+  test('kalender navigeert en filtert op een evenementdag', async ({ page }) => {
+    await page.goto('/pages/agenda.html?demo=1');
+    await waitForSharedLayout(page);
+
+    const calendarTitle = page.locator('[data-agenda-calendar-title]');
+    await expect(calendarTitle).toContainText(/augustus 2026/i);
+
+    const eventDay = page.getByRole('button', {
+      name: /bekijk activiteiten op 22 augustus 2026/i,
+    });
+
+    await expect(eventDay).toBeVisible();
+    await eventDay.click();
+
+    await expect(page.locator('.agenda-event-card')).toHaveCount(1);
+    await expect(page.getByText('Zomeravondconcert')).toBeVisible();
+    await expect(eventDay).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-agenda-clear-date]')).toBeVisible();
+
+    await page.locator('[data-agenda-clear-date]').click();
+
+    await expect(page.locator('.agenda-event-card')).toHaveCount(5);
+    await expect(page.locator('[data-agenda-clear-date]')).toBeHidden();
+
+    await page.locator('[data-agenda-next-month]').click();
+    await expect(calendarTitle).toContainText(/september 2026/i);
+
+    await page.locator('[data-agenda-previous-month]').click();
+    await expect(calendarTitle).toContainText(/augustus 2026/i);
+  });
+
+  test('gecombineerde filters tonen een toegankelijke lege status', async ({ page }) => {
+    await page.goto('/pages/agenda.html?demo=1');
+    await waitForSharedLayout(page);
+
+    await page.locator('[data-agenda-type-filter]').selectOption('concert');
+    await page.locator('[data-agenda-location-filter]').selectOption('doetinchem');
+
+    await expect(page.locator('.agenda-event-card')).toHaveCount(0);
+    await expect(page.locator('[data-agenda-empty-state]')).toContainText(
+      'Geen activiteiten gevonden',
+    );
+    await expect(page.locator('[data-agenda-result-summary]')).toHaveText(
+      'Geen activiteiten gevonden',
+    );
+
+    await page.locator('[data-agenda-reset-filters]').click();
+    await expect(page.locator('.agenda-event-card')).toHaveCount(5);
+  });
+
+  for (const viewport of [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'tablet', width: 768, height: 1024 },
+    { name: 'mobiel', width: 390, height: 844 },
+  ]) {
+    test(`heeft geen horizontale overflow op ${viewport.name}`, async ({ page }) => {
+      await page.setViewportSize({
+        width: viewport.width,
+        height: viewport.height,
+      });
+
+      await page.goto('/pages/agenda.html?demo=1');
+      await waitForSharedLayout(page);
+
+      await expect(page.locator('.agenda-event-card').first()).toBeVisible();
+
+      const dimensions = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    });
+  }
+});
+
+test.describe('Agenda pagina unhappy flows', () => {
+  const sanityAgendaUrl = '**/data/query/development?query=*';
+
+  test('toont een eerlijke lege status bij een lege Sanity-dataset', async ({ page }) => {
+    await page.route(sanityAgendaUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: [],
+        }),
+      });
+    });
+
+    await page.goto('/pages/agenda.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.agenda-event-card')).toHaveCount(0);
+    await expect(page.locator('[data-agenda-empty-state]')).toContainText(
+      'Er staan momenteel geen openbare optredens gepland',
+    );
+    await expect(page.locator('[data-agenda-status]')).toBeHidden();
+    await expect(page.locator('[data-agenda-result-summary]')).toHaveText(
+      'Er staan momenteel geen openbare activiteiten gepland.',
+    );
+  });
+
+  test('toont zichtbaar gebruikersbericht bij een mislukte Sanity-request', async ({ page }) => {
+    await page.route(sanityAgendaUrl, async (route) => {
+      await route.abort('failed');
+    });
+
+    await page.goto('/pages/agenda.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('[data-agenda-status]')).toBeVisible();
+    await expect(page.locator('[data-agenda-status]')).toContainText(
+      'De actuele agenda kon niet worden geladen',
+    );
+
+    await expect(page.locator('.agenda-event-card')).toHaveCount(0);
+    await expect(page.locator('[data-agenda-empty-state]')).toContainText(
+      'Er staan momenteel geen openbare optredens gepland',
+    );
+  });
+
+  test('negeert ongeldige en onvolledige Sanity-records veilig', async ({ page }) => {
+    await page.route(sanityAgendaUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: [
+            {
+              title: 'Geldig voorbeeldoptreden',
+              startAt: '2026-09-19T19:30:00+02:00',
+              endAt: '2026-09-19T21:30:00+02:00',
+              eventType: 'optreden',
+              locationName: 'Dorpshuis',
+              city: 'Angerlo',
+              summary: 'Een geldig openbaar optreden.',
+              buttonLabel: 'Meer informatie',
+              buttonLink: './contact.html',
+              isFree: true,
+              isFeatured: false,
+              mainImageAlt: '',
+              imageUrl: '',
+            },
+            {
+              title: 'Ontbrekende locatie',
+              startAt: '2026-09-20T19:30:00+02:00',
+              endAt: '2026-09-20T21:30:00+02:00',
+              eventType: 'concert',
+              locationName: '',
+              city: '',
+              summary: 'Dit record is onvolledig.',
+            },
+            {
+              title: 'Ongeldige eindtijd',
+              startAt: '2026-09-21T21:30:00+02:00',
+              endAt: '2026-09-21T19:30:00+02:00',
+              eventType: 'optreden',
+              locationName: 'Testzaal',
+              city: 'Angerlo',
+              summary: 'De eindtijd ligt voor de starttijd.',
+            },
+            {
+              title: 'Afbeelding zonder alt-tekst',
+              startAt: '2026-09-22T19:30:00+02:00',
+              endAt: '2026-09-22T21:30:00+02:00',
+              eventType: 'optreden',
+              locationName: 'Testzaal',
+              city: 'Angerlo',
+              summary: 'Afbeelding is niet toegankelijk beschreven.',
+              mainImageAlt: '',
+              imageUrl:
+                'https://cdn.sanity.io/images/u66p1mxm/development/test.jpg',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto('/pages/agenda.html');
+    await waitForSharedLayout(page);
+
+    await expect(page.locator('.agenda-event-card')).toHaveCount(1);
+    await expect(page.getByText('Geldig voorbeeldoptreden')).toBeVisible();
+
+    await expect(page.getByText('Ontbrekende locatie')).toHaveCount(0);
+    await expect(page.getByText('Ongeldige eindtijd')).toHaveCount(0);
+    await expect(page.getByText('Afbeelding zonder alt-tekst')).toHaveCount(0);
+
+    await expect(page.locator('[data-agenda-status]')).toBeHidden();
+    await expect(page.locator('[data-agenda-result-summary]')).toHaveText(
+      '1 activiteit gevonden',
+    );
+  });
+});
