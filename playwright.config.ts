@@ -5,6 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
+  testIgnore: '**/*.test.mjs',
+
   fullyParallel: true,
 
   forbidOnly: !!process.env.CI,
@@ -38,7 +40,8 @@ export default defineConfig({
 
   webServer: {
     // 🔥 CONSISTENT MET BASEURL
-    command: 'npx http-server . -p 5500',
+    command: 'npm run build && npx http-server dist -p 5500',
+    env: { MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json' },
     url: 'http://localhost:5500',
     reuseExistingServer: true,
     timeout: 120 * 1000,

@@ -12,3 +12,9 @@ node_modules/
 
 # lokale testreports
 *.report.html
+
+# Gegenereerde website-build
+/dist/
+
+# Lokale Lighthouse-resultaten
+/.lighthouseci/

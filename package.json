@@ -6,7 +6,11 @@
   "directories": {
     "test": "tests"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "test:media-build": "node --test tests/media-build.test.mjs",
+    "test:media": "npm run test:media-build && playwright test tests/media.spec.ts"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JimGroen2160/spontaan-website.git"
@@ -20,12 +24,12 @@
   },
   "homepage": "https://github.com/JimGroen2160/spontaan-website#readme",
   "devDependencies": {
-    "dotenv": "^16.4.5",
-    "@supabase/supabase-js": "^2.49.8",
     "@axe-core/playwright": "^4.11.1",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.58.2",
-    "@types/node": "^25.5.0"
+    "@supabase/supabase-js": "^2.49.8",
+    "@types/node": "^25.5.0",
+    "dotenv": "^16.4.5"
   },
   "overrides": {
     "tmp": "0.2.7"

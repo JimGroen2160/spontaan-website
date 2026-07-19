@@ -62,7 +62,7 @@ window.addEventListener("load", async () => {
     const session = await window.authHelpers.getCurrentSession();
 
     if (!session) {
-      console.log("Geen session Ã¢â€ â€™ redirect");
+      console.log("Geen session → redirect");
       window.location.href = "login.html";
       return;
     }

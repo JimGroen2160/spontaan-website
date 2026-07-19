@@ -1,0 +1,54 @@
+{
+  "result": {
+    "page": {
+      "heroTitle": "CMS Beeld en Geluid",
+      "heroSubtitle": "CMS-subtitel voor de mediapagina.",
+      "heroImageAlt": "Mannenkoor tijdens een optreden",
+      "heroImageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-hero.jpg",
+      "introTitle": "CMS-introductie",
+      "introText": "Deze introductie komt uit Sanity.",
+      "ctaEyebrow": "Kom kennismaken",
+      "ctaTitle": "Zing een keer met ons mee",
+      "ctaText": "Neem contact op voor meer informatie.",
+      "primaryButtonLabel": "Neem contact op",
+      "primaryButtonLink": "/pages/contact.html",
+      "secondaryButtonLabel": "Bekijk de agenda",
+      "secondaryButtonLink": "/pages/agenda.html"
+    },
+    "photoAlbums": [
+      {
+        "_id": "test-album-zomer",
+        "title": "CMS Zomerconcert",
+        "eventDate": "2026-06-21",
+        "summary": "Een sfeervol optreden in de zomer.",
+        "isFeatured": true,
+        "coverImageAlt": "Optreden tijdens het zomerconcert",
+        "coverImageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-sfeer.jpg",
+        "photos": [
+          {"alt": "Eerste foto van het zomerconcert", "caption": "Het mannenkoor tijdens het openingslied.", "imageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-hero.jpg"},
+          {"alt": "Tweede foto van het zomerconcert", "caption": "Applaus na het optreden.", "imageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-intro.jpg"}
+        ]
+      },
+      {
+        "_id": "test-album-repetitie",
+        "title": "CMS Repetitie",
+        "eventDate": "2026-05-10",
+        "summary": "Een repetitieavond van Zanggroep Spontaan.",
+        "isFeatured": false,
+        "coverImageAlt": "Mannenkoor tijdens een repetitie",
+        "coverImageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-intro.jpg",
+        "photos": [
+          {"alt": "Foto van een repetitie", "caption": "Samen werken aan nieuwe muziek.", "imageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-intro.jpg"}
+        ]
+      }
+    ],
+    "audioItems": [
+      {"_id": "test-audio-een", "title": "CMS Audio één", "recordedAt": "2026-06-21", "summary": "De eerste testopname.", "isFeatured": false, "audioUrl": "https://cdn.sanity.io/files/u66p1mxm/development/audio-een.mp3"},
+      {"_id": "test-audio-twee", "title": "CMS Audio twee", "recordedAt": "2026-05-10", "summary": "De tweede testopname.", "isFeatured": false, "audioUrl": "https://cdn.sanity.io/files/u66p1mxm/development/audio-twee.mp3"}
+    ],
+    "videoItems": [
+      {"_id": "test-video-een", "title": "CMS Video één", "recordedAt": "2026-06-21", "summary": "De eerste testvideo.", "isFeatured": false, "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "thumbnailAlt": "Voorbeeld van de eerste video", "thumbnailUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-video.jpg"},
+      {"_id": "test-video-twee", "title": "CMS Video twee", "recordedAt": "2026-05-10", "summary": "De tweede testvideo.", "isFeatured": false, "youtubeUrl": "https://youtu.be/9bZkp7q19f0", "thumbnailAlt": "Voorbeeld van de tweede video", "thumbnailUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-video.jpg"}
+    ]
+  }
+}
