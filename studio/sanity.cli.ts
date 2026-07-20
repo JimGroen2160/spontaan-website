@@ -1,9 +1,10 @@
 import {defineCliConfig} from 'sanity/cli'
+import {resolveStudioDataset} from './environment'
 
 export default defineCliConfig({
   api: {
     projectId: 'u66p1mxm',
-    dataset: 'development'
+    dataset: resolveStudioDataset()
   },
   deployment: {
     /**

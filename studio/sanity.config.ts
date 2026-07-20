@@ -5,12 +5,14 @@ import {schemaTypes} from './schemaTypes'
 import {SINGLETON_TYPES} from './singletonTypes'
 import {structure} from './structure'
 
+import {resolveStudioDataset} from './environment'
+
 export default defineConfig({
   name: 'default',
   title: 'Spontaan Website',
 
   projectId: 'u66p1mxm',
-  dataset: 'development',
+  dataset: resolveStudioDataset(),
 
   plugins: [
     structureTool({
