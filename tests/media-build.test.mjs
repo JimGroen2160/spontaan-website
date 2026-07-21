@@ -1,0 +1,113 @@
+import assert from 'node:assert/strict';
+import {execFile} from 'node:child_process';
+import {readFile} from 'node:fs/promises';
+import {promisify} from 'node:util';
+import test from 'node:test';
+import {
+  normalizeContent,
+  renderMediaPage,
+  resolveSanityDataset,
+} from '../scripts/build-site.mjs';
+
+const exec = promisify(execFile);
+
+test('datasetkeuze volgt OTAP en weigert onbekende datasets', () => {
+  assert.equal(resolveSanityDataset({}), 'development');
+  assert.equal(resolveSanityDataset({VERCEL_ENV: 'preview'}), 'development');
+  assert.equal(resolveSanityDataset({VERCEL_ENV: 'production'}), 'production');
+  assert.equal(resolveSanityDataset({SANITY_DATASET: 'production'}), 'production');
+  assert.throws(
+    () => resolveSanityDataset({SANITY_DATASET: 'acceptance'}),
+    /Ongeldige Sanity-dataset: acceptance/,
+  );
+});
+
+test('normalisatie verwijdert onveilige media en links', () => {
+  const content = normalizeContent({
+    page: {
+      heroTitle: 'Veilige titel',
+      heroImageUrl: 'javascript:alert(1)',
+      primaryButtonLink: 'javascript:alert(2)',
+    },
+    photoAlbums: [{
+      _id: 'test-onveilig-album',
+      title: 'Onveilig album',
+      coverImageUrl: 'javascript:alert(3)',
+    }],
+    audioItems: [{
+      _id: 'test-onveilige-audio',
+      title: 'Onveilige audio',
+      audioUrl: 'javascript:alert(4)',
+    }],
+    videoItems: [{
+      _id: 'test-onveilige-video',
+      title: 'Onveilige video',
+      youtubeUrl: 'https://example.com/watch?v=dQw4w9WgXcQ',
+      thumbnailUrl: 'https://cdn.sanity.io/images/u66p1mxm/development/test.jpg',
+    }],
+  });
+
+  assert.equal(content.page.heroImageUrl, '');
+  assert.equal(content.page.primaryButtonLink, '');
+  assert.deepEqual(content.photoAlbums, []);
+  assert.deepEqual(content.audioItems, []);
+  assert.deepEqual(content.videoItems, []);
+});
+
+test('renderer escapt CMS-tekst en bevat geen runtime-query', async () => {
+  const template = await readFile('build/media.template.html', 'utf8');
+  const fallback = normalizeContent(
+    JSON.parse(await readFile('data/media-fallback.json', 'utf8')),
+  );
+
+  fallback.page.heroTitle = '<script>alert("xss")</script>';
+  const html = renderMediaPage(template, fallback, 'fallback');
+
+  assert.match(html, /&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>alert\("xss"\)<\/script>/);
+  assert.doesNotMatch(html, /api\.sanity\.io/);
+  assert.match(html, /dataset\.mediaSource="fallback"/);
+});
+
+test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', async () => {
+  const environment = {...process.env};
+
+  try {
+    const fallbackRun = await exec(
+      process.execPath,
+      ['scripts/build-site.mjs'],
+      {
+        env: {
+          ...environment,
+          MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-error.json',
+        },
+      },
+    );
+
+    assert.match(fallbackRun.stderr, /MEDIA BUILD: fallback gebruikt/);
+    const fallbackHtml = await readFile('dist/pages/media.html', 'utf8');
+    assert.match(fallbackHtml, /dataset\.mediaSource="fallback"/);
+    assert.match(fallbackHtml, /Beeld en Geluid/);
+    assert.match(fallbackHtml, /fallback-zomerconcert/);
+    assert.doesNotMatch(fallbackHtml, /api\.sanity\.io/);
+    assert.match(fallbackHtml, /<div id="nav-placeholder">\s*<nav/);
+    assert.match(fallbackHtml, /<div id="footer-placeholder">\s*<footer/);
+    assert.doesNotMatch(fallbackHtml, /<div id="nav-placeholder"><\/div>/);
+    assert.doesNotMatch(fallbackHtml, /<div id="footer-placeholder"><\/div>/);
+  } finally {
+    await exec(
+      process.execPath,
+      ['scripts/build-site.mjs'],
+      {
+        env: {
+          ...environment,
+          MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json',
+        },
+      },
+    );
+  }
+
+  const cmsHtml = await readFile('dist/pages/media.html', 'utf8');
+  assert.match(cmsHtml, /dataset\.mediaSource="cms"/);
+  assert.match(cmsHtml, /CMS Beeld en Geluid/);
+});

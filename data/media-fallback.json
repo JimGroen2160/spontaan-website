@@ -1,0 +1,57 @@
+{
+  "page": {
+    "heroTitle": "Beeld en Geluid",
+    "heroSubtitle": "Bekijk, beluister en beleef Zanggroep Spontaan.",
+    "heroImageUrl": "../images/media/beeld-en-geluid-hero.jpg",
+    "heroImageAlt": "Microfoon en muziekweergave van Zanggroep Spontaan",
+    "introTitle": "Beleef onze muziek opnieuw",
+    "introText": "Op deze pagina vind je foto’s, muziek en video’s van Zanggroep Spontaan. Van sfeervolle concertmomenten tot prachtige opnamen van onze muziek. Herbeleef onze mooiste momenten en geniet mee.",
+    "ctaEyebrow": "Zelf Spontaan beleven?",
+    "ctaTitle": "Kom luisteren bij Zanggroep Spontaan",
+    "ctaText": "Bekijk onze agenda of neem contact op en maak kennis met Zanggroep Spontaan.",
+    "primaryButtonLabel": "Bekijk de agenda",
+    "primaryButtonLink": "./agenda.html",
+    "secondaryButtonLabel": "Neem contact op",
+    "secondaryButtonLink": "./contact.html"
+  },
+  "photoAlbums": [
+    {
+      "id": "fallback-zomerconcert",
+      "title": "Zomeravondconcert 2024",
+      "date": "2024-06-21",
+      "summary": "Een sfeervolle muzikale avond met zang, ontmoeting en veel plezier.",
+      "isFeatured": true,
+      "coverImageAlt": "Zanggroep Spontaan tijdens het zomeravondconcert",
+      "coverImageUrl": "../images/media/demo-zomerconcert.jpg",
+      "photos": [
+        {"alt": "Zanggroep Spontaan tijdens het zomeravondconcert", "caption": "Zomeravondconcert", "imageUrl": "../images/media/demo-zomerconcert.jpg"}
+      ]
+    },
+    {
+      "id": "fallback-repetitie",
+      "title": "Repetities",
+      "date": "2024-05-10",
+      "summary": "Samen werken aan onze muziek.",
+      "isFeatured": false,
+      "coverImageAlt": "Repetitie van Zanggroep Spontaan",
+      "coverImageUrl": "../images/media/demo-repetitie.jpg",
+      "photos": [
+        {"alt": "Repetitie van Zanggroep Spontaan", "caption": "Repetitie", "imageUrl": "../images/media/demo-repetitie.jpg"}
+      ]
+    },
+    {
+      "id": "fallback-voorjaarsoptreden",
+      "title": "Voorjaarsoptreden",
+      "date": "2024-04-20",
+      "summary": "Een muzikaal voorjaarsoptreden.",
+      "isFeatured": false,
+      "coverImageAlt": "Voorjaarsoptreden van Zanggroep Spontaan",
+      "coverImageUrl": "../images/media/demo-voorjaarsoptreden.jpg",
+      "photos": [
+        {"alt": "Voorjaarsoptreden van Zanggroep Spontaan", "caption": "Voorjaarsoptreden", "imageUrl": "../images/media/demo-voorjaarsoptreden.jpg"}
+      ]
+    }
+  ],
+  "audioItems": [],
+  "videoItems": []
+}
