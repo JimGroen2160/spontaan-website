@@ -80,6 +80,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      - name: Validate text encoding
+        run: npm run test:encoding
+
       - name: Run Playwright tests
         id: playwright-tests
         run: npx playwright test
@@ -154,6 +157,9 @@ jobs:
 
       - name: Run Lighthouse CI - Beeld en Geluid
         run: npx lhci autorun --config=./lighthouserc.media.json
+
+      - name: Run Lighthouse CI - Muziek en repertoire
+        run: npx lhci autorun --config=./lighthouserc.repertoire.json
 
   security:
     name: security

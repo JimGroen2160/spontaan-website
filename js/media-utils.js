@@ -84,7 +84,13 @@ export function getSafeImageUrl(value) {
 }
 
 export function getSafeAudioUrl(value) {
-  return getSafeImageUrl(value);
+  const rawUrl = getText(value, 2048);
+
+  if (/^(?:\.\.\/|\.\/|\/)[A-Za-z0-9_./%-]+\.(?:mp3|wav|ogg|m4a)$/i.test(rawUrl)) {
+    return rawUrl;
+  }
+
+  return getSafeImageUrl(rawUrl);
 }
 
 export function getYouTubeId(value) {

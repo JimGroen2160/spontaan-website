@@ -8,6 +8,7 @@ import {
   renderMediaPage,
   resolveSanityDataset,
 } from '../scripts/build-site.mjs';
+import {assertNoMojibake} from '../scripts/check-encoding.mjs';
 
 const exec = promisify(execFile);
 
@@ -69,6 +70,31 @@ test('renderer escapt CMS-tekst en bevat geen runtime-query', async () => {
   assert.match(html, /dataset\.mediaSource="fallback"/);
 });
 
+test('encodingpoort weigert mojibake uit gerenderde CMS-inhoud', async () => {
+  const template = await readFile('build/media.template.html', 'utf8');
+  const fallback = normalizeContent(
+    JSON.parse(await readFile('data/media-fallback.json', 'utf8')),
+  );
+  fallback.videoItems = [{
+    id: 'test-video-mojibake',
+    type: 'video',
+    title: `[TEST] Voorbeeldvideo ${String.fromCodePoint(0xc3, 0xa9, 0xc3, 0xa9)}n`,
+    summary: 'Af te wijzen testrecord.',
+    date: '2026-07-22',
+    isFeatured: false,
+    youtubeId: 'M7lc1UVf-VE',
+    thumbnailUrl: '../images/media/demo-zomerconcert.jpg',
+    thumbnailAlt: 'Testafbeelding',
+  }];
+
+  const html = renderMediaPage(template, fallback, 'cms');
+  assert.match(html, /Voorbeeldvideo/);
+  assert.throws(
+    () => assertNoMojibake(html, 'gerenderde CMS-inhoud'),
+    /Mojibake aangetroffen/,
+  );
+});
+
 test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', async () => {
   const environment = {...process.env};
 
@@ -110,4 +136,8 @@ test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', a
   const cmsHtml = await readFile('dist/pages/media.html', 'utf8');
   assert.match(cmsHtml, /dataset\.mediaSource="cms"/);
   assert.match(cmsHtml, /CMS Beeld en Geluid/);
+  const repertoireHtml = await readFile('dist/pages/repertoire.html', 'utf8');
+  assert.match(repertoireHtml, /<div id="nav-placeholder">\s*<nav/);
+  assert.match(repertoireHtml, /<div id="footer-placeholder">\s*<footer/);
+  assert.doesNotMatch(repertoireHtml, /<div id="nav-placeholder"><\/div>/);
 });

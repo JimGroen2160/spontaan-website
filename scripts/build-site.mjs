@@ -1,6 +1,7 @@
 import {cp, mkdir, readFile, rm, writeFile} from 'node:fs/promises';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {assertNoMojibake, checkProjectEncoding} from './check-encoding.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = resolve(ROOT, 'dist');
@@ -287,6 +288,7 @@ async function copyPublicSite() {
 }
 
 export async function build() {
+  await checkProjectEncoding(ROOT);
   const fallback = normalizeContent(JSON.parse(await readFile(FALLBACK, 'utf8')));
   let content = fallback;
   let source = 'fallback';
@@ -298,6 +300,7 @@ export async function build() {
   } catch (error) {
     console.warn(`MEDIA BUILD: fallback gebruikt (${error.message})`);
   }
+  assertNoMojibake(content, `genormaliseerde media-inhoud (${source})`);
   await copyPublicSite();
   const [template, navigation, footer] = await Promise.all([
     readFile(TEMPLATE, 'utf8'),
@@ -307,11 +310,21 @@ export async function build() {
   const outputFile = resolve(OUTPUT, 'pages/media.html');
   await mkdir(dirname(outputFile), {recursive: true});
   const page = renderMediaPage(template, content, source);
+  const output = embedSharedComponents(page, navigation, footer);
+  assertNoMojibake(output, 'gebouwde mediapagina');
   await writeFile(
     outputFile,
-    embedSharedComponents(page, navigation, footer),
+    output,
     'utf8',
   );
+  const repertoireFile = resolve(OUTPUT, 'pages/repertoire.html');
+  const repertoirePage = embedSharedComponents(
+    await readFile(repertoireFile, 'utf8'),
+    navigation,
+    footer,
+  );
+  assertNoMojibake(repertoirePage, 'gebouwde repertoirepagina');
+  await writeFile(repertoireFile, repertoirePage, 'utf8');
   console.log(`MEDIA BUILD: ${source} -> dist/pages/media.html`);
 }
 
