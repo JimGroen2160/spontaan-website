@@ -83,8 +83,10 @@ test.describe('Beeld en Geluid - gebouwde CMS-pagina', () => {
 
   test('sectieacties veroorzaken geen ongewenst afspelen', async ({page}) => {
     await openMediaPage(page);
-    await page.locator('[data-media-section-action="audio"]').click();
-    await expect(page.locator('[data-audio-url]').first()).toBeFocused();
+    await expect(page.locator('[data-media-repertoire-link]')).toHaveAttribute(
+      'href',
+      './repertoire.html',
+    );
     await expect(page.locator('audio')).toHaveCount(0);
     await page.locator('[data-media-section-action="videos"]').click();
     await expect(page.locator('[data-youtube-id]').first()).toBeFocused();

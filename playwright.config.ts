@@ -41,7 +41,10 @@ export default defineConfig({
   webServer: {
     // 🔥 CONSISTENT MET BASEURL
     command: 'npm run build && npx http-server dist -p 5500',
-    env: { MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json' },
+    env: {
+      MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json',
+      REPERTOIRE_BUILD_FIXTURE: 'tests/fixtures/repertoire-cms.json',
+    },
     url: 'http://localhost:5500',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

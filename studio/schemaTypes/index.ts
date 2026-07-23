@@ -4,6 +4,8 @@ import {homePage} from './homePage'
 import {mediaPage} from './mediaPage'
 import {newsItem} from './newsItem'
 import {photoAlbum} from './photoAlbum'
+import {repertoireItem} from './repertoireItem'
+import {repertoirePage} from './repertoirePage'
 import {videoItem} from './videoItem'
 
 export const schemaTypes = [
@@ -14,4 +16,6 @@ export const schemaTypes = [
   photoAlbum,
   audioItem,
   videoItem,
+  repertoirePage,
+  repertoireItem,
 ]

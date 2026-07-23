@@ -37,8 +37,8 @@ export async function generateRepertoireTestAudio() {
   const output = resolve(ROOT, 'data');
   await mkdir(output, {recursive: true});
   await Promise.all([
-    writeFile(resolve(output, 'test--repertoire-warm.wav'), createTestWave({frequency: 196})),
-    writeFile(resolve(output, 'test--repertoire-helder.wav'), createTestWave({frequency: 261.63})),
+    writeFile(resolve(output, 'test-repertoire-warm.wav'), createTestWave({frequency: 196})),
+    writeFile(resolve(output, 'test-repertoire-helder.wav'), createTestWave({frequency: 261.63})),
   ]);
 }
 

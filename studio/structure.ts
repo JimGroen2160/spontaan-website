@@ -4,6 +4,7 @@ import type {
 } from 'sanity/structure'
 import {
   MEDIA_PAGE_DOCUMENT_ID,
+  REPERTOIRE_PAGE_DOCUMENT_ID,
   SINGLETON_TYPES,
 } from './singletonTypes'
 
@@ -22,6 +23,17 @@ export const structure: StructureResolver = (
             .id(MEDIA_PAGE_DOCUMENT_ID)
             .schemaType('mediaPage')
             .documentId(MEDIA_PAGE_DOCUMENT_ID)
+        ),
+
+      S.listItem()
+        .id('repertoirePage')
+        .schemaType('repertoirePage')
+        .title('Pagina Muziek en repertoire')
+        .child(
+          S.document()
+            .id(REPERTOIRE_PAGE_DOCUMENT_ID)
+            .schemaType('repertoirePage')
+            .documentId(REPERTOIRE_PAGE_DOCUMENT_ID)
         ),
 
       S.divider(),

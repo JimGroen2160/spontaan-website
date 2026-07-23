@@ -9,12 +9,13 @@ test.describe('Muziek en repertoire', () => {
   });
 
   test('combineert het overzicht en het muzikale verhaal in de bestaande huisstijl', async ({page}) => {
-    await expect(page.getByRole('heading', {name: 'Muziek die verbindt'})).toBeVisible();
+    await expect(page.getByRole('heading', {name: '[TEST] Muziek die verbindt'})).toBeVisible();
     await expect(page.locator('.repertoire-world')).toHaveCount(3);
     await expect(page.locator('.repertoire-audio-card')).toHaveCount(3);
     await expect(page.locator('.repertoire-process li')).toHaveCount(4);
     await expect(page.getByText('[TEST] The Rose', {exact: true}).first()).toBeVisible();
     await expect(page.locator('.nav-menu a[aria-current="page"]')).toHaveText('Muziek en repertoire');
+    await expect(page.locator('html')).toHaveAttribute('data-repertoire-source', 'cms');
 
     const colors = await page.locator('.repertoire-cta').evaluate((element) => {
       const root = getComputedStyle(document.documentElement);
@@ -29,8 +30,8 @@ test.describe('Muziek en repertoire', () => {
     await expect(page.getByRole('link', {name: 'Kom kennismaken'})).toHaveAttribute('href', './contact.html');
     await expect(page.getByRole('link', {name: 'Bekijk Beeld en Geluid'})).toHaveAttribute('href', './media.html');
     const body = await page.locator('body').innerText();
-    expect(body).toContain('Drie smaken, één klank');
-    expect(body).toContain('zelfgemaakte');
+    expect(body).toContain('[TEST] Drie smaken, één klank');
+    expect(body).toContain('[TEST] Het verhaal van The Rose');
     expect(body).not.toMatch(/\u00c3|\u00e2|\ufffd/);
   });
 
@@ -48,11 +49,37 @@ test.describe('Muziek en repertoire', () => {
     });
     await page.reload();
     const buttons = page.locator('[data-audio-url]');
+    await expect(buttons.first()).toHaveAttribute(
+      'data-audio-url',
+      '../data/test-repertoire-warm.wav',
+    );
     await buttons.nth(0).click();
     await expect(buttons.nth(0)).toHaveAttribute('aria-pressed', 'true');
     await buttons.nth(1).click();
     await expect(buttons.nth(0)).toHaveAttribute('aria-pressed', 'false');
     await expect(buttons.nth(1)).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('featured lied, verhaal en audio komen uit hetzelfde repertoire-item', async ({page}) => {
+    const featuredTitle = await page.locator('.repertoire-feature h3').innerText();
+    const featuredStory = await page.locator('.repertoire-feature > div:last-child > p:not(.repertoire-eyebrow)').innerText();
+    const featuredAudio = page.locator('#featured-audio .repertoire-audio-card').first();
+    await expect(featuredAudio.getByRole('heading')).toHaveText(featuredTitle);
+    expect(featuredStory).toContain('The Rose');
+    await expect(featuredAudio.locator('[data-audio-url]')).toHaveAttribute(
+      'data-audio-title',
+      featuredTitle,
+    );
+  });
+
+  test('haalt geen repertoire-inhoud tijdens runtime bij Sanity op', async ({page}) => {
+    const sanityRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes('.api.sanity.io/')) sanityRequests.push(request.url());
+    });
+    await page.reload();
+    await expect(page.locator('.repertoire-feature')).toBeVisible();
+    expect(sanityRequests).toEqual([]);
   });
 
   test('is overflowvrij op desktop, tablet en mobiel', async ({page}) => {
