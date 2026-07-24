@@ -148,14 +148,6 @@ main.repertoire-page {
 .repertoire-audio-card { padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: #ffffff; box-shadow: var(--shadow-card); }
 .repertoire-audio-card h3 { margin: 0 0 0.25rem; color: var(--color-primary-dark); font-size: 1rem; }
 .repertoire-audio-card > p { color: var(--color-text-muted); font-size: 0.85rem; }
-.repertoire-audio-card .media-audio-control { display: grid; grid-template-columns: auto minmax(45px, 1fr) auto; gap: 0.55rem; align-items: center; }
-.repertoire-audio-card .media-audio-control__play { position: relative; width: 2.3rem; height: 2.3rem; padding: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); cursor: pointer; }
-.repertoire-audio-card .media-audio-control__play::after { color: #ffffff; content: "▶"; font-size: 0.75rem; }
-.repertoire-audio-card .media-audio-control__play[data-state="pause"]::after { content: "Ⅱ"; }
-.repertoire-audio-card .media-audio-control__wave { position: relative; display: block; overflow: hidden; height: 1.2rem; background: repeating-linear-gradient(90deg, rgba(111,37,174,.52) 0 2px, transparent 2px 5px); mask: linear-gradient(transparent, #000 25%, #000 75%, transparent); }
-.repertoire-audio-card .media-audio-control__progress { display: block; width: 0; height: 100%; background: rgba(217, 13, 135, 0.35); }
-.repertoire-audio-card .media-audio-control__time { color: var(--color-text-muted); font-size: 0.72rem; white-space: nowrap; }
-.repertoire-audio-card .media-audio-control__status { grid-column: 1 / -1; color: var(--color-text-muted); font-size: 0.72rem; }
 
 .repertoire-process { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; counter-reset: step; }
 .repertoire-process li { position: relative; padding: 1.2rem; border-top: 2px dotted var(--color-secondary); }

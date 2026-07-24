@@ -86,7 +86,7 @@ test('encodingpoort weigert mojibake uit gerenderde CMS-inhoud', async () => {
     date: '2026-07-22',
     isFeatured: false,
     youtubeId: 'M7lc1UVf-VE',
-    thumbnailUrl: '../images/media/demo-zomerconcert.jpg',
+    thumbnailUrl: '../images/about/over-hero-mannenkoor.jpg',
     thumbnailAlt: 'Testafbeelding',
   }];
 
@@ -99,7 +99,7 @@ test('encodingpoort weigert mojibake uit gerenderde CMS-inhoud', async () => {
 });
 
 test('repertoire normaliseert URL’s en koppelt featured verhaal en audio aan één item', async () => {
-  const template = await readFile('pages/repertoire.html', 'utf8');
+  const template = await readFile('build/repertoire.template.html', 'utf8');
   const fixture = JSON.parse(await readFile('tests/fixtures/repertoire-cms.json', 'utf8')).result;
   const content = normalizeRepertoireContent(fixture);
   const html = renderRepertoirePage(template, content, 'cms');
@@ -121,7 +121,7 @@ test('repertoire normaliseert URL’s en koppelt featured verhaal en audio aan �
 });
 
 test('repertoire weigert een ontbrekende featured-koppeling en escapt CMS-tekst', async () => {
-  const template = await readFile('pages/repertoire.html', 'utf8');
+  const template = await readFile('build/repertoire.template.html', 'utf8');
   const fixture = JSON.parse(await readFile('tests/fixtures/repertoire-cms.json', 'utf8')).result;
   fixture.page.heroTitle = '<script>alert("xss")</script>';
   const content = normalizeRepertoireContent(fixture);

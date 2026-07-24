@@ -5,7 +5,8 @@ import {assertNoMojibake, checkProjectEncoding} from './check-encoding.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = resolve(ROOT, 'dist');
-const TEMPLATE = resolve(ROOT, 'build/media.template.html');
+const MEDIA_TEMPLATE = resolve(ROOT, 'build/media.template.html');
+const REPERTOIRE_TEMPLATE = resolve(ROOT, 'build/repertoire.template.html');
 const FALLBACK = resolve(ROOT, 'data/media-fallback.json');
 const REPERTOIRE_FALLBACK = resolve(ROOT, 'data/repertoire-fallback.json');
 const NAVIGATION = resolve(ROOT, 'components/nav.html');
@@ -370,7 +371,7 @@ export function renderMediaPage(template, content, source) {
   html = replaceLink(html, 'data-media-page-primary-button', page.primaryButtonLink, page.primaryButtonLabel, 'primaire CTA');
   html = replaceLink(html, 'data-media-page-secondary-button', page.secondaryButtonLink, page.secondaryButtonLabel, 'secundaire CTA');
   html = replaceRequired(html, /(<article\s+class="media-highlight-card"\s+data-media-featured[^>]*>)[\s\S]*?(<\/article>)/, `$1${featured(selected)}$2`, 'uitgelicht');
-  html = replaceRequired(html, /(<div class="media-photo-grid" data-media-photo-grid>)[\s\S]*?(<\/div>\s*<button\s+class="media-photo-carousel__next")/, `$1${photoTiles(content.photoAlbums)}$2`, 'fotogrid');
+  html = replaceRequired(html, /(<div class="media-photo-grid" data-media-photo-grid>)[\s\S]*?(<\/div>\s*)(?=<\/div>\s*<\/section>)/, `$1${photoTiles(content.photoAlbums)}$2`, 'fotogrid');
   html = replaceRequired(html, /(<div class="media-audio-grid" data-media-audio-list>)[\s\S]*?(<\/div>\s*<\/section>\s*<section\s+class="media-strip media-strip--videos")/, `$1${audioTiles(content.audioItems)}$2`, 'audiolijst');
   html = replaceRequired(html, /(<div class="media-video-grid" data-media-video-grid>)[\s\S]*?(<\/div>\s*<\/section>\s*<section\s+class="media-wireframe-cta")/, `$1${videoTiles(content.videoItems)}$2`, 'videogrid');
   const embedded = `<script type="application/json" data-media-albums>${escapeJson(content.photoAlbums)}</script>\n<script>document.documentElement.dataset.mediaSource=${JSON.stringify(source)};</script>`;
@@ -458,7 +459,7 @@ export async function build() {
   assertNoMojibake(content, `genormaliseerde media-inhoud (${source})`);
   await copyPublicSite();
   const [template, navigation, footer] = await Promise.all([
-    readFile(TEMPLATE, 'utf8'),
+    readFile(MEDIA_TEMPLATE, 'utf8'),
     readFile(NAVIGATION, 'utf8'),
     readFile(FOOTER, 'utf8'),
   ]);
@@ -495,7 +496,11 @@ export async function build() {
   }
   assertNoMojibake(repertoireContent, `genormaliseerde repertoire-inhoud (${repertoireSource})`);
   const repertoirePage = embedSharedComponents(
-    renderRepertoirePage(await readFile(repertoireFile, 'utf8'), repertoireContent, repertoireSource),
+    renderRepertoirePage(
+      await readFile(REPERTOIRE_TEMPLATE, 'utf8'),
+      repertoireContent,
+      repertoireSource,
+    ),
     navigation,
     footer,
   );

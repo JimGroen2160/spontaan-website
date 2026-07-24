@@ -9,7 +9,9 @@
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
-    "start": "sanity start"
+    "start": "sanity start",
+    "seed:repertoire:development": "sanity exec scripts/seedRepertoireDevelopment.js --with-user-token",
+    "cleanup:repertoire:development": "sanity exec scripts/cleanupRepertoireTestData.js --with-user-token"
   },
   "keywords": [
     "sanity"

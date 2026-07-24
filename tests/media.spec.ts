@@ -81,12 +81,10 @@ test.describe('Beeld en Geluid - gebouwde CMS-pagina', () => {
     await expect(videoButton).toBeFocused();
   });
 
-  test('sectieacties veroorzaken geen ongewenst afspelen', async ({page}) => {
+  test('repertoirelink navigeert duidelijk en sectieacties starten geen media', async ({page}) => {
     await openMediaPage(page);
-    await expect(page.locator('[data-media-repertoire-link]')).toHaveAttribute(
-      'href',
-      './repertoire.html',
-    );
+    await expect(page.locator('[data-media-repertoire-link]')).toHaveAttribute('href', './repertoire.html');
+    await expect(page.locator('[data-media-repertoire-link]')).toHaveText(/Naar alle muziek/);
     await expect(page.locator('audio')).toHaveCount(0);
     await page.locator('[data-media-section-action="videos"]').click();
     await expect(page.locator('[data-youtube-id]').first()).toBeFocused();
