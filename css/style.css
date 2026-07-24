@@ -2208,8 +2208,7 @@ li + li {
 }
 
 .hero-actions,
-.homepage-actions,
-.homepage-section__footer {
+.homepage-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -2367,15 +2366,13 @@ li + li {
   }
 
   .hero-actions,
-  .homepage-actions,
-  .homepage-section__footer {
+  .homepage-actions {
     align-items: stretch;
     flex-direction: column;
   }
 
   .hero-actions .btn,
-  .homepage-actions .btn,
-  .homepage-section__footer .btn {
+  .homepage-actions .btn {
     width: 100%;
   }
 }
@@ -3150,16 +3147,6 @@ main.news-detail-page {
   z-index: 3;
   width: min(100%, 1180px);
   margin: 0 auto;
-}
-
-.about-hero__eyebrow {
-  margin: 0 0 0.75rem;
-  color: #ffffff;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  opacity: 0.92;
-  text-transform: uppercase;
 }
 
 .about-hero h1 {

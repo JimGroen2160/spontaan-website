@@ -22,9 +22,9 @@
       "summary": "Een sfeervolle muzikale avond met zang, ontmoeting en veel plezier.",
       "isFeatured": true,
       "coverImageAlt": "Zanggroep Spontaan tijdens het zomeravondconcert",
-      "coverImageUrl": "../images/media/demo-zomerconcert.jpg",
+      "coverImageUrl": "../images/about/over-hero-mannenkoor.jpg",
       "photos": [
-        {"alt": "Zanggroep Spontaan tijdens het zomeravondconcert", "caption": "Zomeravondconcert", "imageUrl": "../images/media/demo-zomerconcert.jpg"}
+        {"alt": "Zanggroep Spontaan tijdens het zomeravondconcert", "caption": "Zomeravondconcert", "imageUrl": "../images/about/over-hero-mannenkoor.jpg"}
       ]
     },
     {
@@ -34,9 +34,9 @@
       "summary": "Samen werken aan onze muziek.",
       "isFeatured": false,
       "coverImageAlt": "Repetitie van Zanggroep Spontaan",
-      "coverImageUrl": "../images/media/demo-repetitie.jpg",
+      "coverImageUrl": "../images/about/over-intro-mannenkoor.jpg",
       "photos": [
-        {"alt": "Repetitie van Zanggroep Spontaan", "caption": "Repetitie", "imageUrl": "../images/media/demo-repetitie.jpg"}
+        {"alt": "Repetitie van Zanggroep Spontaan", "caption": "Repetitie", "imageUrl": "../images/about/over-intro-mannenkoor.jpg"}
       ]
     },
     {
@@ -46,9 +46,9 @@
       "summary": "Een muzikaal voorjaarsoptreden.",
       "isFeatured": false,
       "coverImageAlt": "Voorjaarsoptreden van Zanggroep Spontaan",
-      "coverImageUrl": "../images/media/demo-voorjaarsoptreden.jpg",
+      "coverImageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
       "photos": [
-        {"alt": "Voorjaarsoptreden van Zanggroep Spontaan", "caption": "Voorjaarsoptreden", "imageUrl": "../images/media/demo-voorjaarsoptreden.jpg"}
+        {"alt": "Voorjaarsoptreden van Zanggroep Spontaan", "caption": "Voorjaarsoptreden", "imageUrl": "../images/about/over-sfeer-mannenkoor.jpg"}
       ]
     }
   ],

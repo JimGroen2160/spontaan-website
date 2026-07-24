@@ -1,1 +1,0 @@
-console.log("components/auth.js bevat geen actieve loginlogica meer. Centrale auth loopt via /js/auth.js.");

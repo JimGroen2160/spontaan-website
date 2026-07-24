@@ -1,0 +1,41 @@
+{
+  "result": {
+    "page": {
+      "heroTitle": "[TEST] Muziek die verbindt",
+      "heroSubtitle": "[TEST] Ontdek de muziek van Zanggroep Spontaan.",
+      "heroImageUrl": "../images/repertoire/muziek-repertoire-hero.jpg",
+      "heroImageAlt": "",
+      "featuredItemId": "test-repertoire-the-rose",
+      "worldsTitle": "[TEST] Drie smaken, één klank",
+      "worldsIntro": "[TEST] Eén herkenbare koorklank.",
+      "worlds": [
+        {"number": "01", "title": "[TEST] Krachtig", "description": "Klassiek en gedragen.", "itemIds": ["test-repertoire-the-rose"]},
+        {"number": "02", "title": "[TEST] Warm", "description": "Dichtbij en herkenbaar.", "itemIds": ["test-repertoire-avond"]},
+        {"number": "03", "title": "[TEST] Feestelijk", "description": "Ritme en energie.", "itemIds": ["test-repertoire-hallelujah"]}
+      ],
+      "processTitle": "[TEST] Van repetitie tot uitvoering",
+      "processSteps": [
+        {"title": "Kiezen", "description": "Een passend lied kiezen."},
+        {"title": "Instuderen", "description": "Samen zorgvuldig instuderen."},
+        {"title": "Samenklank", "description": "De stemmen samenbrengen."},
+        {"title": "Optreden", "description": "Het lied delen met publiek."}
+      ],
+      "selectionTitle": "[TEST] Een greep uit ons repertoire",
+      "selectionItemIds": ["test-repertoire-the-rose", "test-repertoire-avond", "test-repertoire-hallelujah"],
+      "quote": "[TEST] Samen geven we een lied betekenis.",
+      "quoteAttribution": "[TEST] Muzikale leiding",
+      "ctaEyebrow": "[TEST] Nieuwsgierig?",
+      "ctaTitle": "[TEST] Kom onze muziek beleven",
+      "ctaText": "[TEST] Luister of zing mee.",
+      "primaryButtonLabel": "Kom kennismaken",
+      "primaryButtonLink": "./contact.html",
+      "secondaryButtonLabel": "Bekijk Beeld en Geluid",
+      "secondaryButtonLink": "./media.html"
+    },
+    "items": [
+      {"id": "test-repertoire-the-rose", "title": "[TEST] The Rose", "summary": "Een ode aan liefde en hoop.", "story": "[TEST] Het verhaal van The Rose.", "audioUrl": "../data/test-repertoire-warm.wav", "audioDescription": "[TEST] Fragment van The Rose"},
+      {"id": "test-repertoire-avond", "title": "[TEST] Avond", "audioUrl": "../data/test-repertoire-helder.wav", "audioDescription": "[TEST] Fragment van Avond"},
+      {"id": "test-repertoire-hallelujah", "title": "[TEST] Hallelujah", "audioUrl": "../data/test-repertoire-warm.wav", "audioDescription": "[TEST] Fragment van Hallelujah"}
+    ]
+  }
+}

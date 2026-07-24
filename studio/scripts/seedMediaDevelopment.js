@@ -170,13 +170,13 @@ async function main() {
     '../images/media/beeld-en-geluid-hero.jpg'
   )
   const zomerAssetId = await getOrUploadImage(
-    '../images/media/demo-zomerconcert.jpg'
+    '../images/about/over-hero-mannenkoor.jpg'
   )
   const repetitieAssetId = await getOrUploadImage(
-    '../images/media/demo-repetitie.jpg'
+    '../images/about/over-intro-mannenkoor.jpg'
   )
   const voorjaarAssetId = await getOrUploadImage(
-    '../images/media/demo-voorjaarsoptreden.jpg'
+    '../images/about/over-sfeer-mannenkoor.jpg'
   )
 
   const audioHighAssetId = await getOrUploadTestAudio({

@@ -90,7 +90,7 @@ test.describe('Website basis en huisstijl', () => {
     await page.locator('#nav-placeholder .site-logo').click();
 
     await expect(page).toHaveURL(/\/(?:index\.html)?$/);
-    await expect(page.locator('.hero h1')).toContainText(/zangkoor spontaan/i);
+    await expect(page.locator('.hero h1')).toContainText(/zanggroep spontaan/i);
   });
 
   test('mobiel hamburgermenu is gesloten, opent, sluit met Escape en navigeert', async ({ page }) => {
@@ -202,10 +202,10 @@ test.describe('Homepage Sanity-content en fallback', () => {
     await page.goto('/');
     await waitForSharedLayout(page);
 
-    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Zangkoor Spontaan');
+    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Zanggroep Spontaan');
     await expect(page.locator('[data-homepage-hero-subtitle]')).toContainText('Samen zingen, samen beleven');
     await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Samen zingen met plezier');
-    await expect(page.locator('[data-homepage-welcome-text]')).toContainText('Zangkoor Spontaan is een enthousiast koor uit Angerlo.');
+    await expect(page.locator('[data-homepage-welcome-text]')).toContainText('Zanggroep Spontaan is een enthousiast mannenkoor uit Angerlo.');
     await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
   });
 

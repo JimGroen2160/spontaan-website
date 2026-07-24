@@ -1,0 +1,75 @@
+.media-audio-control {
+  display: grid;
+  grid-template-columns: auto minmax(45px, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.media-audio-control__play {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.media-audio-control__play[data-state="play"]::before {
+  width: 0;
+  height: 0;
+  margin-left: 0.15rem;
+  border-top: 0.34rem solid transparent;
+  border-bottom: 0.34rem solid transparent;
+  border-left: 0.54rem solid #ffffff;
+  content: "";
+}
+
+.media-audio-control__play[data-state="pause"]::before,
+.media-audio-control__play[data-state="pause"]::after {
+  position: absolute;
+  top: 50%;
+  width: 0.2rem;
+  height: 0.72rem;
+  background: #ffffff;
+  content: "";
+  transform: translateY(-50%);
+}
+
+.media-audio-control__play[data-state="pause"]::before { left: 1rem; }
+.media-audio-control__play[data-state="pause"]::after { right: 1rem; }
+
+.media-audio-control__wave {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 1.2rem;
+  background: repeating-linear-gradient(90deg, rgba(111, 37, 174, 0.58) 0 2px, transparent 2px 5px);
+  mask: linear-gradient(transparent, #000 25%, #000 75%, transparent);
+}
+
+.media-audio-control__progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+  width: 0;
+  height: 100%;
+  background: rgba(217, 13, 135, 0.42);
+  transition: width 120ms linear;
+}
+
+.media-audio-control__time,
+.media-audio-control__status {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+}
+
+.media-audio-control__time { white-space: nowrap; }
+.media-audio-control__status { grid-column: 1 / -1; min-height: 1rem; font-weight: 700; }
+.media-audio-control__status[data-state="playing"] { color: var(--color-primary); }
+.media-audio-control__status[data-state="paused"] { color: var(--color-secondary); }

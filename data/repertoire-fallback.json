@@ -1,0 +1,45 @@
+{
+  "page": {
+    "heroTitle": "Muziek die verbindt",
+    "heroSubtitle": "Van ingetogen ballads tot feestelijke meezingers. Ontdek de muziek die Spontaan met plezier zingt.",
+    "heroImageUrl": "../images/repertoire/muziek-repertoire-hero.jpg",
+    "heroImageAlt": "",
+    "featuredItemId": "repertoire-the-rose",
+    "worldsTitle": "Drie smaken, één klank",
+    "worldsIntro": "Ons repertoire kent vele gezichten, maar klinkt altijd als Spontaan.",
+    "worlds": [
+      {"number": "01", "title": "Krachtig en klassiek", "description": "Tijdloze koormuziek die raakt en verbindt.", "itemIds": ["repertoire-the-rose", "repertoire-lord-bless", "repertoire-nabucco"]},
+      {"number": "02", "title": "Warm en Nederlandstalig", "description": "Dichtbij en herkenbaar, met ruimte voor een glimlach.", "itemIds": ["repertoire-avond", "repertoire-het-dorp", "repertoire-dag-van-toen"]},
+      {"number": "03", "title": "Swingend en feestelijk", "description": "Ritme, vrolijkheid en energie om van te genieten.", "itemIds": ["repertoire-hallelujah", "repertoire-go-tell-it", "repertoire-vamos"]}
+    ],
+    "processTitle": "Hoe een muziekstuk gaat leven",
+    "processSteps": [
+      {"title": "Kiezen", "description": "We selecteren muziek met een verhaal dat bij ons past."},
+      {"title": "Instuderen", "description": "Met aandacht en plezier werken we aan klank en uitspraak."},
+      {"title": "Samenklank", "description": "Stemmen, dynamiek en emotie komen samen."},
+      {"title": "Optreden", "description": "Dan delen we het resultaat met ons publiek."}
+    ],
+    "selectionTitle": "Een greep uit ons repertoire",
+    "selectionItemIds": ["repertoire-the-rose", "repertoire-avond", "repertoire-hallelujah", "repertoire-het-dorp", "repertoire-nabucco", "repertoire-vamos"],
+    "quote": "Een lied krijgt pas betekenis wanneer we het samen vertellen.",
+    "quoteAttribution": "Onze muzikale leiding",
+    "ctaEyebrow": "Nieuwsgierig?",
+    "ctaTitle": "Kom onze muziek beleven",
+    "ctaText": "Luister, zing mee of ontmoet ons bij een optreden.",
+    "primaryButtonLabel": "Kom kennismaken",
+    "primaryButtonLink": "./contact.html",
+    "secondaryButtonLabel": "Bekijk Beeld en Geluid",
+    "secondaryButtonLink": "./media.html"
+  },
+  "items": [
+    {"id": "repertoire-the-rose", "title": "The Rose", "summary": "Een ode aan liefde en hoop.", "story": "Een ode aan liefde en hoop. Dit lied laat zien hoe ieder muziekstuk een eigen verhaal en sfeer krijgt binnen onze samenzang.", "audioUrl": "../data/test-repertoire-warm.wav", "audioDescription": "Luisterfragment van The Rose"},
+    {"id": "repertoire-lord-bless", "title": "The Lord Bless You and Keep You"},
+    {"id": "repertoire-nabucco", "title": "Nabucco – Va, pensiero"},
+    {"id": "repertoire-avond", "title": "Avond", "audioUrl": "../data/test-repertoire-helder.wav", "audioDescription": "Luisterfragment van Avond"},
+    {"id": "repertoire-het-dorp", "title": "Het Dorp"},
+    {"id": "repertoire-dag-van-toen", "title": "Als de dag van toen"},
+    {"id": "repertoire-hallelujah", "title": "Hallelujah", "audioUrl": "../data/test-repertoire-warm.wav", "audioDescription": "Luisterfragment van Hallelujah"},
+    {"id": "repertoire-go-tell-it", "title": "Go, Tell It on the Mountain"},
+    {"id": "repertoire-vamos", "title": "Vamos a Cantar"}
+  ]
+}

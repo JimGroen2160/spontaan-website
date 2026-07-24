@@ -31,7 +31,6 @@ function initializeSectionActions(root = document) {
 
     const targets = {
       photos: '[data-media-album-button]',
-      audio: '[data-audio-url]',
       videos: '[data-youtube-id]',
     };
 

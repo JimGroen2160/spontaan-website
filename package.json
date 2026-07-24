@@ -8,8 +8,10 @@
   },
   "scripts": {
     "build": "node scripts/build-site.mjs",
+    "test:encoding": "node --test tests/encoding.test.mjs",
+    "generate:test-audio": "node scripts/generate-repertoire-test-audio.mjs",
     "test:media-build": "node --test tests/media-build.test.mjs",
-    "test:media": "npm run test:media-build && playwright test tests/media.spec.ts"
+    "test:media": "npm run test:encoding && npm run test:media-build && playwright test tests/media.spec.ts tests/repertoire.spec.ts"
   },
   "repository": {
     "type": "git",

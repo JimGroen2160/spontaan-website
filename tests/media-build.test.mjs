@@ -5,9 +5,13 @@ import {promisify} from 'node:util';
 import test from 'node:test';
 import {
   normalizeContent,
+  normalizeRepertoireContent,
   renderMediaPage,
+  renderRepertoirePage,
   resolveSanityDataset,
+  validateRepertoireContent,
 } from '../scripts/build-site.mjs';
+import {assertNoMojibake} from '../scripts/check-encoding.mjs';
 
 const exec = promisify(execFile);
 
@@ -69,6 +73,69 @@ test('renderer escapt CMS-tekst en bevat geen runtime-query', async () => {
   assert.match(html, /dataset\.mediaSource="fallback"/);
 });
 
+test('encodingpoort weigert mojibake uit gerenderde CMS-inhoud', async () => {
+  const template = await readFile('build/media.template.html', 'utf8');
+  const fallback = normalizeContent(
+    JSON.parse(await readFile('data/media-fallback.json', 'utf8')),
+  );
+  fallback.videoItems = [{
+    id: 'test-video-mojibake',
+    type: 'video',
+    title: `[TEST] Voorbeeldvideo ${String.fromCodePoint(0xc3, 0xa9, 0xc3, 0xa9)}n`,
+    summary: 'Af te wijzen testrecord.',
+    date: '2026-07-22',
+    isFeatured: false,
+    youtubeId: 'M7lc1UVf-VE',
+    thumbnailUrl: '../images/about/over-hero-mannenkoor.jpg',
+    thumbnailAlt: 'Testafbeelding',
+  }];
+
+  const html = renderMediaPage(template, fallback, 'cms');
+  assert.match(html, /Voorbeeldvideo/);
+  assert.throws(
+    () => assertNoMojibake(html, 'gerenderde CMS-inhoud'),
+    /Mojibake aangetroffen/,
+  );
+});
+
+test('repertoire normaliseert URL’s en koppelt featured verhaal en audio aan één item', async () => {
+  const template = await readFile('build/repertoire.template.html', 'utf8');
+  const fixture = JSON.parse(await readFile('tests/fixtures/repertoire-cms.json', 'utf8')).result;
+  const content = normalizeRepertoireContent(fixture);
+  const html = renderRepertoirePage(template, content, 'cms');
+
+  assert.match(html, /dataset\.repertoireSource="cms"/);
+  assert.match(html, /\[TEST\] The Rose/);
+  assert.match(html, /\[TEST\] Het verhaal van The Rose/);
+  assert.match(html, /data-audio-url="\.\.\/data\/test-repertoire-warm\.wav"/);
+  assert.doesNotMatch(html, /test--repertoire/);
+  assert.doesNotMatch(html, /api\.sanity\.io/);
+
+  fixture.items[0].audioUrl = 'javascript:alert(1)';
+  const unsafe = normalizeRepertoireContent(fixture);
+  assert.equal(unsafe.items[0].audioUrl, '');
+  assert.throws(
+    () => validateRepertoireContent(unsafe),
+    /gekoppeld verhaal en audiofragment/,
+  );
+});
+
+test('repertoire weigert een ontbrekende featured-koppeling en escapt CMS-tekst', async () => {
+  const template = await readFile('build/repertoire.template.html', 'utf8');
+  const fixture = JSON.parse(await readFile('tests/fixtures/repertoire-cms.json', 'utf8')).result;
+  fixture.page.heroTitle = '<script>alert("xss")</script>';
+  const content = normalizeRepertoireContent(fixture);
+  const html = renderRepertoirePage(template, content, 'cms');
+  assert.match(html, /&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>alert\("xss"\)<\/script>/);
+
+  content.page.featuredItemId = 'test-repertoire-ontbreekt';
+  assert.throws(
+    () => validateRepertoireContent(content),
+    /Uitgelicht repertoire-item ontbreekt/,
+  );
+});
+
 test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', async () => {
   const environment = {...process.env};
 
@@ -80,6 +147,7 @@ test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', a
         env: {
           ...environment,
           MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-error.json',
+          REPERTOIRE_BUILD_FIXTURE: 'tests/fixtures/media-error.json',
         },
       },
     );
@@ -102,6 +170,7 @@ test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', a
         env: {
           ...environment,
           MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json',
+          REPERTOIRE_BUILD_FIXTURE: 'tests/fixtures/repertoire-cms.json',
         },
       },
     );
@@ -110,4 +179,11 @@ test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', a
   const cmsHtml = await readFile('dist/pages/media.html', 'utf8');
   assert.match(cmsHtml, /dataset\.mediaSource="cms"/);
   assert.match(cmsHtml, /CMS Beeld en Geluid/);
+  const repertoireHtml = await readFile('dist/pages/repertoire.html', 'utf8');
+  assert.match(repertoireHtml, /dataset\.repertoireSource="cms"/);
+  assert.match(repertoireHtml, /\[TEST\] Het verhaal van The Rose/);
+  assert.doesNotMatch(repertoireHtml, /test--repertoire/);
+  assert.match(repertoireHtml, /<div id="nav-placeholder">\s*<nav/);
+  assert.match(repertoireHtml, /<div id="footer-placeholder">\s*<footer/);
+  assert.doesNotMatch(repertoireHtml, /<div id="nav-placeholder"><\/div>/);
 });
