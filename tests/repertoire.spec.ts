@@ -25,7 +25,7 @@ test.describe('Muziek en repertoire', () => {
   });
 
   test('hero en CTA-links zijn bruikbaar en de pagina bevat geen mojibake', async ({page}) => {
-    await expect(page.locator('.repertoire-hero__image')).toHaveAttribute('src', '../images/repertoire/muziek-repertoire-hero.jpg');
+    await expect(page.locator('.repertoire-hero__image')).toHaveAttribute('src', '../images/repertoire/repertoire-hero.jpg');
     await expect(page.locator('.repertoire-hero__image')).toHaveAttribute('fetchpriority', 'high');
     await expect(page.getByRole('link', {name: 'Kom kennismaken'})).toHaveAttribute('href', './contact.html');
     await expect(page.getByRole('link', {name: 'Bekijk Beeld en Geluid'})).toHaveAttribute('href', './media.html');
@@ -62,7 +62,7 @@ test.describe('Muziek en repertoire', () => {
 
   test('featured lied, verhaal en audio komen uit hetzelfde repertoire-item', async ({page}) => {
     const featuredTitle = await page.locator('.repertoire-feature h3').innerText();
-    const featuredStory = await page.locator('.repertoire-feature > div:last-child > p:not(.repertoire-eyebrow)').innerText();
+    const featuredStory = await page.locator('.repertoire-feature > div:last-child > p:not(.repertoire-eyebrow):not(.repertoire-label)').innerText();
     const featuredAudio = page.locator('#featured-audio .repertoire-audio-card').first();
     await expect(featuredAudio.getByRole('heading')).toHaveText(featuredTitle);
     expect(featuredStory).toContain('The Rose');

@@ -190,6 +190,26 @@ export function normalizeContent(value = {}) {
   };
 }
 
+const REPERTOIRE_IMAGE_DEFAULTS = {
+  featuredImageUrl: '../images/repertoire/repertoire-uitgelicht.jpg',
+  featuredImageAlt: 'Zangers van Spontaan tijdens een warm en betrokken lied',
+  quoteImageUrl: '../images/repertoire/repertoire-dirigent.jpg',
+  quoteImageAlt: 'De dirigent van Zanggroep Spontaan leidt het mannenkoor',
+  worlds: [
+    {
+      imageUrl: '../images/repertoire/repertoire-klassiek.jpg',
+      imageAlt: 'Zanggroep Spontaan zingt klassieke koormuziek in een kerk',
+    },
+    {
+      imageUrl: '../images/repertoire/repertoire-nederlandstalig.jpg',
+      imageAlt: 'Zanggroep Spontaan zingt in een warme en herkenbare sfeer',
+    },
+    {
+      imageUrl: '../images/repertoire/repertoire-feestelijk.jpg',
+      imageAlt: 'Zanggroep Spontaan tijdens een energiek en feestelijk optreden',
+    },
+  ],
+};
 function normalizeRepertoireItem(value) {
   const id = text(value?.id ?? value?._id, 120);
   const title = text(value?.title, 120);
@@ -204,12 +224,24 @@ function normalizeRepertoireItem(value) {
   };
 }
 
-function normalizeRepertoireWorld(value) {
+function normalizeRepertoireWorld(value, index) {
+  const defaults =
+    REPERTOIRE_IMAGE_DEFAULTS.worlds[index] ??
+    REPERTOIRE_IMAGE_DEFAULTS.worlds[0];
+
   return {
     number: text(value?.number, 3),
     title: text(value?.title, 80),
     description: text(value?.description, 220),
-    itemIds: Array.isArray(value?.itemIds) ? value.itemIds.map((id) => text(id, 120)).filter(Boolean) : [],
+    imageUrl:
+      safeUrl(value?.imageUrl, ['image', 'local']) ||
+      defaults.imageUrl,
+    imageAlt:
+      text(value?.imageAlt, 160) ||
+      defaults.imageAlt,
+    itemIds: Array.isArray(value?.itemIds)
+      ? value.itemIds.map((id) => text(id, 120)).filter(Boolean)
+      : [],
   };
 }
 
@@ -226,6 +258,12 @@ export function normalizeRepertoireContent(value = {}) {
       heroImageUrl: safeUrl(page.heroImageUrl, ['image', 'local']),
       heroImageAlt: text(page.heroImageAlt, 160),
       featuredItemId: text(page.featuredItemId, 120),
+      featuredImageUrl:
+        safeUrl(page.featuredImageUrl, ['image', 'local']) ||
+        REPERTOIRE_IMAGE_DEFAULTS.featuredImageUrl,
+      featuredImageAlt:
+        text(page.featuredImageAlt, 160) ||
+        REPERTOIRE_IMAGE_DEFAULTS.featuredImageAlt,
       worldsTitle: text(page.worldsTitle, 120),
       worldsIntro: text(page.worldsIntro, 300),
       worlds: Array.isArray(page.worlds) ? page.worlds.map(normalizeRepertoireWorld) : [],
@@ -235,6 +273,12 @@ export function normalizeRepertoireContent(value = {}) {
       selectionItemIds: Array.isArray(page.selectionItemIds) ? page.selectionItemIds.map((id) => text(id, 120)).filter(Boolean) : [],
       quote: text(page.quote, 280),
       quoteAttribution: text(page.quoteAttribution, 100),
+      quoteImageUrl:
+        safeUrl(page.quoteImageUrl, ['image', 'local']) ||
+        REPERTOIRE_IMAGE_DEFAULTS.quoteImageUrl,
+      quoteImageAlt:
+        text(page.quoteImageAlt, 160) ||
+        REPERTOIRE_IMAGE_DEFAULTS.quoteImageAlt,
       ctaEyebrow: text(page.ctaEyebrow, 80),
       ctaTitle: text(page.ctaTitle, 120),
       ctaText: text(page.ctaText, 280),
@@ -264,7 +308,7 @@ export function validateRepertoireContent(content) {
   if (!featured) throw new Error(`Uitgelicht repertoire-item ontbreekt: ${page.featuredItemId}`);
   if (!featured.story || !featured.audioUrl) throw new Error('Uitgelicht repertoire-item vereist één gekoppeld verhaal en audiofragment');
   for (const world of page.worlds) {
-    if (!world.number || !world.title || !world.description || !world.itemIds.length) throw new Error('Muzikale wereld is onvolledig');
+    if (!world.number || !world.title || !world.description || !world.imageUrl || !world.imageAlt || !world.itemIds.length) throw new Error('Muzikale wereld is onvolledig');
     if (world.itemIds.some((id) => !byId.has(id))) throw new Error(`Muzikale wereld verwijst naar onbekend repertoire-item: ${world.title}`);
   }
   if (!page.selectionItemIds.length || page.selectionItemIds.some((id) => !byId.has(id))) {
@@ -317,19 +361,29 @@ function repertoireAudioCard(item) {
 export function renderRepertoirePage(template, content, source) {
   const {page} = content;
   const {byId, featured: featuredItem} = validateRepertoireContent(content);
-  const worlds = page.worlds.map((world) => `<article class="repertoire-world"><span class="repertoire-world__number">${escapeHtml(world.number)}</span><div><h3>${escapeHtml(world.title)}</h3><p>${escapeHtml(world.description)}</p><ul>${world.itemIds.map((id) => `<li>${escapeHtml(byId.get(id).title)}</li>`).join('')}</ul></div></article>`).join('');
+  const worlds = page.worlds.map((world, index) => {
+    const reverse = index % 2 === 1 ? ' repertoire-world--reverse' : '';
+    return `<article class="repertoire-world${reverse}"><div class="repertoire-world__content"><span class="repertoire-world__number">${escapeHtml(world.number)}</span><h3>${escapeHtml(world.title)}</h3><p>${escapeHtml(world.description)}</p><ul>${world.itemIds.map((id) => `<li>${escapeHtml(byId.get(id).title)}</li>`).join('')}</ul></div>${image(world.imageUrl, world.imageAlt, 1200, 900)}</article>`;
+  }).join('');
   const audioItems = [featuredItem, ...content.items.filter((item) => item.id !== featuredItem.id && item.audioUrl)].slice(0, 3);
-  const process = page.processSteps.map((step, index) => `<li><span>${index + 1}</span><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.description)}</p></li>`).join('');
+  const processIcons = [
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c.4-4 2.3-6 5-6s4.6 2 5 6M11 20c.4-4 2.3-6 5-6s4.6 2 5 6"/></svg>',
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  ];
+  const process = page.processSteps.map((step, index) => `<li><span aria-hidden="true">${processIcons[index] || processIcons[processIcons.length - 1]}</span><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.description)}</p></li>`).join('');
   const tags = page.selectionItemIds.map((id) => `<span>${escapeHtml(byId.get(id).title)}</span>`).join('');
-  const header = `<header class="repertoire-hero"><img class="repertoire-hero__image" src="${escapeHtml(page.heroImageUrl)}" alt="${escapeHtml(page.heroImageAlt)}" width="1918" height="820" fetchpriority="high"><div class="repertoire-hero__content"><p class="repertoire-eyebrow">Muziek en repertoire</p><h1>${escapeHtml(page.heroTitle)}</h1><p>${escapeHtml(page.heroSubtitle)}</p><a class="btn" href="#onze-muziek">Ontdek ons repertoire</a></div></header>`;
+  const heroDecor = '<div class="repertoire-hero__decor" aria-hidden="true"><span class="repertoire-hero__note repertoire-hero__note--one">♪</span><span class="repertoire-hero__note repertoire-hero__note--two">♫</span><span class="repertoire-hero__note repertoire-hero__note--three">♪</span><span class="repertoire-hero__waveform"></span><span class="repertoire-hero__sheet"></span></div>';
+  const header = `<header class="repertoire-hero">${image(page.heroImageUrl, page.heroImageAlt, 1920, 1080, 'eager', ' class="repertoire-hero__image" fetchpriority="high"')}${heroDecor}<div class="repertoire-hero__content"><p class="repertoire-breadcrumb">Home / Muziek en repertoire</p><h1>${escapeHtml(page.heroTitle)}</h1><p>${escapeHtml(page.heroSubtitle)}</p></div></header>`;
   const main = `<main class="repertoire-page">
-    <section class="repertoire-feature" aria-labelledby="repertoire-feature-title"><div class="repertoire-feature__visual" aria-hidden="true"><span>♪</span><p>Samen zingen,<br>samen beleven.</p></div><div><p class="repertoire-eyebrow">Uitgelicht</p><h2 id="repertoire-feature-title">Een lied met een verhaal</h2><h3>${escapeHtml(featuredItem.title)}</h3><p>${escapeHtml(featuredItem.story)}</p><div class="repertoire-actions"><a class="btn" href="#featured-audio">Luisterfragment</a><a class="btn btn--secondary" href="#muziekstuk-proces">Lees het verhaal</a></div></div></section>
-    <section id="onze-muziek" class="repertoire-section" aria-labelledby="repertoire-worlds-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Onze muzikale wereld</p><h2 id="repertoire-worlds-title">${escapeHtml(page.worldsTitle)}</h2><p>${escapeHtml(page.worldsIntro)}</p></div><div class="repertoire-worlds">${worlds}</div></section>
-    <section id="luister-mee" class="repertoire-section" aria-labelledby="listen-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Luister mee</p><h2 id="listen-title">Proef alvast een stukje van onze klank</h2><p>Audio start uitsluitend wanneer je zelf op afspelen klikt.</p></div><div class="repertoire-audio-grid" id="featured-audio">${audioItems.map(repertoireAudioCard).join('')}</div></section>
-    <section id="muziekstuk-proces" class="repertoire-section" aria-labelledby="process-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Achter de muziek</p><h2 id="process-title">${escapeHtml(page.processTitle)}</h2></div><ol class="repertoire-process">${process}</ol></section>
-    <section class="repertoire-selection" aria-labelledby="selection-title"><h2 id="selection-title">${escapeHtml(page.selectionTitle)}</h2><div class="repertoire-tags" aria-label="Repertoireselectie">${tags}</div><a class="btn btn--secondary" href="./contact.html">Vraag naar ons repertoire</a></section>
-    <figure class="repertoire-quote"><blockquote><p>“${escapeHtml(page.quote)}”</p></blockquote><figcaption>— ${escapeHtml(page.quoteAttribution)}</figcaption></figure>
-    <section class="repertoire-cta" aria-labelledby="repertoire-cta-title"><div><p class="repertoire-eyebrow">${escapeHtml(page.ctaEyebrow)}</p><h2 id="repertoire-cta-title">${escapeHtml(page.ctaTitle)}</h2><p>${escapeHtml(page.ctaText)}</p></div><div class="repertoire-actions"><a class="btn" href="${escapeHtml(page.primaryButtonLink)}">${escapeHtml(page.primaryButtonLabel)}</a><a class="btn btn--secondary" href="${escapeHtml(page.secondaryButtonLink)}">${escapeHtml(page.secondaryButtonLabel)}</a></div></section>
+    <section class="repertoire-feature" aria-labelledby="repertoire-feature-title"><div class="repertoire-feature__visual">${image(page.featuredImageUrl, page.featuredImageAlt, 1200, 900, 'eager')}</div><div class="repertoire-feature__content"><p class="repertoire-label">Verhaal</p><h2 id="repertoire-feature-title">Uitgelicht: muziek met een verhaal</h2><h3>${escapeHtml(featuredItem.title)}</h3><p>${escapeHtml(featuredItem.story)}</p><div class="repertoire-actions"><a class="btn" href="#muziekstuk-proces">Lees het verhaal</a><a class="btn btn--secondary" href="#onze-muziek">In ons repertoire</a></div></div></section>
+    <section id="onze-muziek" class="repertoire-section" aria-labelledby="repertoire-worlds-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Van klassiek tot feestelijk</p><h2 id="repertoire-worlds-title">${escapeHtml(page.worldsTitle)}</h2><p>${escapeHtml(page.worldsIntro)}</p></div><div class="repertoire-worlds">${worlds}</div></section>
+    <section id="luister-mee" class="repertoire-section" aria-labelledby="listen-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Hoor Spontaan</p><h2 id="listen-title">Luister mee</h2><p>Ontdek deze greep uit ons repertoire.</p></div><div class="repertoire-audio-grid" id="featured-audio">${audioItems.map(repertoireAudioCard).join('')}</div></section>
+    <section id="muziekstuk-proces" class="repertoire-section" aria-labelledby="process-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Van eerste noot tot podium</p><h2 id="process-title">${escapeHtml(page.processTitle)}</h2><p>Van eerste noot tot uitvoering op het podium.</p></div><ol class="repertoire-process">${process}</ol></section>
+    <section class="repertoire-selection" aria-labelledby="selection-title"><h2 id="selection-title">${escapeHtml(page.selectionTitle)}</h2><div class="repertoire-tags" aria-label="Repertoireselectie">${tags}</div><a class="btn btn--secondary" href="./contact.html">Bekijk het volledige repertoire</a></section>
+    <figure class="repertoire-quote"><div class="repertoire-quote__content"><blockquote><p>“${escapeHtml(page.quote)}”</p></blockquote><figcaption>— ${escapeHtml(page.quoteAttribution)}</figcaption></div>${image(page.quoteImageUrl, page.quoteImageAlt, 1200, 900)}</figure>
+    <section class="repertoire-cta" aria-labelledby="repertoire-cta-title"><div class="repertoire-cta__notes" aria-hidden="true"><span>♪</span><span>♫</span></div><div><h2 id="repertoire-cta-title">${escapeHtml(page.ctaTitle)}</h2><p>${escapeHtml(page.ctaText)}</p></div><div class="repertoire-actions"><a class="btn" href="${escapeHtml(page.primaryButtonLink)}">${escapeHtml(page.primaryButtonLabel)}</a><a class="btn btn--secondary" href="${escapeHtml(page.secondaryButtonLink)}">${escapeHtml(page.secondaryButtonLabel)}</a></div></section>
   </main>`;
   let html = replaceRequired(template, /<header class="repertoire-hero">[\s\S]*?<\/header>/, header, 'repertoirehero');
   html = replaceRequired(html, /<main class="repertoire-page">[\s\S]*?<\/main>/, main, 'repertoire-inhoud');

@@ -29,7 +29,7 @@ async function uploadAudio(filename) {
 }
 
 async function uploadHeroImage() {
-  const filename = 'muziek-repertoire-hero.jpg'
+  const filename = 'repertoire-hero.jpg'
   const existing = await client.fetch(
     '*[_type == "sanity.imageAsset" && originalFilename == $filename][0]._id',
     {filename},
@@ -37,7 +37,7 @@ async function uploadHeroImage() {
   if (existing) return existing
   const asset = await client.assets.upload(
     'image',
-    createReadStream(resolve(process.cwd(), '../images/repertoire/muziek-repertoire-hero.jpg')),
+    createReadStream(resolve(process.cwd(), '../images/repertoire/repertoire-hero.jpg')),
     {filename},
   )
   return asset._id
