@@ -56,11 +56,41 @@ test.describe('Muziek en repertoire', () => {
       'data-audio-url',
       /^(?:\.\.\/data\/test-repertoire-warm\.wav|https:\/\/cdn\.sanity\.io\/files\/)/,
     );
+    const statuses = page.locator('.media-audio-control__status');
+
+    await expect(statuses.nth(0)).toBeVisible();
+    await expect(statuses.nth(0)).toHaveText('Gereed');
+
     await buttons.nth(0).click();
     await expect(buttons.nth(0)).toHaveAttribute('aria-pressed', 'true');
+    await expect(statuses.nth(0)).toHaveText('Afspelen');
+
+    const firstAudio = buttons.nth(0).locator('xpath=..').locator('audio');
+
+    await firstAudio.evaluate((audio) => {
+      Object.defineProperty(audio, 'currentTime', {
+        configurable: true,
+        writable: true,
+        value: 1,
+      });
+    });
+
+    await buttons.nth(0).click();
+    await expect(buttons.nth(0)).toHaveAttribute('aria-pressed', 'false');
+    await expect(statuses.nth(0)).toHaveText('Gepauzeerd');
+
     await buttons.nth(1).click();
     await expect(buttons.nth(0)).toHaveAttribute('aria-pressed', 'false');
     await expect(buttons.nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await expect(statuses.nth(1)).toHaveText('Afspelen');
+
+    const secondAudio = buttons.nth(1).locator('xpath=..').locator('audio');
+
+    await secondAudio.evaluate((audio) => {
+      audio.dispatchEvent(new Event('ended'));
+    });
+
+    await expect(statuses.nth(1)).toHaveText('Afgelopen');
   });
 
   test('featured lied, verhaal en audio komen uit hetzelfde repertoire-item', async ({page}) => {
