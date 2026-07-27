@@ -190,7 +190,7 @@ main.repertoire-page {
 .repertoire-process h3 { margin:.5rem 0 .18rem; color:var(--color-primary-dark); font-size:.82rem; }
 .repertoire-process p { max-width:150px; margin:0 auto; color:var(--color-text-muted); font-size:.64rem; line-height:1.35; }
 
-.repertoire-selection { box-sizing:border-box; width:100%; margin:.25rem 0 0; padding:1.65rem max(1rem,calc((100% - 1120px)/2)) 1.9rem; background:linear-gradient(135deg,rgba(111,37,174,.08),rgba(217,13,135,.07)); text-align:center; }
+.repertoire-selection { box-sizing:border-box; width:min(calc(100% - 2rem),1120px); margin:.25rem auto 0; padding:1.65rem 1rem 1.9rem; border-radius:13px; background:linear-gradient(135deg,rgba(111,37,174,.08),rgba(217,13,135,.07)); text-align:center; }
 .repertoire-selection h2 { margin-bottom:.2rem; }
 .repertoire-tags { display:flex; flex-wrap:wrap; justify-content:center; gap:.36rem; max-width:880px; margin:.55rem auto .7rem; }
 .repertoire-tags span { padding:.24rem .52rem; border:1px solid rgba(111,37,174,.24); border-radius:999px; background:#fff; color:var(--color-primary-dark); font-size:.58rem; line-height:1.2; }
@@ -253,7 +253,7 @@ main.repertoire-page + #footer-placeholder .site-footer__copyright { margin-top:
   .repertoire-tags { gap:.5rem; }
   .repertoire-tags span { font-size:.72rem; padding:.4rem .7rem; }
   .repertoire-quote { margin-top:1rem; }
-  .repertoire-quote img { display:block; min-height:230px; max-height:230px; object-position:center 26%; }
+  .repertoire-quote img { display:block; min-height:230px; max-height:230px; object-position:center 32%; }
   .repertoire-quote__content { padding:1.45rem 1.25rem; }
   .repertoire-cta { min-height:175px; margin-bottom:0; padding:1.45rem .8rem 2.4rem; }
   main.repertoire-page + #footer-placeholder { margin-top:-18px; }

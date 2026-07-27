@@ -115,6 +115,33 @@ test.describe('Muziek en repertoire', () => {
     expect(sanityRequests).toEqual([]);
   });
 
+  test('lijnt selectie, quote en CTA gelijk uit en behoudt de quote-uitsnede', async ({page}) => {
+    await page.setViewportSize({width: 1440, height: 900});
+
+    const boxes = await Promise.all(
+      ['.repertoire-selection', '.repertoire-quote', '.repertoire-cta'].map(
+        async (selector) => page.locator(selector).boundingBox(),
+      ),
+    );
+
+    for (const box of boxes) expect(box).not.toBeNull();
+
+    const [selection, quote, cta] = boxes;
+
+    expect(Math.abs(selection!.x - quote!.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(selection!.x - cta!.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(selection!.width - quote!.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(selection!.width - cta!.width)).toBeLessThanOrEqual(1);
+
+    await page.setViewportSize({width: 390, height: 900});
+
+    const objectPosition = await page
+      .locator('.repertoire-quote img')
+      .evaluate((image) => getComputedStyle(image).objectPosition);
+
+    expect(objectPosition).toBe('50% 32%');
+  });
+
   test('is overflowvrij op desktop, tablet en mobiel', async ({page}) => {
     for (const width of [1440, 820, 390]) {
       await page.setViewportSize({width, height: 900});
