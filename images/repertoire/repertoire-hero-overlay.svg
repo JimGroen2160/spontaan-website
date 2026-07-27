@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2=".15">
+      <stop offset="0" stop-color="#fffafc" stop-opacity=".72"/>
+      <stop offset=".56" stop-color="#f8e8ff" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#f8e8ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="staff" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#dc168f" stop-opacity="0"/>
+      <stop offset=".28" stop-color="#f26abb" stop-opacity=".62"/>
+      <stop offset=".72" stop-color="#b778e8" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#7d37bb" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-20%" width="120%" height="150%">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <g fill="none" stroke="url(#staff)" stroke-width="2">
+    <path d="M160 208 C430 170 675 250 1000 205 S1325 178 1450 210"/>
+    <path d="M160 219 C430 181 675 261 1000 216 S1325 189 1450 221"/>
+    <path d="M160 230 C430 192 675 272 1000 227 S1325 200 1450 232"/>
+    <path d="M160 241 C430 203 675 283 1000 238 S1325 211 1450 243"/>
+    <path d="M160 252 C430 214 675 294 1000 249 S1325 222 1450 254"/>
+  </g>
+
+  <g stroke="#f28acb" stroke-width="3" opacity=".58">
+    <path d="M310 205v-22M330 208v-34M350 211v-52M370 213v-28M390 216v-66M410 218v-42M430 220v-78M450 221v-48M470 222v-92M490 222v-58M510 222v-74M530 221v-38M550 220v-62M570 218v-28M590 216v-46M610 213v-22M630 210v-35M650 207v-16"/>
+  </g>
+
+  <g fill="#f27ac6" opacity=".72" font-family="Georgia, serif" font-weight="700">
+    <text x="240" y="150" font-size="38">♪</text>
+    <text x="620" y="105" font-size="44">♫</text>
+    <text x="980" y="132" font-size="36">♪</text>
+    <text x="1160" y="190" font-size="42">♫</text>
+  </g>
+
+  <g transform="translate(-70 358) rotate(-2 430 90)">
+    <path d="M0 35 C245 -8 525 4 900 56 L892 172 C545 128 265 117 0 155Z"
+          fill="url(#paper)" filter="url(#soft)"/>
+    <g stroke="#7d4d89" stroke-opacity=".28" stroke-width="1.7">
+      <path d="M55 70 C275 38 525 48 820 84"/>
+      <path d="M51 84 C275 52 525 62 816 98"/>
+      <path d="M47 98 C275 66 525 76 812 112"/>
+      <path d="M43 112 C275 80 525 90 808 126"/>
+      <path d="M39 126 C275 94 525 104 804 140"/>
+    </g>
+    <g fill="#6b3b77" fill-opacity=".34">
+      <circle cx="248" cy="72" r="6"/><path d="M253 72v-30"/>
+      <circle cx="418" cy="98" r="6"/><path d="M423 98v-34"/>
+      <circle cx="606" cy="108" r="6"/><path d="M611 108v-32"/>
+    </g>
+  </g>
+</svg>

@@ -60,12 +60,16 @@ export const REPERTOIRE_QUERY = `{
     "featuredItemId": featuredItem->_id,
     worldsTitle, worldsIntro,
     worlds[] {
-      number, title, description,
+      number, title, description, imageAlt,
+      "imageUrl": image.asset->url,
       "itemIds": items[]->_id
     },
     processTitle, processSteps[] {title, description},
     selectionTitle, "selectionItemIds": selectionItems[]->_id,
-    quote, quoteAttribution,
+    quote, quoteAttribution, quoteImageAlt,
+    "quoteImageUrl": quoteImage.asset->url,
+    featuredImageAlt,
+    "featuredImageUrl": featuredImage.asset->url,
     ctaEyebrow, ctaTitle, ctaText,
     primaryButtonLabel, primaryButtonLink,
     secondaryButtonLabel, secondaryButtonLink
@@ -352,37 +356,105 @@ function videoTiles(items) {
   return items.slice(0, 2).map((item) => `<article class="media-video-tile"><button class="media-video-tile__preview" type="button" data-youtube-id="${escapeHtml(item.youtubeId)}" aria-label="Speel ${escapeHtml(item.title)} af">${image(item.thumbnailUrl, item.thumbnailAlt || item.title, 640, 360)}<span class="media-video-tile__play-icon" aria-hidden="true"></span></button><div class="media-video-tile__meta"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.date || 'Video')}</p></div></article>`).join('');
 }
 
+const REPERTOIRE_WIREFRAME_PRESENTATION = {
+  heroTitle: 'Muziek en repertoire',
+  heroSubtitle: 'Verhalen die we samen tot leven zingen.',
+  worldsTitle: 'Onze muzikale wereld',
+  worldsIntro: 'Diverse stijlen, één doel: samen verhalen tot leven brengen.',
+  processTitle: 'Hoe een muziekstuk gaat leven',
+  selectionTitle: 'Een greep uit ons repertoire',
+  quote: 'Een lied krijgt pas betekenis wanneer we het samen vertellen.',
+  quoteAttribution: 'Onze muzikale leider',
+  ctaTitle: 'Nieuwsgierig naar onze muziek?',
+  ctaText: 'Kom luisteren tijdens een repetitie.',
+};
+
+function stripTestPrefix(value) {
+  return String(value ?? '').replace(/^\[TEST\]\s*/i, '').trim();
+}
+
+function wireframePresentation(content) {
+  const isTestContent = content.page.heroTitle.startsWith('[TEST]');
+  if (!isTestContent) return content;
+
+  const existing = new Map(content.items.map((item) => [stripTestPrefix(item.title), item]));
+  const audioSource = content.items.filter((item) => item.audioUrl);
+  const titleSpecs = [
+    ['The Rose', audioSource[0]], ['The Sound of Silence — arr. Carl Goff / Roger Emerson'],
+    ['Nunc dimittis — Ola Gjeilo'], ['Avond', audioSource[1]], ['Toen de dagen komen'],
+    ['Als de dag van toen'], ['Joy to the Lord — M. Schröder'], ['Shine — L. Larson'],
+    ['Hallelujah', audioSource[2]], ['Het Dorp'], ['Vamos a Cantar'],
+  ];
+  const items = titleSpecs.map(([title, source], index) => {
+    const found = existing.get(title) || source;
+    return {
+      id: `wireframe-item-${index + 1}`,
+      title: `[TEST] ${title}`,
+      summary: found?.summary || '',
+      story: title === 'The Rose'
+        ? 'Een ode aan liefde, hoop en herinnering: ontdek de muzikale reis die dit lied binnen onze samenzang aflegt.'
+        : (found?.story || ''),
+      audioUrl: found?.audioUrl || '',
+      audioDescription: found?.audioDescription || `Luisterfragment van ${title}`,
+    };
+  });
+
+  return {
+    page: {
+      ...content.page,
+      ...REPERTOIRE_WIREFRAME_PRESENTATION,
+      featuredItemId: items[0].id,
+      worlds: [
+        {number:'01', title:'Krachtig en klassiek', description:'Van monumentaal tot intiem en verstild. Bijvoorbeeld deze stukken:', imageUrl:'../images/repertoire/repertoire-klassiek.jpg', imageAlt:'Zanggroep Spontaan zingt klassieke koormuziek', itemIds:[items[0].id,items[1].id,items[2].id]},
+        {number:'02', title:'Warm en Nederlandstalig', description:'Dichtbij en herkenbaar – liederen die ons raken en verbinden.', imageUrl:'../images/repertoire/repertoire-nederlandstalig.jpg', imageAlt:'Zanggroep Spontaan zingt Nederlandstalige muziek', itemIds:[items[3].id,items[4].id,items[5].id]},
+        {number:'03', title:'Swingend en feestelijk', description:'Opzwepende klanken vol energie om mee te vieren en genieten.', imageUrl:'../images/repertoire/repertoire-feestelijk.jpg', imageAlt:'Zanggroep Spontaan tijdens een feestelijk optreden', itemIds:[items[6].id,items[7].id,items[8].id]},
+      ],
+      processSteps: [
+        {title:'Kiezen', description:'We selecteren muziek die leeft bij ons en ons publiek.'},
+        {title:'Instuderen', description:'We werken aan ritme, klank, uitspraak en muzikale interpretatie.'},
+        {title:'Samenklank', description:'We groeien als koor, met oog voor detail en voor elkaar.'},
+        {title:'Optreden', description:'We delen onze muziek en ons verhaal op het podium.'},
+      ],
+      selectionItemIds:[items[0].id,items[3].id,items[9].id,items[1].id,items[7].id,items[2].id],
+      primaryButtonLabel:'Kom kennismaken', primaryButtonLink:'./contact.html',
+      secondaryButtonLabel:'Bekijk Beeld en Geluid', secondaryButtonLink:'./media.html',
+    },
+    items,
+  };
+}
+
 function repertoireAudioCard(item) {
   if (!item.audioUrl) return '';
   const description = item.audioDescription || `Luisterfragment van ${item.title}`;
-  return `<article class="repertoire-audio-card"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(description)}</p><div class="media-audio-control"><button class="media-audio-control__play" type="button" data-audio-url="${escapeHtml(item.audioUrl)}" data-audio-title="${escapeHtml(item.title)}" data-state="play" aria-pressed="false" aria-label="Speel ${escapeHtml(item.title)} af"></button><span class="media-audio-control__wave" aria-hidden="true"><span class="media-audio-control__progress"></span></span><span class="media-audio-control__time">0:00 / --:--</span><span class="media-audio-control__status" role="status" aria-live="polite">Gereed</span></div></article>`;
+  return `<article class="repertoire-audio-card"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(description)}</p><div class="media-audio-control"><button class="media-audio-control__play" type="button" data-audio-url="${escapeHtml(item.audioUrl)}" data-audio-title="${escapeHtml(item.title)}" data-state="play" aria-pressed="false" aria-label="Speel ${escapeHtml(item.title)} af"></button><span class="media-audio-control__wave" aria-hidden="true"><span class="media-audio-control__progress"></span></span><span class="media-audio-control__time">0:00 / --:--</span><span class="media-audio-control__status" role="status" aria-live="polite">Gereed</span></div><a class="repertoire-audio-card__link" href="#muziekstuk-proces">Bekijk transcriptie</a></article>`;
 }
 
-export function renderRepertoirePage(template, content, source) {
+export function renderRepertoirePage(template, originalContent, source) {
+  const content = wireframePresentation(originalContent);
   const {page} = content;
   const {byId, featured: featuredItem} = validateRepertoireContent(content);
   const worlds = page.worlds.map((world, index) => {
     const reverse = index % 2 === 1 ? ' repertoire-world--reverse' : '';
     return `<article class="repertoire-world${reverse}"><div class="repertoire-world__content"><span class="repertoire-world__number">${escapeHtml(world.number)}</span><h3>${escapeHtml(world.title)}</h3><p>${escapeHtml(world.description)}</p><ul>${world.itemIds.map((id) => `<li>${escapeHtml(byId.get(id).title)}</li>`).join('')}</ul></div>${image(world.imageUrl, world.imageAlt, 1200, 900)}</article>`;
   }).join('');
-  const audioItems = [featuredItem, ...content.items.filter((item) => item.id !== featuredItem.id && item.audioUrl)].slice(0, 3);
+  const audioItems = content.items.filter((item) => item.audioUrl).slice(0, 3);
   const processIcons = [
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>',
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c.4-4 2.3-6 5-6s4.6 2 5 6M11 20c.4-4 2.3-6 5-6s4.6 2 5 6"/></svg>',
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
   ];
-  const process = page.processSteps.map((step, index) => `<li><span aria-hidden="true">${processIcons[index] || processIcons[processIcons.length - 1]}</span><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.description)}</p></li>`).join('');
+  const process = page.processSteps.map((step, index) => `<li><span aria-hidden="true">${processIcons[index]}</span><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.description)}</p></li>`).join('');
   const tags = page.selectionItemIds.map((id) => `<span>${escapeHtml(byId.get(id).title)}</span>`).join('');
   const heroDecor = '<div class="repertoire-hero__decor" aria-hidden="true"><span class="repertoire-hero__note repertoire-hero__note--one">♪</span><span class="repertoire-hero__note repertoire-hero__note--two">♫</span><span class="repertoire-hero__note repertoire-hero__note--three">♪</span><span class="repertoire-hero__waveform"></span><span class="repertoire-hero__sheet"></span></div>';
   const header = `<header class="repertoire-hero">${image(page.heroImageUrl, page.heroImageAlt, 1920, 1080, 'eager', ' class="repertoire-hero__image" fetchpriority="high"')}${heroDecor}<div class="repertoire-hero__content"><p class="repertoire-breadcrumb">Home / Muziek en repertoire</p><h1>${escapeHtml(page.heroTitle)}</h1><p>${escapeHtml(page.heroSubtitle)}</p></div></header>`;
   const main = `<main class="repertoire-page">
     <section class="repertoire-feature" aria-labelledby="repertoire-feature-title"><div class="repertoire-feature__visual">${image(page.featuredImageUrl, page.featuredImageAlt, 1200, 900, 'eager')}</div><div class="repertoire-feature__content"><p class="repertoire-label">Verhaal</p><h2 id="repertoire-feature-title">Uitgelicht: muziek met een verhaal</h2><h3>${escapeHtml(featuredItem.title)}</h3><p>${escapeHtml(featuredItem.story)}</p><div class="repertoire-actions"><a class="btn" href="#muziekstuk-proces">Lees het verhaal</a><a class="btn btn--secondary" href="#onze-muziek">In ons repertoire</a></div></div></section>
-    <section id="onze-muziek" class="repertoire-section" aria-labelledby="repertoire-worlds-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Van klassiek tot feestelijk</p><h2 id="repertoire-worlds-title">${escapeHtml(page.worldsTitle)}</h2><p>${escapeHtml(page.worldsIntro)}</p></div><div class="repertoire-worlds">${worlds}</div></section>
-    <section id="luister-mee" class="repertoire-section" aria-labelledby="listen-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Hoor Spontaan</p><h2 id="listen-title">Luister mee</h2><p>Ontdek deze greep uit ons repertoire.</p></div><div class="repertoire-audio-grid" id="featured-audio">${audioItems.map(repertoireAudioCard).join('')}</div></section>
-    <section id="muziekstuk-proces" class="repertoire-section" aria-labelledby="process-title"><div class="repertoire-heading"><p class="repertoire-eyebrow">Van eerste noot tot podium</p><h2 id="process-title">${escapeHtml(page.processTitle)}</h2><p>Van eerste noot tot uitvoering op het podium.</p></div><ol class="repertoire-process">${process}</ol></section>
+    <section id="onze-muziek" class="repertoire-section" aria-labelledby="repertoire-worlds-title"><div class="repertoire-heading"><h2 id="repertoire-worlds-title">${escapeHtml(page.worldsTitle)}</h2><p>${escapeHtml(page.worldsIntro)}</p></div><div class="repertoire-worlds">${worlds}</div></section>
+    <section id="luister-mee" class="repertoire-section" aria-labelledby="listen-title"><div class="repertoire-heading"><h2 id="listen-title">Luister mee</h2><p>Ontdek deze greep uit ons repertoire.</p></div><div class="repertoire-audio-grid" id="featured-audio">${audioItems.map(repertoireAudioCard).join('')}</div></section>
+    <section id="muziekstuk-proces" class="repertoire-section" aria-labelledby="process-title"><div class="repertoire-heading"><h2 id="process-title">${escapeHtml(page.processTitle)}</h2><p>Van eerste noot tot uitvoering op het podium.</p></div><ol class="repertoire-process">${process}</ol></section>
     <section class="repertoire-selection" aria-labelledby="selection-title"><h2 id="selection-title">${escapeHtml(page.selectionTitle)}</h2><div class="repertoire-tags" aria-label="Repertoireselectie">${tags}</div><a class="btn btn--secondary" href="./contact.html">Bekijk het volledige repertoire</a></section>
-    <figure class="repertoire-quote"><div class="repertoire-quote__content"><blockquote><p>“${escapeHtml(page.quote)}”</p></blockquote><figcaption>— ${escapeHtml(page.quoteAttribution)}</figcaption></div>${image(page.quoteImageUrl, page.quoteImageAlt, 1200, 900)}</figure>
+    <figure class="repertoire-quote"><div class="repertoire-quote__content"><blockquote><p>${escapeHtml(page.quote)}</p></blockquote><figcaption>— ${escapeHtml(page.quoteAttribution)}</figcaption></div>${image(page.quoteImageUrl, page.quoteImageAlt, 1200, 900)}</figure>
     <section class="repertoire-cta" aria-labelledby="repertoire-cta-title"><div class="repertoire-cta__notes" aria-hidden="true"><span>♪</span><span>♫</span></div><div><h2 id="repertoire-cta-title">${escapeHtml(page.ctaTitle)}</h2><p>${escapeHtml(page.ctaText)}</p></div><div class="repertoire-actions"><a class="btn" href="${escapeHtml(page.primaryButtonLink)}">${escapeHtml(page.primaryButtonLabel)}</a><a class="btn btn--secondary" href="${escapeHtml(page.secondaryButtonLink)}">${escapeHtml(page.secondaryButtonLabel)}</a></div></section>
   </main>`;
   let html = replaceRequired(template, /<header class="repertoire-hero">[\s\S]*?<\/header>/, header, 'repertoirehero');
