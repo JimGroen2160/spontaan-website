@@ -170,5 +170,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run npm audit (blocking)
-        run: npm audit --audit-level=high
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit development tooling
+        shell: bash
+        run: |
+          npm audit --json > npm-audit.json || true
+          node scripts/check-development-audit.mjs npm-audit.json
