@@ -121,3 +121,34 @@ Belangrijk:
 - Geen uitgebreide terminaloutput plakken.
 - Alleen samenvatten wat nodig is voor controle door Jim en ChatGPT.
 - Geen wijzigingen uitvoeren zonder expliciet akkoord.
+
+## Ontwikkelmethode v0.56
+
+De actuele ontwikkelprompt v0.56 is leidend.
+
+Vaste taakverdeling:
+
+1. De VS Code Agent wordt primair gebruikt voor analyse, inventarisatie, impactanalyse en kwaliteitscontrole.
+2. ChatGPT verzorgt regie, besluitvorming en gecontroleerde uitvoeropdrachten.
+3. Wijzigingen worden uitgevoerd in kleine, controleerbare sets.
+4. Trial-and-error en brede, ongerichte wijzigingen worden vermeden.
+5. Git-writes, waaronder commit, push, merge en branchverwijdering, vereisen een afzonderlijk expliciet akkoord.
+
+## Opschoning en technische schuld
+
+1. Tijdens een paginafase wordt alleen gerichte en aantoonbaar veilige opschoning uitgevoerd.
+2. Een projectbrede dead-code- en consolidatie-audit wordt niet gecombineerd met paginaontwikkeling.
+3. De projectbrede audit wordt later uitgevoerd als een afzonderlijke technische verbeterfase.
+4. De audit onderscheidt:
+   - veilig verwijderbare code;
+   - mogelijk dynamisch gebruikte code;
+   - bewust behouden fallback-, fixture-, build- en documentatiebestanden;
+   - dubbele code die eerst moet worden geconsolideerd.
+5. Verwijderingen worden in kleine wijzigingssets uitgevoerd en gevolgd door relevante tests en volledige regressie.
+
+## Securitybeleid
+
+1. Gebruik nooit `npm audit fix --force`.
+2. Productie-afhankelijkheden moeten vrij zijn van bekende kwetsbaarheden voordat een fase als productiegeschikt wordt aangemerkt.
+3. Bekende transitieve bevindingen in ontwikkeltooling mogen alleen gecontroleerd en gedocumenteerd worden geaccepteerd.
+4. Nieuwe onbekende high- of critical-bevindingen zijn blokkerend.

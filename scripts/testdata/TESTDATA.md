@@ -1,4 +1,4 @@
-﻿# Testgebruikers en testdata - ledenbeheer
+# Testgebruikers en testdata - ledenbeheer
 
 ## Doel
 
@@ -212,3 +212,58 @@ De workflow `Supabase Testdata` staat in `.github/workflows/supabase-testdata.ym
 - de workflow past Auth-users en profielen toe en controleert daarna profielstatus en idempotentie.
 
 De productieomgeving en productiecredentials mogen niet voor deze workflow worden gebruikt.
+
+## Repertoiretestdata en testaudio
+
+Voor de pagina **Muziek en repertoire** worden verschillende soorten niet-productiegegevens gebruikt. Deze categorieën mogen niet met elkaar worden verward.
+
+### CMS-developmentdata
+
+De Sanity-developmentdataset kan herkenbare `[TEST]`-teksten en testaudio bevatten voor ontwikkeling en validatie.
+
+Afspraken:
+
+- `[TEST]`-content is uitsluitend toegestaan in development en gecontroleerde testscenario’s;
+- de content mag niet als definitieve productiecontent worden beschouwd;
+- vóór productie moeten alle `[TEST]`-teksten en testaudio worden vervangen;
+- na vervanging volgt opnieuw een productiegerichte CMS-build- en Lighthousecontrole.
+
+### Testfixtures
+
+Testfixtures leveren voorspelbare invoer voor geautomatiseerde tests.
+
+Kenmerken:
+
+- fixtures zijn onderdeel van de testinrichting;
+- fixtures zijn geen redactiedata;
+- fixtures mogen geen echte persoonsgegevens of vertrouwelijke productiegegevens bevatten;
+- wijzig fixtures alleen wanneer het testschema of het verwachte gedrag bewust verandert.
+
+### Fallbackcontent
+
+Fallbackcontent beschermt de build of pagina tegen ontbrekende CMS-content.
+
+Kenmerken:
+
+- fallbackcontent is een technische reserve;
+- fallbackcontent is geen bewijs dat de CMS-productiecontent gereed is;
+- fallbackcontent moet herkenbaar, veilig en inhoudelijk passend blijven;
+- fallbackcontent mag niet ongemerkt als definitieve CMS-content worden gebruikt.
+
+### Productiecontent
+
+Productiecontent is de definitieve, redactioneel goedgekeurde inhoud.
+
+Voor repertoire geldt:
+
+- geen `[TEST]`-markeringen;
+- geen testaudio;
+- correcte rechten en bronvermelding voor media;
+- inhoudelijke controle vóór publicatie;
+- validatie van build, paginaweergave, audio, accessibility en Lighthouse.
+
+De gevalideerde build-time verwerking voor repertoire is:
+
+`REPERTOIRE BUILD: cms -> dist/pages/repertoire.html`
+
+De pagina haalt tijdens runtime geen repertoirecontent op bij Sanity.

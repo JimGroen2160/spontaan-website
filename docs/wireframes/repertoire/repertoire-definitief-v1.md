@@ -62,3 +62,71 @@ Voor iedere wijziging moet expliciet worden vastgesteld:
 ## Goedkeuringsregel
 
 De pagina is pas gereed wanneer de browseruitwerking als geheel aantoonbaar overeenkomt met deze wireframe en de technische, responsive, accessibility- en Lighthouse-controles zijn geslaagd.
+
+## Definitieve implementatiestatus
+
+Status: **GEÏMPLEMENTEERD EN AFGEROND**
+
+De pagina **Muziek en repertoire** is functioneel, visueel en technisch afgerond volgens deze bindende wireframe.
+
+Git-status van de afgeronde fase:
+
+- pull request: **PR #55**;
+- status pull request: gemerged en gesloten;
+- mergecommit: `cfa6ff5`;
+- voormalige featurebranch: `o/repertoire-layout-wireframe-herstel`;
+- featurebranch lokaal en remote verwijderd.
+
+### Gerealiseerde visuele afspraken
+
+- desktop, tablet en mobiel zijn afzonderlijk gevalideerd;
+- repertoireselectie, quote en CTA gebruiken dezelfde horizontale containerbreedte;
+- de CTA–golf–footer-overgang sluit aan op de goedgekeurde wireframe;
+- `components/footer.html` blijft de enige gedeelde footerbron;
+- zichtbare audiostatussen zijn:
+  - `Gereed`;
+  - `Afspelen`;
+  - `Gepauzeerd`;
+  - `Afgelopen`;
+- de mobiele quote-afbeelding is gevalideerd op:
+  - natuurlijke afmetingen `1200 × 900`;
+  - `object-fit: cover`;
+  - `object-position: 50% 32%`.
+
+### CMS en build
+
+- het Sanity-paginadocument en het schema voor repertoire zijn aanwezig;
+- repertoire wordt tijdens de build opgebouwd;
+- gevalideerde buildmelding:
+
+  `REPERTOIRE BUILD: cms -> dist/pages/repertoire.html`
+
+- de repertoirepagina haalt tijdens runtime geen content op bij Sanity;
+- de developmentdataset bevat nog herkenbare `[TEST]`-teksten en testaudio;
+- deze testcontent moet vóór productie worden vervangen door definitieve content.
+
+### Validatieresultaten
+
+- `npm run build`: geslaagd;
+- gerichte repertoiretests: **24/24 geslaagd** op Chromium, Firefox en WebKit;
+- geen horizontale overflow;
+- visuele controles op desktop, tablet en mobiel: geslaagd;
+- productieaudit: **0 kwetsbaarheden**.
+
+Mediaan van drie Lighthouse-desktopruns:
+
+- Performance: **100**;
+- Accessibility: **100**;
+- Best Practices: **100**;
+- SEO: **100**;
+- FCP: **402 ms**;
+- LCP: **816 ms**;
+- CLS: **0**.
+
+Gevalideerd LCP-element:
+
+`body > header.repertoire-hero > img.repertoire-hero__image`
+
+### Resterend productiepunt
+
+De pagina-implementatie is afgerond. Voor productie moeten uitsluitend de `[TEST]`-teksten en testaudio in de gebruikte Sanity-dataset worden vervangen en opnieuw productiegericht worden gevalideerd.
