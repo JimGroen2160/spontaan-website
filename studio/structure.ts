@@ -3,6 +3,7 @@ import type {
   StructureResolver,
 } from 'sanity/structure'
 import {
+  ABOUT_PAGE_DOCUMENT_ID,
   FRIENDS_PAGE_DOCUMENT_ID,
   MEDIA_PAGE_DOCUMENT_ID,
   REPERTOIRE_PAGE_DOCUMENT_ID,
@@ -15,6 +16,17 @@ export const structure: StructureResolver = (
   S.list()
     .title('Inhoud')
     .items([
+      S.listItem()
+        .id('aboutPage')
+        .schemaType('aboutPage')
+        .title('Pagina Over Spontaan')
+        .child(
+          S.document()
+            .id(ABOUT_PAGE_DOCUMENT_ID)
+            .schemaType('aboutPage')
+            .documentId(ABOUT_PAGE_DOCUMENT_ID)
+        ),
+
       S.listItem()
         .id('friendsPage')
         .schemaType('friendsPage')

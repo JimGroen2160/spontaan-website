@@ -300,3 +300,16 @@ De gevalideerde build-time verwerking is:
 Fallbackcontent en fixtures blijven technische testbronnen en zijn geen bewijs dat productiecontent gereed is.
 
 Voor productie moeten fictieve sponsoren en developmentassets worden vervangen door redactioneel goedgekeurde gegevens en media. Daarna zijn opnieuw CMS-build-, accessibility-, Lighthouse- en regressiecontroles nodig.
+
+## Over Spontaan-developmentdata
+
+`studio/scripts/seedAboutDevelopment.js` initialiseert uitsluitend de
+Sanity-dataset `development` met singleton `aboutPage-main`. De inhoud komt
+uit `data/about-fallback.json`; de drie bestaande afbeeldingen onder
+`images/about/` worden op bestandsnaam en inhoud hergebruikt of, wanneer
+nodig, geüpload.
+
+De seed overschrijft geen gepubliceerd document of draft, gebruikt
+uitsluitend `createIfNotExists` voor het document en heeft geen
+productionmodus. Uitvoering is altijd handmatig en is geen onderdeel van
+build, installatie, tests of Studio-start.

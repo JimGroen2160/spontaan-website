@@ -93,3 +93,19 @@ De developmentseed:
 - maakt alleen aantoonbaar ontbrekende developmentdata aan.
 
 Voer de seed alleen bewust en handmatig uit met een lokaal aangemelde Sanity CLI. Production wordt niet ondersteund.
+
+## Over Spontaan
+
+De pagina **Over Spontaan** wordt build-time opgebouwd uit de singleton
+`aboutPage` met document-ID `aboutPage-main`. Contentmanagers beheren in
+Studio de SEO, hero, introductie, vier tijdlijnonderdelen, vier waarden,
+het citaat, de sfeersectie en de CTA.
+
+Bij ontbrekende of ongeldige CMS-content gebruikt de build
+`data/about-fallback.json`. De uiteindelijke pagina bevat geen runtime
+Sanity-verzoek.
+
+De developmentdataset kan bewust en handmatig worden geïnitialiseerd met
+`scripts/seedAboutDevelopment.js`. Het script accepteert uitsluitend
+`development`, gebruikt `createIfNotExists`, overschrijft niets, hergebruikt
+exact passende assets en ondersteunt geen productionmodus.
