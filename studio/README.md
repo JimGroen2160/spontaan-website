@@ -66,3 +66,30 @@ Deze gegevens:
 ## Lokale Studio
 
 Gebruik de bestaande npm-scripts en configuratie in deze map. Installeer dependencies niet opnieuw zonder noodzaak en voeg geen packages toe zonder impactanalyse en expliciet akkoord.
+
+## Vrienden van Spontaan
+
+Voor de pagina **Vrienden van Spontaan** zijn aanwezig:
+
+- singleton `friendsPage` met document-ID `friendsPage-main`;
+- herhaalbaar documenttype `friendItem`;
+- een vaste Studio-entry voor de pagina;
+- een beheerlijst voor vrienden en sponsors;
+- een development-only seedscript:
+  `scripts/seedFriendsDevelopment.js`.
+
+De pagina wordt tijdens de build samengesteld. De gevalideerde buildmelding is:
+
+`FRIENDS BUILD: cms -> dist/pages/vrienden.html`
+
+De vriendenpagina voert tijdens runtime geen Sanity-ophaalverzoeken uit.
+
+De developmentseed:
+
+- weigert iedere dataset behalve `development`;
+- overschrijft geen bestaande documenten;
+- gebruikt geen `createOrReplace`;
+- hergebruikt bestaande assets waar mogelijk;
+- maakt alleen aantoonbaar ontbrekende developmentdata aan.
+
+Voer de seed alleen bewust en handmatig uit met een lokaal aangemelde Sanity CLI. Production wordt niet ondersteund.

@@ -7,6 +7,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = resolve(ROOT, 'dist');
 const MEDIA_TEMPLATE = resolve(ROOT, 'build/media.template.html');
 const REPERTOIRE_TEMPLATE = resolve(ROOT, 'build/repertoire.template.html');
+const FRIENDS_TEMPLATE = resolve(ROOT, 'build/friends.template.html');
+const FRIENDS_FALLBACK = resolve(ROOT, 'data/friends-fallback.json');
 const FALLBACK = resolve(ROOT, 'data/media-fallback.json');
 const REPERTOIRE_FALLBACK = resolve(ROOT, 'data/repertoire-fallback.json');
 const NAVIGATION = resolve(ROOT, 'components/nav.html');
@@ -50,6 +52,29 @@ export const MEDIA_QUERY = `{
   "videoItems": *[_type == "videoItem" && isVisible == true] | order(recordedAt desc) {
     _id, title, recordedAt, summary, isFeatured, youtubeUrl, thumbnailAlt,
     "thumbnailUrl": thumbnail.asset->url
+  }
+}`;
+
+export const FRIENDS_QUERY = `{
+  "page": *[_id == "friendsPage-main" && _type == "friendsPage"][0] {
+    heroTitle, heroText, heroImageAlt,
+    "heroImageUrl": heroImage.asset->url,
+    heroPrimaryButtonLabel, heroPrimaryButtonLink,
+    heroSecondaryButtonLabel, heroSecondaryButtonLink,
+    supportTitle, supportIntro,
+    supportItems[] {title, text},
+    friendsTitle, friendsIntro,
+    ctaTitle, ctaText, ctaBenefits,
+    ctaImageAlt,
+    "ctaImageUrl": ctaImage.asset->url,
+    ctaPrimaryButtonLabel, ctaPrimaryButtonLink,
+    ctaSecondaryButtonLabel, ctaSecondaryButtonLink
+  },
+  "friends": *[_type == "friendItem" && isVisible == true] | order(sortOrder asc, publicName asc) {
+    _id, publicName, friendType, imageDisplay, imageAlt,
+    description, website, isFeatured, sortOrder,
+    publishFrom, publishUntil,
+    "imageUrl": image.asset->url
   }
 }`;
 
@@ -107,10 +132,21 @@ function safeUrl(value, kinds) {
 
 function safeLink(value) {
   const candidate = text(value, 512);
-  if (/^(?:\.\/|\.\.\/|\/)[A-Za-z0-9_./?=&%-]+$/.test(candidate)) return candidate;
+
+  if (/^#[A-Za-z][A-Za-z0-9_-]*$/.test(candidate)) {
+    return candidate;
+  }
+
+  if (
+    /^(?:\.\/|\.\.\/|\/)[A-Za-z0-9_./?=&%-]+(?:#[A-Za-z][A-Za-z0-9_-]*)?$/.test(
+      candidate,
+    )
+  ) {
+    return candidate;
+  }
+
   return safeUrl(candidate, ['link']);
 }
-
 function youtubeId(value) {
   const candidate = text(value, 512);
   try {
@@ -192,6 +228,229 @@ export function normalizeContent(value = {}) {
     audioItems: Array.isArray(value.audioItems) ? value.audioItems.map(normalizeAudio).filter(Boolean) : [],
     videoItems: Array.isArray(value.videoItems) ? value.videoItems.map(normalizeVideo).filter(Boolean) : [],
   };
+}
+
+function normalizeSupportItem(value) {
+  return {
+    title: text(value?.title, 80),
+    text: text(value?.text, 260),
+  };
+}
+
+function normalizeFriendItem(value, now) {
+  const id = text(value?._id ?? value?.id, 120);
+  const publicName = text(value?.publicName, 120);
+  const imageUrl = safeUrl(value?.imageUrl, ['image', 'local']);
+  const imageAlt = text(value?.imageAlt, 160);
+
+  if (!id || !publicName || !imageUrl || !imageAlt) return null;
+
+  const allowedFriendTypes = new Set([
+    'bedrijf',
+    'organisatie',
+    'particulier',
+    'overig',
+  ]);
+  const allowedImageDisplays = new Set(['logo', 'foto']);
+
+  const friendType = allowedFriendTypes.has(value?.friendType)
+    ? value.friendType
+    : 'overig';
+  const imageDisplay = allowedImageDisplays.has(value?.imageDisplay)
+    ? value.imageDisplay
+    : 'logo';
+
+  const publishFrom = text(value?.publishFrom, 40);
+  const publishUntil = text(value?.publishUntil, 40);
+  const publishFromTime = publishFrom ? Date.parse(publishFrom) : null;
+  const publishUntilTime = publishUntil ? Date.parse(publishUntil) : null;
+
+  if (publishFrom && !Number.isFinite(publishFromTime)) return null;
+  if (publishUntil && !Number.isFinite(publishUntilTime)) return null;
+  if (
+    publishFromTime !== null &&
+    publishUntilTime !== null &&
+    publishUntilTime <= publishFromTime
+  ) {
+    return null;
+  }
+  if (publishFromTime !== null && now < publishFromTime) return null;
+  if (publishUntilTime !== null && now >= publishUntilTime) return null;
+
+  return {
+    id,
+    publicName,
+    friendType,
+    imageDisplay,
+    imageUrl,
+    imageAlt,
+    description: text(value?.description, 320),
+    website: safeLink(value?.website),
+    isFeatured: value?.isFeatured === true,
+    sortOrder:
+      Number.isInteger(value?.sortOrder) &&
+      value.sortOrder >= 0 &&
+      value.sortOrder <= 9999
+        ? value.sortOrder
+        : 100,
+    publishFrom,
+    publishUntil,
+  };
+}
+
+export function normalizeFriendsContent(
+  value = {},
+  now = Date.now(),
+) {
+  const page = value.page ?? {};
+
+  const friends = Array.isArray(value.friends)
+    ? value.friends
+        .map((item) => normalizeFriendItem(item, now))
+        .filter(Boolean)
+        .sort(
+          (left, right) =>
+            left.sortOrder - right.sortOrder ||
+            left.publicName.localeCompare(
+              right.publicName,
+              'nl',
+              {sensitivity: 'base'},
+            ),
+        )
+    : [];
+
+  return {
+    page: {
+      heroTitle: text(page.heroTitle, 96),
+      heroText: text(page.heroText, 280),
+      heroImageUrl: safeUrl(page.heroImageUrl, ['image', 'local']),
+      heroImageAlt: text(page.heroImageAlt, 160),
+      heroPrimaryButtonLabel: text(
+        page.heroPrimaryButtonLabel,
+        48,
+      ),
+      heroPrimaryButtonLink: safeLink(
+        page.heroPrimaryButtonLink,
+      ),
+      heroSecondaryButtonLabel: text(
+        page.heroSecondaryButtonLabel,
+        48,
+      ),
+      heroSecondaryButtonLink: safeLink(
+        page.heroSecondaryButtonLink,
+      ),
+      supportTitle: text(page.supportTitle, 120),
+      supportIntro: text(page.supportIntro, 360),
+      supportItems: Array.isArray(page.supportItems)
+        ? page.supportItems.map(normalizeSupportItem)
+        : [],
+      friendsTitle: text(page.friendsTitle, 120),
+      friendsIntro: text(page.friendsIntro, 360),
+      ctaTitle: text(page.ctaTitle, 120),
+      ctaText: text(page.ctaText, 360),
+      ctaBenefits: Array.isArray(page.ctaBenefits)
+        ? page.ctaBenefits
+            .map((benefit) => text(benefit, 160))
+            .filter(Boolean)
+            .slice(0, 5)
+        : [],
+      ctaImageUrl: safeUrl(
+        page.ctaImageUrl,
+        ['image', 'local'],
+      ),
+      ctaImageAlt: text(page.ctaImageAlt, 160),
+      ctaPrimaryButtonLabel: text(
+        page.ctaPrimaryButtonLabel,
+        48,
+      ),
+      ctaPrimaryButtonLink: safeLink(
+        page.ctaPrimaryButtonLink,
+      ),
+      ctaSecondaryButtonLabel: text(
+        page.ctaSecondaryButtonLabel,
+        48,
+      ),
+      ctaSecondaryButtonLink: safeLink(
+        page.ctaSecondaryButtonLink,
+      ),
+    },
+    friends,
+  };
+}
+
+export function validateFriendsContent(content) {
+  const {page, friends} = content;
+
+  const requiredPageValues = [
+    page.heroTitle,
+    page.heroText,
+    page.heroImageUrl,
+    page.heroImageAlt,
+    page.heroPrimaryButtonLabel,
+    page.heroPrimaryButtonLink,
+    page.heroSecondaryButtonLabel,
+    page.heroSecondaryButtonLink,
+    page.supportTitle,
+    page.supportIntro,
+    page.friendsTitle,
+    page.ctaTitle,
+    page.ctaText,
+    page.ctaImageUrl,
+    page.ctaImageAlt,
+    page.ctaPrimaryButtonLabel,
+    page.ctaPrimaryButtonLink,
+    page.ctaSecondaryButtonLabel,
+    page.ctaSecondaryButtonLink,
+  ];
+
+  if (requiredPageValues.some((value) => !value)) {
+    throw new Error(
+      'Verplichte vrienden-paginavelden ontbreken',
+    );
+  }
+
+  if (page.supportItems.length !== 4) {
+    throw new Error(
+      'De vriendenpagina vereist exact vier ondersteuningsonderdelen',
+    );
+  }
+
+  if (
+    page.supportItems.some(
+      (item) => !item.title || !item.text,
+    )
+  ) {
+    throw new Error(
+      'Een ondersteuningsonderdeel is onvolledig',
+    );
+  }
+
+  if (
+    page.ctaBenefits.length < 1 ||
+    page.ctaBenefits.length > 5
+  ) {
+    throw new Error(
+      'De vriendenpagina vereist één tot vijf CTA-voordelen',
+    );
+  }
+
+  const duplicateIds = new Set();
+  const observedIds = new Set();
+
+  for (const friend of friends) {
+    if (observedIds.has(friend.id)) {
+      duplicateIds.add(friend.id);
+    }
+    observedIds.add(friend.id);
+  }
+
+  if (duplicateIds.size) {
+    throw new Error(
+      `Dubbele vriendenrecords: ${[...duplicateIds].join(', ')}`,
+    );
+  }
+
+  return content;
 }
 
 const REPERTOIRE_IMAGE_DEFAULTS = {
@@ -486,6 +745,199 @@ function replaceLink(html, attribute, href, label, description) {
   });
 }
 
+const FRIENDS_SUPPORT_ICONS = [
+  '<svg viewBox="0 0 48 48" role="img" aria-label="Muziek maken"><path d="M17 34a6 6 0 1 1-4-5.65V13l22-4v20a6 6 0 1 1-4-5.65V15.2l-14 2.55V34Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  '<svg viewBox="0 0 48 48" role="img" aria-label="Groei en ontwikkeling"><circle cx="18" cy="16" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="31" cy="18" r="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M8 36c1-7 5-11 10-11s9 4 10 11M26 36c.5-5 3-8 7-8s7 3 7 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 48 48" role="img" aria-label="Verbinden"><circle cx="15" cy="17" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="33" cy="17" r="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M6 36c1-7 4-11 9-11s8 4 9 11M24 36c1-7 4-11 9-11s8 4 9 11M19 23h10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 48 48" role="img" aria-label="Cultuur in de regio"><path d="M19 34a6 6 0 1 1-4-5.65V12l20-4v20a6 6 0 1 1-4-5.65V14.2l-12 2.2V34Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+];
+
+function renderFriendsSupportItems(items) {
+  return items.map((item, index) => `
+    <article class="friends-support-card">
+      <div class="friends-support-card__icon">
+        ${FRIENDS_SUPPORT_ICONS[index] ?? FRIENDS_SUPPORT_ICONS[0]}
+      </div>
+      <h3>${escapeHtml(item.title)}</h3>
+      <p>${escapeHtml(item.text)}</p>
+    </article>
+  `).join('');
+}
+
+function renderFriendCards(items) {
+  if (!items.length) {
+    return '<p class="friends-empty-state">Er zijn momenteel geen vrienden of sponsors gepubliceerd.</p>';
+  }
+
+  return items.map((friend) => {
+    const image = `
+      <img
+        src="${escapeHtml(friend.imageUrl)}"
+        alt="${escapeHtml(friend.imageAlt)}"
+        width="320"
+        height="180"
+        loading="lazy"
+      >
+    `;
+
+    const content = `
+      <article
+        class="friends-partner-card friends-partner-card--${escapeHtml(friend.imageDisplay)}"
+        data-friend-id="${escapeHtml(friend.id)}"
+      >
+        <div class="friends-partner-card__visual">
+          ${image}
+        </div>
+        <h3>${escapeHtml(friend.publicName)}</h3>
+        ${friend.description
+          ? `<p>${escapeHtml(friend.description)}</p>`
+          : ''}
+      </article>
+    `;
+
+    if (!friend.website) return content;
+
+    const external = /^https:\/\//.test(friend.website);
+
+    return `
+      <a
+        class="friends-partner-link"
+        href="${escapeHtml(friend.website)}"
+        ${external ? 'rel="noopener noreferrer"' : ''}
+        aria-label="Bezoek de website van ${escapeHtml(friend.publicName)}"
+      >
+        ${content}
+      </a>
+    `;
+  }).join('');
+}
+
+function renderFriendsBenefits(items) {
+  return items.map((item) => `
+    <li>
+      <span aria-hidden="true">✓</span>
+      ${escapeHtml(item)}
+    </li>
+  `).join('');
+}
+
+export function renderFriendsPage(template, content, source) {
+  validateFriendsContent(content);
+
+  const {page, friends} = content;
+  let html = template;
+
+  html = replaceRequired(
+    html,
+    /<img(?=[^>]*\bclass="friends-hero__image")(?=[^>]*\bdata-friends-hero-image\b)[^>]*>/,
+    image(
+      page.heroImageUrl,
+      page.heroImageAlt,
+      1620,
+      720,
+      'eager',
+      ' class="friends-hero__image" data-friends-hero-image fetchpriority="high"',
+    ),
+    'vrienden-hero-afbeelding',
+  );
+
+  const textFields = [
+    ['hero-title', page.heroTitle],
+    ['hero-text', page.heroText],
+    ['support-title', page.supportTitle],
+    ['support-intro', page.supportIntro],
+    ['title', page.friendsTitle],
+    ['intro', page.friendsIntro],
+    ['cta-title', page.ctaTitle],
+    ['cta-text', page.ctaText],
+  ];
+
+  for (const [name, value] of textFields) {
+    html = replaceRequired(
+      html,
+      new RegExp(
+        `(<[^>]+data-friends-${name}[^>]*>)[\\s\\S]*?(</[^>]+>)`,
+      ),
+      `$1${escapeHtml(value)}$2`,
+      `vrienden-${name}`,
+    );
+  }
+
+  html = replaceLink(
+    html,
+    'data-friends-hero-primary-button',
+    page.heroPrimaryButtonLink,
+    page.heroPrimaryButtonLabel,
+    'primaire hero-knop vrienden',
+  );
+
+  html = replaceLink(
+    html,
+    'data-friends-hero-secondary-button',
+    page.heroSecondaryButtonLink,
+    page.heroSecondaryButtonLabel,
+    'secundaire hero-knop vrienden',
+  );
+
+  html = replaceLink(
+    html,
+    'data-friends-cta-primary-button',
+    page.ctaPrimaryButtonLink,
+    page.ctaPrimaryButtonLabel,
+    'primaire CTA-knop vrienden',
+  );
+
+  html = replaceLink(
+    html,
+    'data-friends-cta-secondary-button',
+    page.ctaSecondaryButtonLink,
+    page.ctaSecondaryButtonLabel,
+    'secundaire CTA-knop vrienden',
+  );
+
+  html = replaceRequired(
+    html,
+    /(<div(?=[^>]*\bclass="friends-support__grid")(?=[^>]*\bdata-friends-support-items\b)[^>]*>)[\s\S]*?(<\/div>)/,
+    `$1${renderFriendsSupportItems(page.supportItems)}$2`,
+    'ondersteuningsonderdelen vrienden',
+  );
+
+  html = replaceRequired(
+    html,
+    /(<div(?=[^>]*\bclass="friends-partners__viewport")(?=[^>]*\bdata-friends-list\b)[^>]*>)[\s\S]*?(<\/div>)/,
+    `$1${renderFriendCards(friends)}$2`,
+    'vrienden- en sponsoritems',
+  );
+
+  html = replaceRequired(
+    html,
+    /(<ul(?=[^>]*\bclass="friends-cta__benefits")(?=[^>]*\bdata-friends-cta-benefits\b)[^>]*>)[\s\S]*?(<\/ul>)/,
+    `$1${renderFriendsBenefits(page.ctaBenefits)}$2`,
+    'CTA-voordelen vrienden',
+  );
+
+  html = replaceRequired(
+    html,
+    /<img(?=[^>]*\bdata-friends-cta-image\b)[^>]*>/,
+    image(
+      page.ctaImageUrl,
+      page.ctaImageAlt,
+      720,
+      480,
+      'lazy',
+      ' data-friends-cta-image',
+    ),
+    'CTA-afbeelding vrienden',
+  );
+
+  return replaceRequired(
+    html,
+    /<script data-friends-source-marker><\/script>/,
+    `<script>document.documentElement.dataset.friendsSource=${JSON.stringify(source)};</script>`,
+    'vrienden-bronmarkering',
+  );
+}
+
 export function renderMediaPage(template, content, source) {
   const page = content.page;
   const all = [...content.photoAlbums, ...content.audioItems, ...content.videoItems];
@@ -555,6 +1007,48 @@ async function fetchRepertoireCmsContent() {
   try {
     const response = await fetch(url, {headers: {Accept: 'application/json'}, signal: controller.signal});
     if (!response.ok) throw new Error(`Sanity-repertoireverzoek mislukt (${response.status})`);
+    const payload = await response.json();
+    return payload.result ?? {};
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function fetchFriendsCmsContent() {
+  if (process.env.FRIENDS_BUILD_FIXTURE) {
+    const fixture = JSON.parse(
+      await readFile(
+        resolve(ROOT, process.env.FRIENDS_BUILD_FIXTURE),
+        'utf8',
+      ),
+    );
+
+    if (fixture.error) throw new Error(fixture.error);
+    return fixture.result ?? fixture;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT_MS,
+  );
+  const dataset = resolveSanityDataset();
+  const url =
+    `https://u66p1mxm.api.sanity.io/v2026-07-06/data/query/` +
+    `${dataset}?query=${encodeURIComponent(FRIENDS_QUERY)}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {Accept: 'application/json'},
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Sanity-vriendenverzoek mislukt (${response.status})`,
+      );
+    }
+
     const payload = await response.json();
     return payload.result ?? {};
   } finally {
@@ -632,8 +1126,72 @@ export async function build() {
   );
   assertNoMojibake(repertoirePage, 'gebouwde repertoirepagina');
   await writeFile(repertoireFile, repertoirePage, 'utf8');
+  const friendsFile = resolve(OUTPUT, 'pages/vrienden.html');
+  const friendsFallback = normalizeFriendsContent(
+    JSON.parse(
+      await readFile(FRIENDS_FALLBACK, 'utf8'),
+    ),
+  );
+
+  validateFriendsContent(friendsFallback);
+
+  let friendsContent = friendsFallback;
+  let friendsSource = 'fallback';
+  let fetchedFriends = null;
+
+  try {
+    fetchedFriends = await fetchFriendsCmsContent();
+  } catch (error) {
+    console.warn(
+      `FRIENDS BUILD: fallback gebruikt (${error.message})`,
+    );
+  }
+
+  if (fetchedFriends) {
+    const normalizedFriends =
+      normalizeFriendsContent(fetchedFriends);
+
+    if (normalizedFriends.page.heroTitle) {
+      validateFriendsContent(normalizedFriends);
+      friendsContent = normalizedFriends;
+      friendsSource = 'cms';
+    } else {
+      console.warn(
+        'FRIENDS BUILD: fallback gebruikt ' +
+        '(CMS-paginadocument ontbreekt)',
+      );
+    }
+  }
+
+  assertNoMojibake(
+    friendsContent,
+    `genormaliseerde vrienden-inhoud (${friendsSource})`,
+  );
+
+  const friendsPage = embedSharedComponents(
+    renderFriendsPage(
+      await readFile(FRIENDS_TEMPLATE, 'utf8'),
+      friendsContent,
+      friendsSource,
+    ),
+    navigation,
+    footer,
+  );
+
+  assertNoMojibake(
+    friendsPage,
+    'gebouwde vriendenpagina',
+  );
+
+  await writeFile(
+    friendsFile,
+    friendsPage,
+    'utf8',
+  );
+
   console.log(`MEDIA BUILD: ${source} -> dist/pages/media.html`);
   console.log(`REPERTOIRE BUILD: ${repertoireSource} -> dist/pages/repertoire.html`);
+  console.log(`FRIENDS BUILD: ${friendsSource} -> dist/pages/vrienden.html`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

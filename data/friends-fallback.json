@@ -1,0 +1,133 @@
+{
+    "page":  {
+                 "heroTitle":  "Vrienden van Spontaan",
+                 "heroText":  "Met de steun van onze vrienden kan Zanggroep Spontaan blijven zingen, groeien en mensen verbinden.",
+                 "heroImageUrl":  "../images/repertoire/repertoire-hero.jpg",
+                 "heroImageAlt":  "Zanggroep Spontaan zingt onder leiding van de dirigent",
+                 "heroPrimaryButtonLabel":  "Word vriend van Spontaan",
+                 "heroPrimaryButtonLink":  "./contact.html",
+                 "heroSecondaryButtonLabel":  "Meer informatie",
+                 "heroSecondaryButtonLink":  "#vrienden",
+                 "supportTitle":  "Uw steun maakt dit mogelijk",
+                 "supportIntro":  "Dankzij de vrienden van Spontaan kan Zanggroep Spontaan blijven investeren in muziek, optredens, nieuwe projecten en mooie zangmomenten.",
+                 "supportItems":  [
+                                      {
+                                          "title":  "Muziek maken",
+                                          "text":  "Zanggroep Spontaan blijft werken aan mooie muziek en bijzondere optredens."
+                                      },
+                                      {
+                                          "title":  "Groei en ontwikkeling",
+                                          "text":  "Het mannenkoor investeert in repetities, muzikale begeleiding en verdere ontwikkeling."
+                                      },
+                                      {
+                                          "title":  "Verbinden",
+                                          "text":  "Zanggroep Spontaan brengt mensen samen door muziek en ontmoeting."
+                                      },
+                                      {
+                                          "title":  "Cultuur in de regio",
+                                          "text":  "De zanggroep draagt bij aan een rijk en levendig cultureel leven in de regio."
+                                      }
+                                  ],
+                 "friendsTitle":  "Onze vrienden en sponsors",
+                 "friendsIntro":  "",
+                 "ctaTitle":  "Word ook vriend van Spontaan",
+                 "ctaText":  "Met uw bijdrage ondersteunt u Zanggroep Spontaan bij muzikale activiteiten, optredens en verdere ontwikkeling.",
+                 "ctaBenefits":  [
+                                     "U steunt een actief en enthousiast mannenkoor.",
+                                     "Uw bijdrage helpt muzikale activiteiten mogelijk te maken.",
+                                     "U blijft betrokken bij Zanggroep Spontaan."
+                                 ],
+                 "ctaImageUrl":  "../images/about/over-intro-mannenkoor.jpg",
+                 "ctaImageAlt":  "Leden van Zanggroep Spontaan zingen samen",
+                 "ctaPrimaryButtonLabel":  "Word vriend van Spontaan",
+                 "ctaPrimaryButtonLink":  "./contact.html",
+                 "ctaSecondaryButtonLabel":  "Neem contact op",
+                 "ctaSecondaryButtonLink":  "./contact.html"
+             },
+    "friends":  [
+                    {
+                        "id":  "demo-aurello",
+                        "publicName":  "[TEST] Aurello",
+                        "friendType":  "bedrijf",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-aurello.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Aurello",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  true,
+                        "sortOrder":  10
+                    },
+                    {
+                        "id":  "demo-korenveld",
+                        "publicName":  "[TEST] Korenveld",
+                        "friendType":  "bedrijf",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-korenveld.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Korenveld",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  false,
+                        "sortOrder":  20
+                    },
+                    {
+                        "id":  "demo-lumora",
+                        "publicName":  "[TEST] Lumora",
+                        "friendType":  "organisatie",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-lumora.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Lumora",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  false,
+                        "sortOrder":  30
+                    },
+                    {
+                        "id":  "demo-marevia",
+                        "publicName":  "[TEST] Marevia",
+                        "friendType":  "organisatie",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-marevia.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Marevia",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  false,
+                        "sortOrder":  40
+                    },
+                    {
+                        "id":  "demo-novaro",
+                        "publicName":  "[TEST] Novaro",
+                        "friendType":  "bedrijf",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-novaro.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Novaro",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  false,
+                        "sortOrder":  50
+                    },
+                    {
+                        "id":  "demo-velinor",
+                        "publicName":  "[TEST] Velinor",
+                        "friendType":  "bedrijf",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-velinor.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Velinor",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  false,
+                        "sortOrder":  60
+                    },
+                    {
+                        "id":  "demo-solvane",
+                        "publicName":  "[TEST] Solvane",
+                        "friendType":  "bedrijf",
+                        "imageDisplay":  "logo",
+                        "imageUrl":  "../images/friends/demo-sponsors/web/demo-solvane.webp",
+                        "imageAlt":  "Demologo van fictieve sponsor Solvane",
+                        "description":  "Fictieve demosponsor voor de ontwikkelomgeving.",
+                        "website":  "",
+                        "isFeatured":  false,
+                        "sortOrder":  70
+                    }
+                ]
+}

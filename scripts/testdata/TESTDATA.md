@@ -267,3 +267,36 @@ De gevalideerde build-time verwerking voor repertoire is:
 `REPERTOIRE BUILD: cms -> dist/pages/repertoire.html`
 
 De pagina haalt tijdens runtime geen repertoirecontent op bij Sanity.
+
+## Vrienden van Spontaan-developmentdata
+
+Voor de vriendenpagina kan de Sanity-developmentdataset gecontroleerd worden geïnitialiseerd met:
+
+`studio/scripts/seedFriendsDevelopment.js`
+
+De seed gebruikt `data/friends-fallback.json` als enige inhoudelijke bron en gebruikt uitsluitend de geoptimaliseerde WebP-sponsorafbeeldingen.
+
+Afspraken:
+
+- uitsluitend dataset `development`;
+- geen productionmodus;
+- geen overschrijven van bestaande documenten;
+- stoppen bij bestaande gepubliceerde documenten of drafts;
+- vaste en unieke document-ID's;
+- fictieve sponsornamen en logo's;
+- geen echte sponsor- of persoonsgegevens;
+- geen automatische uitvoering tijdens build, installatie of Studio-start.
+
+De developmentseed maakt:
+
+- `friendsPage-main`;
+- zeven afzonderlijke `friendItem`-documenten;
+- de benodigde afbeeldingsassets wanneer die nog niet bestaan.
+
+De gevalideerde build-time verwerking is:
+
+`FRIENDS BUILD: cms -> dist/pages/vrienden.html`
+
+Fallbackcontent en fixtures blijven technische testbronnen en zijn geen bewijs dat productiecontent gereed is.
+
+Voor productie moeten fictieve sponsoren en developmentassets worden vervangen door redactioneel goedgekeurde gegevens en media. Daarna zijn opnieuw CMS-build-, accessibility-, Lighthouse- en regressiecontroles nodig.
