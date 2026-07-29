@@ -1,5 +1,7 @@
-﻿import {audioItem} from './audioItem'
+import {audioItem} from './audioItem'
 import {eventItem} from './eventItem'
+import {friendItem} from './friendItem'
+import {friendsPage} from './friendsPage'
 import {homePage} from './homePage'
 import {mediaPage} from './mediaPage'
 import {newsItem} from './newsItem'
@@ -12,6 +14,8 @@ export const schemaTypes = [
   homePage,
   newsItem,
   eventItem,
+  friendsPage,
+  friendItem,
   mediaPage,
   photoAlbum,
   audioItem,
