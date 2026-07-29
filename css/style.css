@@ -3112,7 +3112,7 @@ main.news-detail-page {
       rgba(164, 15, 128, 0.62) 68%,
       rgba(217, 13, 135, 0.40) 100%
     ),
-    url("../images/about/over-hero-mannenkoor.jpg") 58% center / cover no-repeat;
+    var(--about-hero-image, url("../images/about/over-hero-mannenkoor.jpg")) 58% center / cover no-repeat;
   color: #ffffff;
 }
 

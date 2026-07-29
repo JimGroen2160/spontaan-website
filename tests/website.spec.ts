@@ -850,6 +850,15 @@ test.describe('Over Spontaan pagina', () => {
     await waitForSharedLayout(page);
 
     await expect(page.locator('.about-hero h1')).toHaveText('Over Spontaan');
+    await expect(page.locator('main.about-page')).toHaveAttribute(
+      'data-content-source',
+      /^(cms|fallback)$/,
+    );
+    await expect(page).toHaveTitle('Over Spontaan | Zanggroep Spontaan');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      /enthousiast mannenkoor/,
+    );
     await expect(page.getByRole('heading', { name: 'Samen groeien in muziek' })).toBeVisible();
 
     const timelineHeadings = page.locator('.about-timeline h3');
@@ -872,6 +881,8 @@ test.describe('Over Spontaan pagina', () => {
 
     const contentImages = page.locator('.about-media img');
     await expect(contentImages).toHaveCount(2);
+    await expect(contentImages.nth(0)).toHaveAttribute('alt', /Mannenkoor Spontaan/);
+    await expect(contentImages.nth(1)).toHaveAttribute('alt', /Dirigent/);
 
     for (const image of await contentImages.all()) {
       await image.scrollIntoViewIfNeeded();
@@ -894,11 +905,18 @@ test.describe('Over Spontaan pagina', () => {
       getComputedStyle(element).backgroundImage
     ));
 
-    expect(heroImage).toContain('over-hero-mannenkoor.jpg');
+    const contentSource = await page.locator('main.about-page').getAttribute('data-content-source');
+
+    if (contentSource === 'cms') {
+      expect(heroImage).toContain('cdn.sanity.io/images/');
+    } else {
+      expect(heroImage).toContain('over-hero-mannenkoor.jpg');
+    }
   });
 
   for (const viewport of [
     { name: 'desktop', width: 1440, height: 900 },
+    { name: 'tablet', width: 900, height: 1000 },
     { name: 'mobiel', width: 390, height: 844 },
   ]) {
     test(`heeft geen horizontale overflow op ${viewport.name}`, async ({ page }) => {

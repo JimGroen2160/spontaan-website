@@ -1,0 +1,50 @@
+{
+  "seoTitle": "Over Spontaan | Zanggroep Spontaan",
+  "seoDescription": "Maak kennis met Zanggroep Spontaan: een enthousiast mannenkoor waar plezier, kwaliteit en verbondenheid centraal staan.",
+  "heroTitle": "Over Spontaan",
+  "heroSubtitle": "Samen zingen, samen groeien en samen plezier beleven. Dat is waar wij als mannenkoor voor staan.",
+  "heroImageUrl": "../images/about/over-hero-mannenkoor.jpg",
+  "heroImageAlt": "Zanggroep Spontaan zingt samen als mannenkoor",
+  "introEyebrow": "Wie wij zijn",
+  "introTitle": "Een enthousiast mannenkoor",
+  "introText": [
+    "Spontaan is een mannenkoor uit Angerlo waar samen zingen, plezier en verbondenheid centraal staan.",
+    "Met aandacht voor elkaar werken wij aan mooie samenzang. We zingen met enthousiasme, voor elkaar en voor ons publiek."
+  ],
+  "introImageUrl": "../images/about/over-intro-mannenkoor.jpg",
+  "introImageAlt": "Mannenkoor Spontaan zingt gezamenlijk uit zwarte koormappen",
+  "timelineEyebrow": "Ons verhaal",
+  "timelineTitle": "Samen groeien in muziek",
+  "timelineIntro": "",
+  "timelineItems": [
+    {"title": "Het begin", "text": "Spontaan ontstond vanuit de wens om samen te zingen en plezier in muziek te delen."},
+    {"title": "Ontwikkeling", "text": "De zanggroep ontwikkelde zich verder in samenzang, repertoire en optredens."},
+    {"title": "Vandaag", "text": "We zingen met enthousiasme, aandacht voor elkaar en plezier voor ons publiek."},
+    {"title": "Vooruitkijken", "text": "We blijven ons muzikaal ontwikkelen en staan open voor nieuwe ontmoetingen."}
+  ],
+  "valuesEyebrow": "Missie en waarden",
+  "valuesTitle": "Wat ons verbindt",
+  "valuesItems": [
+    {"title": "Plezier", "text": "Zingen begint voor ons bij genieten, lachen en samen iets moois neerzetten."},
+    {"title": "Kwaliteit", "text": "We werken met inzet en aandacht aan een mooie klank en sterke gezamenlijke uitvoeringen."},
+    {"title": "Verbinding", "text": "We luisteren naar elkaar, ondersteunen elkaar en vieren onze gezamenlijke momenten."},
+    {"title": "Openheid", "text": "Een vriendelijke en respectvolle sfeer geeft iedereen de ruimte om zichzelf te zijn."}
+  ],
+  "atmosphereEyebrow": "Onze sfeer",
+  "atmosphereTitle": "Warm, betrokken en ongedwongen",
+  "atmosphereText": [
+    "Bij Spontaan heerst een open en vriendelijke sfeer. We zijn verschillend, maar delen dezelfde passie voor muziek.",
+    "De saamhorigheid is voelbaar tijdens het zingen en in de momenten daaromheen."
+  ],
+  "atmosphereImageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
+  "atmosphereImageAlt": "Dirigent leidt het mannenkoor tijdens een gezamenlijke uitvoering",
+  "quote": "Samen zingen geeft energie, verbinding en veel mooie momenten.",
+  "quoteAttribution": "",
+  "ctaEyebrow": "Nieuwsgierig geworden?",
+  "ctaTitle": "Maak kennis met Spontaan",
+  "ctaText": "Benieuwd naar onze zanggroep? Bekijk de agenda of neem contact met ons op.",
+  "primaryButtonLabel": "Neem contact op",
+  "primaryButtonLink": "./contact.html",
+  "secondaryButtonLabel": "Bekijk de agenda",
+  "secondaryButtonLink": "./agenda.html"
+}

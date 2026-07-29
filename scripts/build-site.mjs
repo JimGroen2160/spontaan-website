@@ -8,7 +8,9 @@ const OUTPUT = resolve(ROOT, 'dist');
 const MEDIA_TEMPLATE = resolve(ROOT, 'build/media.template.html');
 const REPERTOIRE_TEMPLATE = resolve(ROOT, 'build/repertoire.template.html');
 const FRIENDS_TEMPLATE = resolve(ROOT, 'build/friends.template.html');
+const ABOUT_TEMPLATE = resolve(ROOT, 'build/about.template.html');
 const FRIENDS_FALLBACK = resolve(ROOT, 'data/friends-fallback.json');
+const ABOUT_FALLBACK = resolve(ROOT, 'data/about-fallback.json');
 const FALLBACK = resolve(ROOT, 'data/media-fallback.json');
 const REPERTOIRE_FALLBACK = resolve(ROOT, 'data/repertoire-fallback.json');
 const NAVIGATION = resolve(ROOT, 'components/nav.html');
@@ -76,6 +78,21 @@ export const FRIENDS_QUERY = `{
     publishFrom, publishUntil,
     "imageUrl": image.asset->url
   }
+}`;
+
+export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0] {
+  seoTitle, seoDescription,
+  heroTitle, heroSubtitle, heroImageAlt, "heroImageUrl": heroImage.asset->url,
+  introEyebrow, introTitle, introText,
+  introImageAlt, "introImageUrl": introImage.asset->url,
+  timelineEyebrow, timelineTitle, timelineIntro, timelineItems[] {title, text},
+  valuesEyebrow, valuesTitle, valuesItems[] {title, text},
+  atmosphereEyebrow, atmosphereTitle, atmosphereText,
+  atmosphereImageAlt, "atmosphereImageUrl": atmosphereImage.asset->url,
+  quote, quoteAttribution,
+  ctaEyebrow, ctaTitle, ctaText,
+  primaryButtonLabel, primaryButtonLink,
+  secondaryButtonLabel, secondaryButtonLink
 }`;
 
 export const REPERTOIRE_QUERY = `{
@@ -451,6 +468,81 @@ export function validateFriendsContent(content) {
   }
 
   return content;
+}
+
+function normalizeParagraphs(value) {
+  return Array.isArray(value)
+    ? value.map((paragraph) => text(paragraph, 500)).filter(Boolean).slice(0, 3)
+    : [];
+}
+
+function normalizeAboutItems(value) {
+  return Array.isArray(value)
+    ? value.map((item) => ({
+        title: text(item?.title, 80),
+        text: text(item?.text, 300),
+      }))
+    : [];
+}
+
+export function normalizeAboutContent(value = {}) {
+  return {
+    seoTitle: text(value.seoTitle, 70),
+    seoDescription: text(value.seoDescription, 170),
+    heroTitle: text(value.heroTitle, 96),
+    heroSubtitle: text(value.heroSubtitle, 240),
+    heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
+    heroImageAlt: text(value.heroImageAlt, 160),
+    introEyebrow: text(value.introEyebrow, 80),
+    introTitle: text(value.introTitle, 120),
+    introText: normalizeParagraphs(value.introText),
+    introImageUrl: safeUrl(value.introImageUrl, ['image', 'local']),
+    introImageAlt: text(value.introImageAlt, 160),
+    timelineEyebrow: text(value.timelineEyebrow, 80),
+    timelineTitle: text(value.timelineTitle, 120),
+    timelineIntro: text(value.timelineIntro, 300),
+    timelineItems: normalizeAboutItems(value.timelineItems),
+    valuesEyebrow: text(value.valuesEyebrow, 80),
+    valuesTitle: text(value.valuesTitle, 120),
+    valuesItems: normalizeAboutItems(value.valuesItems),
+    atmosphereEyebrow: text(value.atmosphereEyebrow, 80),
+    atmosphereTitle: text(value.atmosphereTitle, 120),
+    atmosphereText: normalizeParagraphs(value.atmosphereText),
+    atmosphereImageUrl: safeUrl(value.atmosphereImageUrl, ['image', 'local']),
+    atmosphereImageAlt: text(value.atmosphereImageAlt, 160),
+    quote: text(value.quote, 280),
+    quoteAttribution: text(value.quoteAttribution, 100),
+    ctaEyebrow: text(value.ctaEyebrow, 80),
+    ctaTitle: text(value.ctaTitle, 120),
+    ctaText: text(value.ctaText, 300),
+    primaryButtonLabel: text(value.primaryButtonLabel, 48),
+    primaryButtonLink: safeLink(value.primaryButtonLink),
+    secondaryButtonLabel: text(value.secondaryButtonLabel, 48),
+    secondaryButtonLink: safeLink(value.secondaryButtonLink),
+  };
+}
+
+export function validateAboutContent(content) {
+  const required = [
+    content.seoTitle, content.seoDescription,
+    content.heroTitle, content.heroSubtitle, content.heroImageUrl, content.heroImageAlt,
+    content.introEyebrow, content.introTitle, content.introImageUrl, content.introImageAlt,
+    content.timelineEyebrow, content.timelineTitle,
+    content.valuesEyebrow, content.valuesTitle,
+    content.atmosphereEyebrow, content.atmosphereTitle,
+    content.atmosphereImageUrl, content.atmosphereImageAlt,
+    content.quote, content.ctaEyebrow, content.ctaTitle, content.ctaText,
+    content.primaryButtonLabel, content.primaryButtonLink,
+    content.secondaryButtonLabel, content.secondaryButtonLink,
+  ];
+  if (required.some((value) => !value)) throw new Error('Verplichte Over-paginavelden ontbreken');
+  if (!content.introText.length || !content.atmosphereText.length) throw new Error('Over-pagina vereist introductie- en sfeerparagrafen');
+  if (content.timelineItems.length !== 4 || content.timelineItems.some((item) => !item.title || !item.text)) {
+    throw new Error('Over-pagina vereist exact vier volledige tijdlijnonderdelen');
+  }
+  if (content.valuesItems.length !== 4 || content.valuesItems.some((item) => !item.title || !item.text)) {
+    throw new Error('Over-pagina vereist exact vier volledige waarden');
+  }
 }
 
 const REPERTOIRE_IMAGE_DEFAULTS = {
@@ -956,6 +1048,65 @@ export function renderMediaPage(template, content, source) {
   return replaceRequired(html, /<script type="module" src="\.\.\/js\/media\.js"><\/script>/, `${embedded}\n<script type="module" src="../js/media.js"></script>`, 'mediascript');
 }
 
+const ABOUT_TIMELINE_ICONS = ['♬', '↗', '♫', '♡'];
+const ABOUT_VALUE_ICONS = ['☺', '☆', '◎', '◇'];
+
+function renderAboutParagraphs(items) {
+  return items.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('\n');
+}
+
+function renderAboutCards(items, type) {
+  const timeline = type === 'timeline';
+  const icons = timeline ? ABOUT_TIMELINE_ICONS : ABOUT_VALUE_ICONS;
+  return items.map((item, index) => timeline
+    ? `<li class="about-timeline__item"><span class="about-timeline__icon" aria-hidden="true">${icons[index]}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p></li>`
+    : `<article class="about-value-card"><span class="about-value-card__icon" aria-hidden="true">${icons[index]}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p></article>`
+  ).join('\n');
+}
+
+export function renderAboutPage(template, content, source) {
+  validateAboutContent(content);
+  let html = template;
+  html = replaceRequired(html, /(<title data-about-seo-title>)[\s\S]*?(<\/title>)/, `$1${escapeHtml(content.seoTitle)}$2`, 'Over SEO-titel');
+  html = replaceRequired(html, /<meta(?=[^>]*name="description")(?=[^>]*data-about-seo-description)[^>]*>/, `<meta name="description" content="${escapeHtml(content.seoDescription)}" data-about-seo-description>`, 'Over SEO-beschrijving');
+  html = replaceRequired(
+    html,
+    /<header class="about-hero" data-about-hero>/,
+    `<header class="about-hero" data-about-hero style="--about-hero-image: url(&quot;${escapeHtml(content.heroImageUrl)}&quot;)" aria-label="${escapeHtml(content.heroImageAlt)}">`,
+    'Over hero-afbeelding',
+  );
+  const textFields = [
+    ['hero-title', content.heroTitle], ['hero-subtitle', content.heroSubtitle],
+    ['intro-eyebrow', content.introEyebrow], ['intro-title', content.introTitle],
+    ['timeline-eyebrow', content.timelineEyebrow], ['timeline-title', content.timelineTitle],
+    ['values-eyebrow', content.valuesEyebrow], ['values-title', content.valuesTitle],
+    ['atmosphere-eyebrow', content.atmosphereEyebrow], ['atmosphere-title', content.atmosphereTitle],
+    ['quote', content.quote], ['cta-eyebrow', content.ctaEyebrow],
+    ['cta-title', content.ctaTitle], ['cta-text', content.ctaText],
+  ];
+  for (const [name, value] of textFields) {
+    html = replaceRequired(html, new RegExp(`(<[^>]+data-about-${name}[^>]*>)[\\s\\S]*?(</[^>]+>)`), `$1${escapeHtml(value)}$2`, `Over ${name}`);
+  }
+  const timelineIntro = content.timelineIntro
+    ? `<p data-about-timeline-intro>${escapeHtml(content.timelineIntro)}</p>`
+    : '<p data-about-timeline-intro hidden></p>';
+  html = replaceRequired(html, /<p data-about-timeline-intro(?: hidden)?><\/p>/, timelineIntro, 'Over tijdlijnintro');
+  html = replaceRequired(html, /<div data-about-intro-text><\/div>/, renderAboutParagraphs(content.introText), 'Over introductietekst');
+  html = replaceRequired(html, /<div data-about-atmosphere-text><\/div>/, renderAboutParagraphs(content.atmosphereText), 'Over sfeertext');
+  html = replaceRequired(html, /<ol class="about-timeline" data-about-timeline-items><\/ol>/, `<ol class="about-timeline" data-about-timeline-items>${renderAboutCards(content.timelineItems, 'timeline')}</ol>`, 'Over tijdlijn');
+  html = replaceRequired(html, /<div class="about-values__grid" data-about-values-items><\/div>/, `<div class="about-values__grid" data-about-values-items>${renderAboutCards(content.valuesItems, 'values')}</div>`, 'Over waarden');
+  html = replaceRequired(html, /<img(?=[^>]*data-about-intro-image)[^>]*>/, image(content.introImageUrl, content.introImageAlt, 1672, 941, 'lazy', ' decoding="async" data-about-intro-image'), 'Over intro-afbeelding');
+  html = replaceRequired(html, /<img(?=[^>]*data-about-atmosphere-image)[^>]*>/, image(content.atmosphereImageUrl, content.atmosphereImageAlt, 1672, 941, 'lazy', ' decoding="async" data-about-atmosphere-image'), 'Over sfeerafbeelding');
+  const attribution = content.quoteAttribution
+    ? `<figcaption data-about-quote-attribution>${escapeHtml(content.quoteAttribution)}</figcaption>`
+    : '<figcaption data-about-quote-attribution hidden></figcaption>';
+  html = replaceRequired(html, /<figcaption data-about-quote-attribution hidden><\/figcaption>/, attribution, 'Over citaatbron');
+  html = replaceLink(html, 'data-about-primary-button', content.primaryButtonLink, content.primaryButtonLabel, 'primaire Over-CTA');
+  html = replaceLink(html, 'data-about-secondary-button', content.secondaryButtonLink, content.secondaryButtonLabel, 'secundaire Over-CTA');
+  html = replaceRequired(html, /<main class="about-page">/, `<main class="about-page" data-content-source="${source}">`, 'Over contentbron');
+  return replaceRequired(html, /<script data-about-source-marker><\/script>/, `<script>document.documentElement.dataset.aboutSource=${JSON.stringify(source)};</script>`, 'Over bronmarkering');
+}
+
 export function embedSharedComponents(html, navigation, footer) {
   let output = replaceRequired(
     html,
@@ -1049,6 +1200,26 @@ export async function fetchFriendsCmsContent() {
       );
     }
 
+    const payload = await response.json();
+    return payload.result ?? {};
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function fetchAboutCmsContent() {
+  if (process.env.ABOUT_BUILD_FIXTURE) {
+    const fixture = JSON.parse(await readFile(resolve(ROOT, process.env.ABOUT_BUILD_FIXTURE), 'utf8'));
+    if (fixture.error) throw new Error(fixture.error);
+    return fixture.result ?? fixture;
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const dataset = resolveSanityDataset();
+  const url = `https://u66p1mxm.api.sanity.io/v2026-07-06/data/query/${dataset}?query=${encodeURIComponent(ABOUT_QUERY)}`;
+  try {
+    const response = await fetch(url, {headers: {Accept: 'application/json'}, signal: controller.signal});
+    if (!response.ok) throw new Error(`Sanity-Over-verzoek mislukt (${response.status})`);
     const payload = await response.json();
     return payload.result ?? {};
   } finally {
@@ -1189,9 +1360,37 @@ export async function build() {
     'utf8',
   );
 
+  const aboutFile = resolve(OUTPUT, 'pages/over.html');
+  const aboutFallback = normalizeAboutContent(JSON.parse(await readFile(ABOUT_FALLBACK, 'utf8')));
+  validateAboutContent(aboutFallback);
+  let aboutContent = aboutFallback;
+  let aboutSource = 'fallback';
+  try {
+    const fetchedAbout = await fetchAboutCmsContent();
+    if (fetchedAbout?.heroTitle) {
+      const normalizedAbout = normalizeAboutContent(fetchedAbout);
+      validateAboutContent(normalizedAbout);
+      aboutContent = normalizedAbout;
+      aboutSource = 'cms';
+    } else {
+      console.warn('ABOUT BUILD: fallback gebruikt (CMS-paginadocument ontbreekt)');
+    }
+  } catch (error) {
+    console.warn(`ABOUT BUILD: fallback gebruikt (${error.message})`);
+  }
+  assertNoMojibake(aboutContent, `genormaliseerde Over-inhoud (${aboutSource})`);
+  const aboutPage = embedSharedComponents(
+    renderAboutPage(await readFile(ABOUT_TEMPLATE, 'utf8'), aboutContent, aboutSource),
+    navigation,
+    footer,
+  );
+  assertNoMojibake(aboutPage, 'gebouwde Over-pagina');
+  await writeFile(aboutFile, aboutPage, 'utf8');
+
   console.log(`MEDIA BUILD: ${source} -> dist/pages/media.html`);
   console.log(`REPERTOIRE BUILD: ${repertoireSource} -> dist/pages/repertoire.html`);
   console.log(`FRIENDS BUILD: ${friendsSource} -> dist/pages/vrienden.html`);
+  console.log(`ABOUT BUILD: ${aboutSource} -> dist/pages/over.html`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
