@@ -191,184 +191,36 @@ test.describe('Website basis en huisstijl', () => {
   });
 });
 
-test.describe('Homepage Sanity-content en fallback', () => {
-  const sanityQueryUrl = '**/data/query/development**';
+test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
 
-  test('homepage toont statische fallback als Sanity niet bereikbaar is', async ({ page }) => {
-    await page.route(sanityQueryUrl, async (route) => {
+  test('nieuwsbericht markeert Nieuws als actieve hoofdnavigatie', async ({ page }) => {
+    await page.route('**/data/query/development**', async (route) => {
       await route.abort('failed');
     });
 
-    await page.goto('/');
+    await page.goto(
+      '/pages/nieuwsbericht.html?slug=spontaan-zingt-tijdens-een-sfeervolle-zomeravond',
+    );
+
     await waitForSharedLayout(page);
 
-    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Zanggroep Spontaan');
-    await expect(page.locator('[data-homepage-hero-subtitle]')).toContainText('Samen zingen, samen beleven');
-    await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Samen zingen met plezier');
-    await expect(page.locator('[data-homepage-welcome-text]')).toContainText('Zanggroep Spontaan is een enthousiast mannenkoor uit Angerlo.');
-    await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
+    const newsLink = page.locator(
+      '#nav-placeholder .nav-menu a',
+      {hasText: /^Nieuws$/},
+    );
+
+    await expect(newsLink).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await expect(newsLink).toHaveClass(/active/);
+
+    await expect(
+      page.locator(
+        '#nav-placeholder .nav-menu a[aria-current="page"]',
+      ),
+    ).toHaveCount(1);
   });
-
-  test('homepage toont volledige Sanity-content als Sanity geldige content levert', async ({ page }) => {
-    await page.route(sanityQueryUrl, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          result: {
-            heroTitle: 'Sanity hero titel',
-            heroSubtitle: 'Sanity hero subtitel',
-            heroImageUrl: 'https://cdn.sanity.io/images/u66p1mxm/development/hero-test.jpg',
-            ctaLabel: 'Bekijk nieuws',
-            ctaLink: '/pages/nieuws.html',
-            quickLinksTitle: 'Sanity snel naar',
-            quickLinksIntro: 'Sanity introductie voor de routekaarten.',
-            quickLinks: [
-              {
-                title: 'Sanity nieuws',
-                text: 'Lees de nieuwste berichten.',
-                imageUrl: 'https://cdn.sanity.io/images/u66p1mxm/development/nieuws-test.jpg',
-                imageAlt: 'Nieuwsafbeelding',
-                buttonLabel: 'Lees verder',
-                buttonLink: '/pages/nieuws.html',
-              },
-              {
-                title: 'Sanity agenda',
-                text: 'Bekijk onze activiteiten.',
-                imageUrl: null,
-                imageAlt: '',
-                buttonLabel: 'Bekijk agenda',
-                buttonLink: '/pages/agenda.html',
-              },
-            ],
-            welcomeTitle: 'Sanity welkom titel',
-            welcomeText: 'Sanity welkom tekst voor de homepage.',
-            welcomeButtonLabel: 'Over Spontaan',
-            welcomeButtonLink: '/pages/over.html',
-            visitTitle: 'Sanity bezoek titel',
-            visitText: 'Sanity uitnodiging om kennis te maken.',
-            visitPrimaryButtonLabel: 'Neem contact op',
-            visitPrimaryButtonLink: '/pages/contact.html',
-            visitSecondaryButtonLabel: 'Bekijk agenda',
-            visitSecondaryButtonLink: '/pages/agenda.html',
-          },
-        }),
-      });
-    });
-
-    await page.goto('/');
-    await waitForSharedLayout(page);
-
-    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Sanity hero titel');
-    await expect(page.locator('[data-homepage-hero-subtitle]')).toContainText('Sanity hero subtitel');
-    await expect(page.locator('.hero')).toHaveAttribute(
-      'style',
-      /https:\/\/cdn\.sanity\.io\/images\/u66p1mxm\/development\/hero-test\.jpg/,
-    );
-
-    const heroCta = page.locator('[data-homepage-cta-container] a');
-    await expect(heroCta).toBeVisible();
-    await expect(heroCta).toHaveText('Bekijk nieuws');
-    await expect(heroCta).toHaveAttribute('href', '/pages/nieuws.html');
-
-    await expect(page.locator('[data-homepage-quicklinks-title]')).toContainText('Sanity snel naar');
-    await expect(page.locator('[data-homepage-quicklinks-intro]')).toContainText(
-      'Sanity introductie voor de routekaarten.',
-    );
-
-    const quickLinks = page.locator('[data-homepage-quicklinks] .homepage-card');
-    await expect(quickLinks).toHaveCount(2);
-    await expect(quickLinks.nth(0).locator('h3')).toHaveText('Sanity nieuws');
-    await expect(quickLinks.nth(0).locator('a')).toHaveAttribute('href', '/pages/nieuws.html');
-    await expect(quickLinks.nth(1).locator('h3')).toHaveText('Sanity agenda');
-
-    await expect(page.locator('[data-homepage-welcome-title]')).toContainText('Sanity welkom titel');
-    await expect(page.locator('[data-homepage-welcome-text]')).toContainText(
-      'Sanity welkom tekst voor de homepage.',
-    );
-    await expect(page.locator('[data-homepage-welcome-cta] a')).toHaveAttribute(
-      'href',
-      '/pages/over.html',
-    );
-
-    await expect(page.locator('[data-homepage-visit-title]')).toContainText('Sanity bezoek titel');
-    await expect(page.locator('[data-homepage-visit-text]')).toContainText(
-      'Sanity uitnodiging om kennis te maken.',
-    );
-
-    const visitButtons = page.locator('[data-homepage-visit-cta] a');
-    await expect(visitButtons).toHaveCount(2);
-    await expect(visitButtons.nth(0)).toHaveAttribute('href', '/pages/contact.html');
-    await expect(visitButtons.nth(1)).toHaveAttribute('href', '/pages/agenda.html');
-    await expect(visitButtons.nth(1)).toHaveClass(/btn--secondary/);
-  });
-
-  test('homepage behoudt statische snel-naar-kaarten bij ongeldige Sanity-kaarten', async ({ page }) => {
-    await page.route(sanityQueryUrl, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          result: {
-            quickLinksTitle: 'Sanity snel naar',
-            quickLinksIntro: 'Deze teksten zijn wel geldig.',
-            quickLinks: [
-              {
-                title: 'Onvolledige kaart',
-                text: '',
-                buttonLabel: 'Open kaart',
-                buttonLink: 'javascript:alert("xss")',
-              },
-            ],
-          },
-        }),
-      });
-    });
-
-    await page.goto('/');
-    await waitForSharedLayout(page);
-
-    await expect(page.locator('[data-homepage-quicklinks-title]')).toContainText(
-      'Sanity snel naar',
-    );
-    await expect(page.locator('[data-homepage-quicklinks-intro]')).toContainText(
-      'Deze teksten zijn wel geldig.',
-    );
-
-    const quickLinks = page.locator('[data-homepage-quicklinks] .homepage-card');
-    await expect(quickLinks).toHaveCount(3);
-    await expect(quickLinks.nth(0).locator('h3')).toHaveText('Nieuws');
-    await expect(quickLinks.nth(1).locator('h3')).toHaveText('Agenda');
-    await expect(quickLinks.nth(2).locator('h3')).toHaveText('Media');
-  });
-
-  test('homepage verbergt CTA bij onveilige Sanity-link', async ({ page }) => {
-    await page.route(sanityQueryUrl, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          result: {
-            heroTitle: 'Sanity titel met onveilige link',
-            heroSubtitle: 'Sanity subtitel',
-            welcomeTitle: 'Sanity welkom',
-            welcomeText: 'Sanity tekst.',
-            ctaLabel: 'Onveilige knop',
-            ctaLink: 'javascript:alert("xss")',
-          },
-        }),
-      });
-    });
-
-    await page.goto('/');
-    await waitForSharedLayout(page);
-
-    await expect(page.locator('[data-homepage-hero-title]')).toContainText('Sanity titel met onveilige link');
-    await expect(page.locator('[data-homepage-cta-container]')).toBeHidden();
-    await expect(page.locator('[data-homepage-cta-container] a')).toHaveCount(0);
-  });
-});
-test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/pages/nieuws.html');
     await waitForSharedLayout(page);

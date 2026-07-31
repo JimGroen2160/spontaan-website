@@ -22,7 +22,7 @@ test('vriendenlinks accepteren veilige fragmenten en weigeren onveilige protocol
   const content = normalizeFriendsContent({
     page: {
       heroSecondaryButtonLink: '#vrienden',
-      heroPrimaryButtonLink: './contact.html#formulier',
+      heroPrimaryButtonLink: './contact.html#direct-contact',
       ctaPrimaryButtonLink: 'javascript:alert(1)',
     },
   });
@@ -33,7 +33,7 @@ test('vriendenlinks accepteren veilige fragmenten en weigeren onveilige protocol
   );
   assert.equal(
     content.page.heroPrimaryButtonLink,
-    './contact.html#formulier',
+    './contact.html#direct-contact',
   );
   assert.equal(
     content.page.ctaPrimaryButtonLink,

@@ -1,0 +1,69 @@
+{
+  "seoTitle": "Contact | Zanggroep Spontaan",
+  "seoDescription": "Neem rechtstreeks contact op met Zanggroep Spontaan voor algemene vragen, boekingen, lidmaatschap of een repetitiebezoek.",
+  "heroEyebrow": "We horen graag van je",
+  "heroTitle": "Contact",
+  "heroIntro": "Heb je een vraag, wil je Zanggroep Spontaan boeken of een keer vrijblijvend komen luisteren of meezingen? Neem gerust rechtstreeks contact met ons op.",
+  "heroImageUrl": "../images/about/over-hero-mannenkoor.jpg",
+  "heroImageAlt": "Zanggroep Spontaan zingt samen als mannenkoor",
+  "emailCtaLabel": "Stuur een e-mail",
+  "phoneCtaLabel": "Bel ons",
+  "contactTopics": [
+    {
+      "title": "Algemene vragen",
+      "text": "Voor algemene vragen over Zanggroep Spontaan helpen we je graag rechtstreeks verder.",
+      "icon": "question",
+      "linkLabel": "Stuur een e-mail",
+      "linkTarget": "mailto:info@spontaan.nl"
+    },
+    {
+      "title": "Boekingen",
+      "text": "Wil je Spontaan uitnodigen voor een optreden of evenement? Neem contact op om de mogelijkheden te bespreken.",
+      "icon": "calendar",
+      "linkLabel": "Bespreek een boeking",
+      "linkTarget": "mailto:info@spontaan.nl"
+    },
+    {
+      "title": "Lid worden",
+      "text": "Ben je benieuwd of zingen bij Spontaan iets voor jou is? Laat het ons weten en maak kennis met de zanggroep.",
+      "icon": "people",
+      "linkLabel": "Maak kennis",
+      "linkTarget": "mailto:info@spontaan.nl"
+    },
+    {
+      "title": "Repetitie bezoeken",
+      "text": "Je bent van harte welkom om de sfeer te proeven tijdens een repetitieavond.",
+      "icon": "music",
+      "linkLabel": "Plan een bezoek",
+      "linkTarget": "mailto:info@spontaan.nl"
+    }
+  ],
+  "welcomeTitle": "Je bent van harte welkom",
+  "welcomeText": "Persoonlijk kennismaken is de beste manier om Spontaan te leren kennen. Kom luisteren, proef de sfeer en ontdek wat samen zingen zo bijzonder maakt.",
+  "welcomeImageUrl": "../images/about/over-intro-mannenkoor.jpg",
+  "welcomeImageAlt": "Leden van Zanggroep Spontaan zingen gezamenlijk uit koormappen",
+  "welcomePoints": [
+    "Vrijblijvend kennismaken",
+    "De sfeer tijdens een repetitie beleven",
+    "Ruimte voor vragen over zingen en optredens"
+  ],
+  "directContactTitle": "Neem rechtstreeks contact op",
+  "directContactText": "We beantwoorden je vraag graag persoonlijk. Gebruik het e-mailadres hieronder of bekijk de actuele telefonische bereikbaarheid.",
+  "emailAddress": "info@spontaan.nl",
+  "phoneNumber": "[DEMO] +31 6 0000 0000",
+  "availabilityText": "[DEMO] Telefonisch bereikbaar op werkdagen tussen 19.00 en 21.00 uur.",
+  "rehearsalInvitation": "Wil je een repetitie bezoeken? Stuur vooraf een e-mail, zodat we je persoonlijk kunnen ontvangen.",
+  "practicalTitle": "Praktische informatie",
+  "rehearsalEvening": "Maandag",
+  "rehearsalTimes": "[DEMO] 19.30–21.45 uur",
+  "rehearsalLocation": "[DEMO] Dorpshuis De Samenklank",
+  "address": "[DEMO] Muziekplein 1, 0000 AA Angerlo",
+  "agendaLinkLabel": "Bekijk de agenda",
+  "agendaLink": "./agenda.html",
+  "aboutLinkLabel": "Lees meer over Spontaan",
+  "aboutLink": "./over.html",
+  "faqTitle": "Veelgestelde vraag",
+  "faqQuestion": "Kan ik vrijblijvend een repetitie bezoeken?",
+  "faqAnswer": "Ja, je bent van harte welkom om kennis te maken en de sfeer te proeven. Neem vooraf per e-mail contact met ons op, zodat we je persoonlijk kunnen ontvangen.",
+  "closingCtaText": "Staat je vraag er niet bij? Stuur ons gerust een e-mail."
+}

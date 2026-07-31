@@ -9,8 +9,12 @@ const MEDIA_TEMPLATE = resolve(ROOT, 'build/media.template.html');
 const REPERTOIRE_TEMPLATE = resolve(ROOT, 'build/repertoire.template.html');
 const FRIENDS_TEMPLATE = resolve(ROOT, 'build/friends.template.html');
 const ABOUT_TEMPLATE = resolve(ROOT, 'build/about.template.html');
+const CONTACT_TEMPLATE = resolve(ROOT, 'build/contact.template.html');
+const HOME_TEMPLATE = resolve(ROOT, 'build/home.template.html');
 const FRIENDS_FALLBACK = resolve(ROOT, 'data/friends-fallback.json');
 const ABOUT_FALLBACK = resolve(ROOT, 'data/about-fallback.json');
+const CONTACT_FALLBACK = resolve(ROOT, 'data/contact-fallback.json');
+const HOME_FALLBACK = resolve(ROOT, 'data/home-fallback.json');
 const FALLBACK = resolve(ROOT, 'data/media-fallback.json');
 const REPERTOIRE_FALLBACK = resolve(ROOT, 'data/repertoire-fallback.json');
 const NAVIGATION = resolve(ROOT, 'components/nav.html');
@@ -93,6 +97,25 @@ export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0
   ctaEyebrow, ctaTitle, ctaText,
   primaryButtonLabel, primaryButtonLink,
   secondaryButtonLabel, secondaryButtonLink
+}`;
+
+export const CONTACT_QUERY = `*[_id == "contactPage-main" && _type == "contactPage"][0] {
+  seoTitle, seoDescription,
+  heroEyebrow, heroTitle, heroIntro, heroImageAlt,
+  "heroImageUrl": heroImage.asset->url,
+  emailCtaLabel, phoneCtaLabel,
+  contactTopics[] {title, text, icon, linkLabel, linkTarget},
+  welcomeTitle, welcomeText, welcomeImageAlt,
+  "welcomeImageUrl": welcomeImage.asset->url,
+  welcomePoints,
+  directContactTitle, directContactText,
+  emailAddress, phoneNumber,
+  availabilityText, rehearsalInvitation,
+  practicalTitle, rehearsalEvening, rehearsalTimes,
+  rehearsalLocation, address,
+  agendaLinkLabel, agendaLink,
+  aboutLinkLabel, aboutLink,
+  faqTitle, faqQuestion, faqAnswer, closingCtaText
 }`;
 
 export const REPERTOIRE_QUERY = `{
@@ -545,6 +568,115 @@ export function validateAboutContent(content) {
   }
 }
 
+const CONTACT_TOPIC_ICONS = new Set(['question', 'calendar', 'people', 'music']);
+
+function normalizeEmail(value) {
+  const candidate = text(value, 254).toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate) ? candidate : '';
+}
+
+function normalizePhone(value) {
+  const candidate = text(value, 40);
+  const marker = candidate.match(/^\[(?:TEST|DEMO)\]\s*/i)?.[0] ?? '';
+  const number = candidate.slice(marker.length);
+  if (!number || !/^\+?[0-9][0-9\s().-]{5,38}$/.test(number)) return '';
+  const digits = number.replace(/\D/g, '');
+  return digits.length >= 7 && digits.length <= 15 ? candidate : '';
+}
+
+function telephoneLink(phoneNumber) {
+  if (!phoneNumber) return '';
+  const compact = phoneNumber.replace(/^\[(?:TEST|DEMO)\]\s*/i, '').replace(/[^\d+]/g, '');
+  return /^(\+|00)?\d{7,15}$/.test(compact) ? `tel:${compact}` : '';
+}
+
+function contactLink(value) {
+  const candidate = text(value, 512);
+  if (/^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(candidate)) return candidate;
+  if (/^tel:(?:\+|00)?\d{7,15}$/.test(candidate)) return candidate;
+  return safeLink(candidate);
+}
+
+function normalizeContactTopics(value) {
+  return Array.isArray(value)
+    ? value.map((item) => ({
+        title: text(item?.title, 80),
+        text: text(item?.text, 280),
+        icon: CONTACT_TOPIC_ICONS.has(item?.icon) ? item.icon : '',
+        linkLabel: text(item?.linkLabel, 48),
+        linkTarget: contactLink(item?.linkTarget),
+      }))
+    : [];
+}
+
+export function normalizeContactContent(value = {}) {
+  return {
+    seoTitle: text(value.seoTitle, 70),
+    seoDescription: text(value.seoDescription, 170),
+    heroEyebrow: text(value.heroEyebrow, 80),
+    heroTitle: text(value.heroTitle, 96),
+    heroIntro: text(value.heroIntro, 300),
+    heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
+    heroImageAlt: text(value.heroImageAlt, 160),
+    emailCtaLabel: text(value.emailCtaLabel, 48),
+    phoneCtaLabel: text(value.phoneCtaLabel, 48),
+    contactTopics: normalizeContactTopics(value.contactTopics),
+    welcomeTitle: text(value.welcomeTitle, 120),
+    welcomeText: text(value.welcomeText, 500),
+    welcomeImageUrl: safeUrl(value.welcomeImageUrl, ['image', 'local']),
+    welcomeImageAlt: text(value.welcomeImageAlt, 160),
+    welcomePoints: Array.isArray(value.welcomePoints)
+      ? value.welcomePoints.map((item) => text(item, 160)).filter(Boolean).slice(0, 6)
+      : [],
+    directContactTitle: text(value.directContactTitle, 120),
+    directContactText: text(value.directContactText, 360),
+    emailAddress: normalizeEmail(value.emailAddress),
+    phoneNumber: normalizePhone(value.phoneNumber),
+    availabilityText: text(value.availabilityText, 240),
+    rehearsalInvitation: text(value.rehearsalInvitation, 280),
+    practicalTitle: text(value.practicalTitle, 120),
+    rehearsalEvening: text(value.rehearsalEvening, 80),
+    rehearsalTimes: text(value.rehearsalTimes, 120),
+    rehearsalLocation: text(value.rehearsalLocation, 160),
+    address: text(value.address, 200),
+    agendaLinkLabel: text(value.agendaLinkLabel, 48),
+    agendaLink: contactLink(value.agendaLink),
+    aboutLinkLabel: text(value.aboutLinkLabel, 48),
+    aboutLink: contactLink(value.aboutLink),
+    faqTitle: text(value.faqTitle, 120),
+    faqQuestion: text(value.faqQuestion, 180),
+    faqAnswer: text(value.faqAnswer, 600),
+    closingCtaText: text(value.closingCtaText, 280),
+  };
+}
+
+export function validateContactContent(content) {
+  const required = [
+    content.seoTitle, content.seoDescription,
+    content.heroTitle, content.heroIntro,
+    content.heroImageUrl, content.heroImageAlt,
+    content.emailCtaLabel, content.phoneCtaLabel,
+    content.welcomeTitle, content.welcomeText,
+    content.welcomeImageUrl, content.welcomeImageAlt,
+    content.directContactTitle, content.directContactText,
+    content.practicalTitle, content.rehearsalEvening,
+    content.faqTitle, content.faqQuestion, content.faqAnswer,
+  ];
+  if (required.some((value) => !value)) {
+    throw new Error('Verplichte Contact-paginavelden ontbreken');
+  }
+  if (
+    content.contactTopics.length !== 4 ||
+    content.contactTopics.some((item) =>
+      !item.title || !item.text || !item.icon)
+  ) {
+    throw new Error('Contactpagina vereist exact vier volledige contactonderwerpen');
+  }
+  if (!content.welcomePoints.length) {
+    throw new Error('Contactpagina vereist minimaal één welkomstkernpunt');
+  }
+}
+
 const REPERTOIRE_IMAGE_DEFAULTS = {
   featuredImageUrl: '../images/repertoire/repertoire-uitgelicht.jpg',
   featuredImageAlt: 'Zangers van Spontaan tijdens een warm en betrokken lied',
@@ -672,6 +804,479 @@ export function validateRepertoireContent(content) {
   return {byId, featured};
 }
 
+const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
+  heroTitle,
+  heroSubtitle,
+  "heroImageUrl": heroImage.asset->url,
+  ctaLabel,
+  ctaLink,
+  quickLinksTitle,
+  quickLinksIntro,
+  quickLinks[] {
+    title,
+    text,
+    "imageUrl": image.asset->url,
+    buttonLabel,
+    buttonLink
+  },
+  welcomeTitle,
+  welcomeText,
+  welcomeButtonLabel,
+  welcomeButtonLink,
+  visitTitle,
+  visitText,
+  visitPrimaryButtonLabel,
+  visitPrimaryButtonLink,
+  visitSecondaryButtonLabel,
+  visitSecondaryButtonLink
+}`;
+
+function homeProjectPath(value, kind) {
+  const candidate = text(value, 2048);
+
+  if (!candidate) {
+    return '';
+  }
+
+  const throughSharedHelper =
+    kind === 'image'
+      ? safeUrl(candidate, ['image', 'local'])
+      : safeLink(candidate);
+
+  if (throughSharedHelper) {
+    return throughSharedHelper;
+  }
+
+  if (
+    candidate.includes('\\') ||
+    candidate.includes(':') ||
+    candidate.startsWith('//') ||
+    candidate.split('/').includes('..')
+  ) {
+    return '';
+  }
+
+  const pattern =
+    kind === 'image'
+      ? /^[A-Za-z0-9_][A-Za-z0-9_./%-]*\.(?:avif|gif|jpe?g|png|svg|webp)$/i
+      : /^[A-Za-z0-9_][A-Za-z0-9_./?=&%-]*(?:#[A-Za-z][A-Za-z0-9_-]*)?$/;
+
+  return pattern.test(candidate) ? candidate : '';
+}
+
+function normalizeHomeQuickLinks(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .slice(0, 3)
+    .map((item) => ({
+      title: text(item?.title, 80),
+      text: text(item?.text, 240),
+      imageUrl: homeProjectPath(item?.imageUrl, 'image'),
+      mediaClass: text(item?.mediaClass, 40)
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, ''),
+      buttonLabel: text(item?.buttonLabel, 80),
+      buttonLink: homeProjectPath(item?.buttonLink, 'link'),
+    }));
+}
+
+export function normalizeHomeContent(value) {
+  const source =
+    value && typeof value === 'object'
+      ? value
+      : {};
+
+  return {
+    heroTitle: text(source.heroTitle, 100),
+    heroSubtitle: text(source.heroSubtitle, 180),
+    heroImageUrl: homeProjectPath(
+      source.heroImageUrl,
+      'image',
+    ),
+    ctaLabel: text(source.ctaLabel, 80),
+    ctaLink: homeProjectPath(source.ctaLink, 'link'),
+    quickLinksTitle: text(source.quickLinksTitle, 100),
+    quickLinksIntro: text(source.quickLinksIntro, 300),
+    quickLinks: normalizeHomeQuickLinks(
+      source.quickLinks,
+    ),
+    welcomeTitle: text(source.welcomeTitle, 120),
+    welcomeText: text(source.welcomeText, 600),
+    welcomeButtonLabel: text(
+      source.welcomeButtonLabel,
+      80,
+    ),
+    welcomeButtonLink: homeProjectPath(
+      source.welcomeButtonLink,
+      'link',
+    ),
+    visitTitle: text(source.visitTitle, 120),
+    visitText: text(source.visitText, 600),
+    visitPrimaryButtonLabel: text(
+      source.visitPrimaryButtonLabel,
+      80,
+    ),
+    visitPrimaryButtonLink: homeProjectPath(
+      source.visitPrimaryButtonLink,
+      'link',
+    ),
+    visitSecondaryButtonLabel: text(
+      source.visitSecondaryButtonLabel,
+      80,
+    ),
+    visitSecondaryButtonLink: homeProjectPath(
+      source.visitSecondaryButtonLink,
+      'link',
+    ),
+  };
+}
+
+export function validateHomeContent(content) {
+  const required = [
+    content.heroTitle,
+    content.heroSubtitle,
+    content.quickLinksTitle,
+    content.quickLinksIntro,
+    content.welcomeTitle,
+    content.welcomeText,
+    content.welcomeButtonLabel,
+    content.welcomeButtonLink,
+    content.visitTitle,
+    content.visitText,
+    content.visitPrimaryButtonLabel,
+    content.visitPrimaryButtonLink,
+    content.visitSecondaryButtonLabel,
+    content.visitSecondaryButtonLink,
+  ];
+
+  if (required.some((value) => !value)) {
+    throw new Error(
+      'Verplichte Homepage-velden ontbreken',
+    );
+  }
+
+  if (
+    content.quickLinks.length !== 3 ||
+    content.quickLinks.some(
+      (item) =>
+        !item.title ||
+        !item.text ||
+        !item.buttonLabel ||
+        !item.buttonLink,
+    )
+  ) {
+    throw new Error(
+      'De Homepage vereist exact drie volledige snelkoppelingen',
+    );
+  }
+}
+
+function renderHomeButton(
+  label,
+  link,
+  secondary = false,
+) {
+  if (!label || !link) {
+    return '';
+  }
+
+  const className = secondary
+    ? 'btn btn--secondary'
+    : 'btn';
+
+  return (
+    `<a class="${className}" ` +
+    `href="${escapeHtml(link)}">` +
+    `${escapeHtml(label)}</a>`
+  );
+}
+
+function renderHomeQuickLinks(items) {
+  return items
+    .map((item) => {
+      const mediaModifier =
+        item.mediaClass ||
+        item.title
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+
+      const imageStyle = item.imageUrl
+        ? (
+            ' style="background-image: ' +
+            'linear-gradient(135deg, ' +
+            'rgba(79, 23, 127, 0.72), ' +
+            'rgba(217, 13, 135, 0.5)), ' +
+            `url(&quot;${escapeHtml(item.imageUrl)}&quot;)"`
+          )
+        : '';
+
+      return (
+        '<article class="homepage-card">' +
+        `<div class="homepage-card__media ` +
+        `homepage-card__media--${escapeHtml(mediaModifier)}"` +
+        `${imageStyle} aria-hidden="true"></div>` +
+        '<div class="homepage-card__content">' +
+        `<h3>${escapeHtml(item.title)}</h3>` +
+        `<p>${escapeHtml(item.text)}</p>` +
+        renderHomeButton(
+          item.buttonLabel,
+          item.buttonLink,
+        ) +
+        '</div>' +
+        '</article>'
+      );
+    })
+    .join('');
+}
+
+function replaceHomeText(
+  html,
+  attribute,
+  value,
+  description,
+) {
+  return replaceRequired(
+    html,
+    new RegExp(
+      `(<[^>]+${attribute}[^>]*>)[\\s\\S]*?(</[^>]+>)`,
+    ),
+    `$1${escapeHtml(value)}$2`,
+    description,
+  );
+}
+
+export function renderHomePage(
+  template,
+  content,
+  source,
+) {
+  validateHomeContent(content);
+
+  let html = template;
+
+  html = replaceRequired(
+    html,
+    /<html lang="nl" data-home-source="fallback">/,
+    `<html lang="nl" data-home-source="${escapeHtml(source)}">`,
+    'Homepage contentbron',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-hero-title',
+    content.heroTitle,
+    'Homepage herotitel',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-hero-subtitle',
+    content.heroSubtitle,
+    'Homepage herosubtitel',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-quicklinks-title',
+    content.quickLinksTitle,
+    'Homepage snelkoppelingstitel',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-quicklinks-intro',
+    content.quickLinksIntro,
+    'Homepage snelkoppelingenintro',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-welcome-title',
+    content.welcomeTitle,
+    'Homepage welkomsttitel',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-welcome-text',
+    content.welcomeText,
+    'Homepage welkomsttekst',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-visit-title',
+    content.visitTitle,
+    'Homepage bezoektitel',
+  );
+
+  html = replaceHomeText(
+    html,
+    'data-homepage-visit-text',
+    content.visitText,
+    'Homepage bezoektekst',
+  );
+
+  const heroStyle = content.heroImageUrl
+    ? (
+        ' style="background-image: ' +
+        'linear-gradient(135deg, ' +
+        'rgba(79, 23, 127, 0.78), ' +
+        'rgba(217, 13, 135, 0.57)), ' +
+        `url(&quot;${escapeHtml(content.heroImageUrl)}&quot;)"`
+      )
+    : '';
+
+  html = replaceRequired(
+    html,
+    /<header class="hero">/,
+    `<header class="hero"${heroStyle}>`,
+    'Homepage hero-afbeelding',
+  );
+
+  const heroButton = renderHomeButton(
+    content.ctaLabel,
+    content.ctaLink,
+  );
+
+  html = replaceRequired(
+    html,
+    /<p class="hero-actions" data-homepage-cta-container hidden><\/p>/,
+    heroButton
+      ? (
+          '<p class="hero-actions" ' +
+          'data-homepage-cta-container>' +
+          heroButton +
+          '</p>'
+        )
+      : (
+          '<p class="hero-actions" ' +
+          'data-homepage-cta-container hidden></p>'
+        ),
+    'Homepage hero-CTA',
+  );
+
+  html = replaceRequired(
+    html,
+    /(<div class="homepage-card-grid" data-homepage-quicklinks>)[\s\S]*?(<\/div>\s*<\/section>)/,
+    `$1${renderHomeQuickLinks(content.quickLinks)}$2`,
+    'Homepage snelkoppelingen',
+  );
+
+  html = replaceRequired(
+    html,
+    /<p class="homepage-actions" data-homepage-welcome-cta>[\s\S]*?<\/p>/,
+    (
+      '<p class="homepage-actions" ' +
+      'data-homepage-welcome-cta>' +
+      renderHomeButton(
+        content.welcomeButtonLabel,
+        content.welcomeButtonLink,
+      ) +
+      '</p>'
+    ),
+    'Homepage welkomst-CTA',
+  );
+
+  html = replaceRequired(
+    html,
+    /<p class="homepage-actions" data-homepage-visit-cta>[\s\S]*?<\/p>/,
+    (
+      '<p class="homepage-actions" ' +
+      'data-homepage-visit-cta>' +
+      renderHomeButton(
+        content.visitPrimaryButtonLabel,
+        content.visitPrimaryButtonLink,
+      ) +
+      renderHomeButton(
+        content.visitSecondaryButtonLabel,
+        content.visitSecondaryButtonLink,
+        true,
+      ) +
+      '</p>'
+    ),
+    'Homepage bezoek-CTA’s',
+  );
+
+  assertNoMojibake(
+    html,
+    `gerenderde Homepage (${source})`,
+  );
+
+  return html;
+}
+
+export async function fetchHomeCmsContent() {
+  const fixturePath =
+    process.env.HOME_BUILD_FIXTURE?.trim();
+
+  if (fixturePath) {
+    const fixture = JSON.parse(
+      await readFile(resolve(ROOT, fixturePath), 'utf8'),
+    );
+
+    if (fixture.error) {
+      throw new Error(String(fixture.error));
+    }
+
+    return fixture.result ?? null;
+  }
+
+  const dataset = resolveSanityDataset();
+  const projectId =
+    process.env.SANITY_PROJECT_ID?.trim() ||
+    'u66p1mxm';
+  const apiVersion =
+    process.env.SANITY_API_VERSION?.trim() ||
+    '2025-02-19';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT_MS,
+  );
+
+  try {
+    const url =
+      `https://${projectId}.api.sanity.io/` +
+      `v${apiVersion}/data/query/${dataset}` +
+      `?query=${encodeURIComponent(HOME_QUERY)}`;
+
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Sanity Homepage-request mislukt met status ` +
+        `${response.status}`,
+      );
+    }
+
+    const payload = await response.json();
+
+    if (payload.error) {
+      throw new Error(
+        payload.error.description ||
+        payload.error.message ||
+        'Onbekende Sanity-fout',
+      );
+    }
+
+    return payload.result ?? null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character]));
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c');
 
@@ -742,9 +1347,11 @@ function wireframePresentation(content) {
       id: `wireframe-item-${index + 1}`,
       title: `[TEST] ${title}`,
       summary: found?.summary || '',
-      story: title === 'The Rose'
-        ? 'Een ode aan liefde, hoop en herinnering: ontdek de muzikale reis die dit lied binnen onze samenzang aflegt.'
-        : (found?.story || ''),
+      story: found?.story || (
+        title === 'The Rose'
+          ? 'Een ode aan liefde, hoop en herinnering: ontdek de muzikale reis die dit lied binnen onze samenzang aflegt.'
+          : ''
+      ),
       audioUrl: found?.audioUrl || '',
       audioDescription: found?.audioDescription || `Luisterfragment van ${title}`,
     };
@@ -1107,6 +1714,171 @@ export function renderAboutPage(template, content, source) {
   return replaceRequired(html, /<script data-about-source-marker><\/script>/, `<script>document.documentElement.dataset.aboutSource=${JSON.stringify(source)};</script>`, 'Over bronmarkering');
 }
 
+const CONTACT_TOPIC_ICON_LABELS = {
+  question: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.4 8.8a2.8 2.8 0 1 1 4.1 2.5c-1 .5-1.5 1.1-1.5 2.2v.2M12 17.5h.01"/><circle cx="12" cy="12" r="9"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/><path d="m9 14 2 2 4-4"/></svg>',
+  people: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19M15 5.2a3 3 0 0 1 0 5.6M16.5 13.3a4.5 4.5 0 0 1 4 4.5V19"/></svg>',
+  music: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18V6l10-2v12M9 9l10-2"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>',
+};
+
+function renderContactTopics(items) {
+  return items.map((item) => {
+    const link = item.linkLabel && item.linkTarget
+      ? `<a class="contact-topic-card__link" href="${escapeHtml(item.linkTarget)}"><span class="contact-topic-card__link-label">${escapeHtml(item.linkLabel)}</span><span aria-hidden="true">→</span></a>`
+      : '';
+    return `<article class="contact-topic-card">` +
+      `<span class="contact-topic-card__icon" data-icon="${item.icon}" aria-hidden="true">${CONTACT_TOPIC_ICON_LABELS[item.icon]}</span>` +
+      `<h3>${escapeHtml(item.title)}</h3>` +
+      `<p>${escapeHtml(item.text)}</p>` +
+      link +
+    `</article>`;
+  }).join('\n');
+}
+
+function renderContactPoints(items) {
+  return items.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n');
+}
+
+export function renderContactPage(template, content, source) {
+  validateContactContent(content);
+  let html = template;
+  html = replaceRequired(html, /<html lang="nl" data-contact-source="fallback">/, `<html lang="nl" data-contact-source="${source}">`, 'Contact contentbron');
+  html = replaceRequired(html, /(<title data-contact-seo-title>)[\s\S]*?(<\/title>)/, `$1${escapeHtml(content.seoTitle)}$2`, 'Contact SEO-titel');
+  html = replaceRequired(html, /<meta(?=[^>]*name="description")(?=[^>]*data-contact-seo-description)[^>]*>/, `<meta name="description" content="${escapeHtml(content.seoDescription)}" data-contact-seo-description>`, 'Contact SEO-beschrijving');
+  html = replaceRequired(
+    html,
+    /<img(?=[^>]*data-contact-hero-image)[^>]*>/,
+    image(content.heroImageUrl, content.heroImageAlt, 1672, 941, 'eager', ' class="contact-hero__image" fetchpriority="high" decoding="async" data-contact-hero-image'),
+    'Contact hero-afbeelding',
+  );
+  html = replaceRequired(
+    html,
+    /<img(?=[^>]*data-contact-welcome-image)[^>]*>/,
+    image(content.welcomeImageUrl, content.welcomeImageAlt, 1672, 941, 'lazy', ' decoding="async" data-contact-welcome-image'),
+    'Contact welkomstafbeelding',
+  );
+  const textFields = [
+    ['hero-title', content.heroTitle],
+    ['hero-intro', content.heroIntro],
+    ['welcome-title', content.welcomeTitle],
+    ['welcome-text', content.welcomeText],
+    ['direct-title', content.directContactTitle],
+    ['practical-title', content.practicalTitle],
+    ['faq-title', content.faqTitle],
+    ['faq-question', content.faqQuestion],
+    ['faq-answer', content.faqAnswer],
+  ];
+  for (const [name, value] of textFields) {
+    html = replaceRequired(
+      html,
+      new RegExp(`(<[^>]+data-contact-${name}[^>]*>)[\\s\\S]*?(</[^>]+>)`),
+      `$1${escapeHtml(value)}$2`,
+      `Contact ${name}`,
+    );
+  }
+  const optionalTextFields = [
+    ['hero-eyebrow', content.heroEyebrow],
+    ['direct-text', content.directContactText],
+    ['availability', content.availabilityText],
+    ['rehearsal-invitation', content.rehearsalInvitation],
+    ['closing-cta', content.closingCtaText],
+  ];
+  for (const [name, value] of optionalTextFields) {
+    html = replaceRequired(
+      html,
+      new RegExp(`<p([^>]*data-contact-${name}[^>]*)>[\\s\\S]*?</p>`),
+      value ? `<p$1>${escapeHtml(value)}</p>` : '',
+      `optionele Contact ${name}`,
+    );
+  }
+  const emailLink = `mailto:${content.emailAddress}`;
+  const phoneHref = telephoneLink(content.phoneNumber);
+  const heroActions = [
+    content.emailAddress && content.emailCtaLabel
+      ? `<a class="btn" href="${escapeHtml(emailLink)}">${escapeHtml(content.emailCtaLabel)}</a>`
+      : '',
+    phoneHref && content.phoneCtaLabel
+      ? `<a class="btn btn--secondary" href="${escapeHtml(phoneHref)}">${escapeHtml(content.phoneCtaLabel)}</a>`
+      : '',
+  ].filter(Boolean).join('');
+  html = replaceRequired(
+    html,
+    /<div class="contact-actions" data-contact-hero-actions><\/div>/,
+    heroActions ? `<div class="contact-actions" data-contact-hero-actions>${heroActions}</div>` : '',
+    'Contact hero-CTA’s',
+  );
+  html = replaceRequired(html, /<div class="contact-topic-grid" data-contact-topics><\/div>/, `<div class="contact-topic-grid" data-contact-topics>${renderContactTopics(content.contactTopics)}</div>`, 'Contactonderwerpen');
+  html = replaceRequired(html, /<ul class="contact-points" data-contact-welcome-points><\/ul>/, `<ul class="contact-points" data-contact-welcome-points>${renderContactPoints(content.welcomePoints)}</ul>`, 'Contact welkomstkernpunten');
+  const directOptions = [
+    content.emailAddress
+      ? `<article class="contact-direct-card contact-direct-card--email"><span class="contact-direct-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg></span><div><h3>E-mail</h3><p><a href="${escapeHtml(emailLink)}">${escapeHtml(content.emailAddress)}</a></p></div></article>`
+      : '',
+    phoneHref
+      ? `<article class="contact-direct-card contact-direct-card--phone"><span class="contact-direct-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.2 3.5 4.8 5.1c-1 .7-1.3 2-.8 3.1 2.3 5.1 6.5 9.3 11.6 11.6 1.1.5 2.4.2 3.1-.8l1.7-2.4-4.7-3.1-1.5 1.7c-2.3-1.2-4.2-3.1-5.4-5.4l1.7-1.5-3.3-4.8Z"/></svg></span><div><h3>Telefoon</h3><p><a href="${escapeHtml(phoneHref)}">${escapeHtml(content.phoneNumber)}</a></p></div></article>`
+      : '',
+  ].filter(Boolean).join('');
+  html = replaceRequired(
+    html,
+    /<div class="contact-direct__options" data-contact-direct-options><\/div>/,
+    directOptions ? `<div class="contact-direct__options" data-contact-direct-options>${directOptions}</div>` : '',
+    'Contact directe opties',
+  );
+  const practicalIcons = {
+    calendar: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>',
+    location: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+    music: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18V6l10-2v12M9 9l10-2"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>',
+    people: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19M15 5.2a3 3 0 0 1 0 5.6M16.5 13.3a4.5 4.5 0 0 1 4 4.5V19"/></svg>',
+  };
+  const practicalItems = [
+    (content.rehearsalEvening || content.rehearsalTimes || (content.agendaLink && content.agendaLinkLabel))
+      ? {
+          icon: 'calendar',
+          label: 'Repetitieavond',
+          lines: [content.rehearsalEvening, content.rehearsalTimes],
+          linkLabel: content.agendaLinkLabel,
+          link: content.agendaLink,
+        }
+      : null,
+    (content.rehearsalLocation || content.address)
+      ? {
+          icon: 'location',
+          label: 'Locatie repetitie',
+          lines: [content.rehearsalLocation, content.address],
+        }
+      : null,
+    {
+      icon: 'music',
+      label: 'Over ons repertoire',
+      lines: ['Van klassiek tot modern, van ingetogen tot uitbundig.'],
+      linkLabel: 'Muziek en repertoire',
+      link: './repertoire.html',
+    },
+    (content.aboutLink && content.aboutLinkLabel)
+      ? {
+          icon: 'people',
+          label: 'Meer weten?',
+          lines: ['Lees meer over ons koor, onze geschiedenis en wie we zijn.'],
+          linkLabel: content.aboutLinkLabel,
+          link: content.aboutLink,
+        }
+      : null,
+  ].filter(Boolean).map((item) => {
+    const lines = item.lines.filter(Boolean).map((line) => `<span>${escapeHtml(line)}</span>`).join('');
+    const link = item.link && item.linkLabel
+      ? `<a href="${escapeHtml(item.link)}">${escapeHtml(item.linkLabel)}</a>`
+      : '';
+    return `<article class="contact-practical__item"><span class="contact-practical__icon" aria-hidden="true">${practicalIcons[item.icon]}</span><div><h3>${escapeHtml(item.label)}</h3><p>${lines}${link}</p></div></article>`;
+  }).join('\n');
+  html = replaceRequired(html, /<div class="contact-practical__list" data-contact-practical-list><\/div>/, `<div class="contact-practical__list" data-contact-practical-list>${practicalItems}</div>`, 'Contact praktische informatie');
+  html = replaceRequired(html, /<div class="contact-actions" data-contact-practical-links><\/div>/, '', 'Contact praktische links');
+  return replaceRequired(
+    html,
+    /<\/body>/,
+    `<script>document.documentElement.dataset.contactSource=${JSON.stringify(source)};</script>\n</body>`,
+    'Contact bronmarkering',
+  );
+}
+
 export function embedSharedComponents(html, navigation, footer) {
   let output = replaceRequired(
     html,
@@ -1220,6 +1992,26 @@ export async function fetchAboutCmsContent() {
   try {
     const response = await fetch(url, {headers: {Accept: 'application/json'}, signal: controller.signal});
     if (!response.ok) throw new Error(`Sanity-Over-verzoek mislukt (${response.status})`);
+    const payload = await response.json();
+    return payload.result ?? {};
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function fetchContactCmsContent() {
+  if (process.env.CONTACT_BUILD_FIXTURE) {
+    const fixture = JSON.parse(await readFile(resolve(ROOT, process.env.CONTACT_BUILD_FIXTURE), 'utf8'));
+    if (fixture.error) throw new Error(fixture.error);
+    return fixture.result ?? fixture;
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const dataset = resolveSanityDataset();
+  const url = `https://u66p1mxm.api.sanity.io/v2026-07-06/data/query/${dataset}?query=${encodeURIComponent(CONTACT_QUERY)}`;
+  try {
+    const response = await fetch(url, {headers: {Accept: 'application/json'}, signal: controller.signal});
+    if (!response.ok) throw new Error(`Sanity-Contactverzoek mislukt (${response.status})`);
     const payload = await response.json();
     return payload.result ?? {};
   } finally {
@@ -1387,10 +2179,98 @@ export async function build() {
   assertNoMojibake(aboutPage, 'gebouwde Over-pagina');
   await writeFile(aboutFile, aboutPage, 'utf8');
 
+  const contactFile = resolve(OUTPUT, 'pages/contact.html');
+  const contactFallback = normalizeContactContent(JSON.parse(await readFile(CONTACT_FALLBACK, 'utf8')));
+  validateContactContent(contactFallback);
+  let contactContent = contactFallback;
+  let contactSource = 'fallback';
+  try {
+    const fetchedContact = await fetchContactCmsContent();
+    if (fetchedContact?.heroTitle) {
+      const normalizedContact = normalizeContactContent(fetchedContact);
+      validateContactContent(normalizedContact);
+      contactContent = normalizedContact;
+      contactSource = 'cms';
+    } else {
+      console.warn('CONTACT BUILD: fallback gebruikt (CMS-paginadocument ontbreekt)');
+    }
+  } catch (error) {
+    console.warn(`CONTACT BUILD: fallback gebruikt (${error.message})`);
+  }
+  assertNoMojibake(contactContent, `genormaliseerde Contact-inhoud (${contactSource})`);
+  const contactPage = embedSharedComponents(
+    renderContactPage(await readFile(CONTACT_TEMPLATE, 'utf8'), contactContent, contactSource),
+    navigation,
+    footer,
+  );
+  assertNoMojibake(contactPage, 'gebouwde Contactpagina');
+  await writeFile(contactFile, contactPage, 'utf8');
+  const homeFile = resolve(OUTPUT, 'index.html');
+  const homeFallback = normalizeHomeContent(
+    JSON.parse(
+      await readFile(HOME_FALLBACK, 'utf8'),
+    ),
+  );
+
+  validateHomeContent(homeFallback);
+
+  let homeContent = homeFallback;
+  let homeSource = 'fallback';
+
+  try {
+    const fetchedHome = await fetchHomeCmsContent();
+
+    if (fetchedHome?.heroTitle) {
+      const normalizedHome =
+        normalizeHomeContent(fetchedHome);
+
+      validateHomeContent(normalizedHome);
+      homeContent = normalizedHome;
+      homeSource = 'cms';
+    } else {
+      console.warn(
+        'HOME BUILD: fallback gebruikt ' +
+        '(CMS-paginadocument ontbreekt)',
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `HOME BUILD: fallback gebruikt (${error.message})`,
+    );
+  }
+
+  assertNoMojibake(
+    homeContent,
+    `genormaliseerde Homepage-inhoud (${homeSource})`,
+  );
+
+  const homePage = embedSharedComponents(
+    renderHomePage(
+      await readFile(HOME_TEMPLATE, 'utf8'),
+      homeContent,
+      homeSource,
+    ),
+    navigation,
+    footer,
+  );
+
+  assertNoMojibake(
+    homePage,
+    'gebouwde Homepage',
+  );
+
+  await writeFile(
+    homeFile,
+    homePage,
+    'utf8',
+  );
+
   console.log(`MEDIA BUILD: ${source} -> dist/pages/media.html`);
   console.log(`REPERTOIRE BUILD: ${repertoireSource} -> dist/pages/repertoire.html`);
   console.log(`FRIENDS BUILD: ${friendsSource} -> dist/pages/vrienden.html`);
   console.log(`ABOUT BUILD: ${aboutSource} -> dist/pages/over.html`);
+  console.log(`CONTACT BUILD: ${contactSource} -> dist/pages/contact.html`);
+  console.log(`HOME BUILD: ${homeSource} -> dist/index.html`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
