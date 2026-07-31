@@ -4173,3 +4173,105 @@ button.agenda-calendar__day {
 .agenda-page + #footer-placeholder .site-footer {
   margin-top: 0;
 }
+
+/* =========================================================
+   COMPACTE HOMEPAGE EN OVER SPONTAAN - 31-07-2026
+   Alleen desktop; overige publieke pagina's blijven ongewijzigd.
+   ========================================================= */
+
+@media (min-width: 769px) {
+  /* Homepage: compactere hero en rustiger eerste scherm */
+  body:has(main.homepage) .hero {
+    min-height: min(56vh, 560px);
+    padding: 2.25rem 1.5rem;
+  }
+
+  body:has(main.homepage) .hero-content {
+    width: min(100%, 740px);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  body:has(main.homepage) .hero h1 {
+    font-size: clamp(3.75rem, 6vw, 5rem);
+    line-height: 0.98;
+  }
+
+  /* Homepage: minder ruimte tussen de hoofdblokken */
+  main.homepage {
+    gap: clamp(2.5rem, 3.5vw, 3rem);
+    padding-top: clamp(3.5rem, 4vw, 4rem);
+    padding-bottom: 3rem;
+  }
+
+  main.homepage .homepage-section__header {
+    margin-bottom: 1.25rem;
+  }
+
+  main.homepage .homepage-card__media {
+    min-height: 165px;
+  }
+
+  main.homepage .homepage-card__content {
+    padding: 1.3rem;
+  }
+
+  main.homepage .homepage-welcome-card,
+  main.homepage .homepage-visit-card {
+    padding: clamp(1.5rem, 2.75vw, 2rem);
+  }
+
+  main.homepage .homepage-invite-points {
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+  }
+
+  main.homepage .homepage-invite-points div {
+    padding: 0.8rem 0.9rem;
+  }
+
+  main.homepage .homepage-actions {
+    margin-top: 1.15rem;
+  }
+
+  main.homepage + #footer-placeholder .site-footer {
+    margin-top: 0;
+  }
+
+  /* Over Spontaan: compacter verticaal ritme */
+  main.about-page {
+    gap: clamp(2.75rem, 4vw, 3.5rem);
+    padding-top: 1.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  main.about-page .about-intro,
+  main.about-page .about-atmosphere {
+    gap: clamp(2rem, 3.5vw, 2.75rem);
+  }
+
+  main.about-page .about-story,
+  main.about-page .about-atmosphere {
+    padding: clamp(2rem, 3.5vw, 3rem);
+  }
+
+  main.about-page .about-media img {
+    min-height: 280px;
+  }
+
+  main.about-page .about-section__heading {
+    margin-bottom: 1.5rem;
+  }
+
+  main.about-page .about-value-card {
+    padding: 1.4rem;
+  }
+
+  main.about-page .about-quote {
+    padding: clamp(1.75rem, 3vw, 2.5rem);
+  }
+
+  main.about-page .about-cta {
+    gap: 1.5rem;
+    padding: clamp(1.75rem, 3vw, 2.25rem);
+  }
+}

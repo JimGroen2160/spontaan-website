@@ -1,0 +1,49 @@
+{
+    "heroTitle":  "Zanggroep Spontaan",
+    "heroSubtitle":  "Samen zingen, samen beleven",
+    "heroImageUrl":  "images/about/over-intro-mannenkoor.jpg",
+    "ctaLabel":  "",
+    "ctaLink":  "",
+    "quickLinksTitle":  "Snel naar",
+    "quickLinksIntro":  "Lees het laatste nieuws, bekijk onze agenda of luister en kijk mee met Spontaan.",
+    "quickLinks":  [
+                       {
+                           "title":  "Nieuws",
+                           "text":  "Lees de laatste berichten en updates van Zanggroep Spontaan.",
+                           "imageUrl":  "images/news/nieuws-terugblik-optreden.webp",
+                           "mediaClass":  "news",
+                           "buttonLabel":  "Lees nieuws",
+                           "buttonLink":  "pages/nieuws.html",
+                           "imageAlt":  "Zanggroep Spontaan tijdens een optreden"
+                       },
+                       {
+                           "title":  "Agenda",
+                           "text":  "Bekijk waar en wanneer Spontaan optreedt of samenkomt.",
+                           "imageUrl":  "images/news/nieuws-optreden-voorbereiden.webp",
+                           "mediaClass":  "agenda",
+                           "buttonLabel":  "Bekijk agenda",
+                           "buttonLink":  "pages/agenda.html",
+                           "imageAlt":  "Voorbereiding op een optreden van Zanggroep Spontaan"
+                       },
+                       {
+                           "title":  "Beeld en Geluid",
+                           "text":  "Luister en kijk mee met optredens, fotos en sfeerbeelden.",
+                           "imageUrl":  "images/media/beeld-en-geluid-hero.jpg",
+                           "mediaClass":  "media",
+                           "buttonLabel":  "Bekijk beeld en geluid",
+                           "buttonLink":  "pages/media.html",
+                           "imageAlt":  "Zanggroep Spontaan tijdens een muzikaal optreden"
+                       }
+                   ],
+    "welcomeTitle":  "Samen zingen met plezier",
+    "welcomeText":  "Zanggroep Spontaan is een enthousiast mannenkoor uit Angerlo. Wij zingen met plezier, brengen een gevarieerd repertoire en treden regelmatig op.",
+    "welcomeButtonLabel":  "Lees meer over Spontaan",
+    "welcomeButtonLink":  "pages/over.html",
+    "visitTitle":  "Zing je mee met Spontaan?",
+    "visitText":  "Vind je zingen leuk, wil je de sfeer proeven of gewoon eens komen luisteren? Je bent van harte welkom bij Spontaan. Neem gerust contact op of kijk wanneer je ons kunt ontmoeten.",
+    "visitPrimaryButtonLabel":  "Neem contact op",
+    "visitPrimaryButtonLink":  "pages/contact.html",
+    "visitSecondaryButtonLabel":  "Bekijk agenda",
+    "visitSecondaryButtonLink":  "pages/agenda.html",
+    "heroImageAlt":  "Zanggroep Spontaan zingt samen tijdens een optreden"
+}

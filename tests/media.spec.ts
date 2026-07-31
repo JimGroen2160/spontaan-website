@@ -47,7 +47,12 @@ test.describe('Beeld en Geluid - gebouwde CMS-pagina', () => {
     await openMediaPage(page);
 
     expect(imageRequests.some((url) => /\/images\/media\/demo-|beeld-en-geluid-hero\.jpg/.test(url))).toBe(false);
-    await expect(page.locator('[data-media-page-hero-image]')).toHaveAttribute('src', /cdn\.sanity\.io\/images\/u66p1mxm\/development\/test-hero\.jpg/);
+    await expect(
+      page.locator('[data-media-page-hero-image]'),
+    ).toHaveAttribute(
+      'src',
+      '../images/about/over-hero-mannenkoor.jpg',
+    );
   });
 
   test('fotoalbum ondersteunt navigatie, Escape en focusterugkeer', async ({page}) => {

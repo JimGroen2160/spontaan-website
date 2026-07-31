@@ -1,0 +1,48 @@
+{
+    "result":  {
+                   "heroTitle":  "[TEST] Zanggroep Spontaan",
+                   "heroSubtitle":  "[TEST] Samen zingen vanuit de Homepage",
+                   "heroImageUrl":  "images/about/over-intro-mannenkoor.jpg",
+                   "ctaLabel":  "[TEST] Kom kennismaken",
+                   "ctaLink":  "pages/contact.html",
+                   "quickLinksTitle":  "[TEST] Snel naar",
+                   "quickLinksIntro":  "[TEST] Ontdek nieuws, activiteiten en media van Zanggroep Spontaan.",
+                   "quickLinks":  [
+                                      {
+                                          "title":  "[TEST] Nieuws",
+                                          "text":  "[TEST] Lees het laatste nieuws van de zanggroep.",
+                                          "imageUrl":  "images/news/nieuws-terugblik-optreden.webp",
+                                          "buttonLabel":  "[TEST] Lees nieuws",
+                                          "buttonLink":  "pages/nieuws.html",
+                                          "imageAlt":  "[TEST] Zanggroep Spontaan tijdens een optreden"
+                                      },
+                                      {
+                                          "title":  "[TEST] Agenda",
+                                          "text":  "[TEST] Bekijk waar en wanneer Zanggroep Spontaan optreedt.",
+                                          "imageUrl":  "images/news/nieuws-optreden-voorbereiden.webp",
+                                          "buttonLabel":  "[TEST] Bekijk agenda",
+                                          "buttonLink":  "pages/agenda.html",
+                                          "imageAlt":  "[TEST] Voorbereiding op een optreden"
+                                      },
+                                      {
+                                          "title":  "[TEST] Beeld en Geluid",
+                                          "text":  "[TEST] Bekijk foto\u0027s en luister naar muziekfragmenten.",
+                                          "imageUrl":  "images/media/beeld-en-geluid-hero.jpg",
+                                          "buttonLabel":  "[TEST] Bekijk beeld en geluid",
+                                          "buttonLink":  "pages/media.html",
+                                          "imageAlt":  "[TEST] Muzikaal optreden van Zanggroep Spontaan"
+                                      }
+                                  ],
+                   "welcomeTitle":  "[TEST] Samen zingen met plezier",
+                   "welcomeText":  "[TEST] Zanggroep Spontaan is een enthousiast mannenkoor uit Angerlo.",
+                   "welcomeButtonLabel":  "[TEST] Lees meer over Spontaan",
+                   "welcomeButtonLink":  "pages/over.html",
+                   "visitTitle":  "[TEST] Zing je mee met Spontaan?",
+                   "visitText":  "[TEST] Kom kennismaken, luisteren of de sfeer proeven tijdens een repetitie.",
+                   "visitPrimaryButtonLabel":  "[TEST] Neem contact op",
+                   "visitPrimaryButtonLink":  "pages/contact.html",
+                   "visitSecondaryButtonLabel":  "[TEST] Bekijk agenda",
+                   "visitSecondaryButtonLink":  "pages/agenda.html",
+                   "heroImageAlt":  "[TEST] Zanggroep Spontaan tijdens een optreden"
+               }
+}

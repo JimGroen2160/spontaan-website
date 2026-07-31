@@ -3,7 +3,7 @@
                    "page":  {
                                 "heroTitle":  "[TEST] Vrienden van Spontaan",
                                 "heroText":  "[TEST] Samen ondersteunen wij de muziek van Zanggroep Spontaan.",
-                                "heroImageUrl":  "https://cdn.sanity.io/images/u66p1mxm/development/friends-hero.jpg",
+                                "heroImageUrl":  "../images/repertoire/repertoire-hero.jpg",
                                 "heroImageAlt":  "Zanggroep Spontaan tijdens een testoptreden",
                                 "heroPrimaryButtonLabel":  "Word vriend van Spontaan",
                                 "heroPrimaryButtonLink":  "./contact.html",
@@ -38,7 +38,7 @@
                                                     "U helpt activiteiten mogelijk te maken.",
                                                     "U blijft betrokken bij Zanggroep Spontaan."
                                                 ],
-                                "ctaImageUrl":  "https://cdn.sanity.io/images/u66p1mxm/development/friends-cta.jpg",
+                                "ctaImageUrl":  "../images/about/over-intro-mannenkoor.jpg",
                                 "ctaImageAlt":  "Zangers van Spontaan tijdens een testmoment",
                                 "ctaPrimaryButtonLabel":  "Word vriend van Spontaan",
                                 "ctaPrimaryButtonLink":  "./contact.html",

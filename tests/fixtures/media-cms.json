@@ -4,7 +4,7 @@
       "heroTitle": "CMS Beeld en Geluid",
       "heroSubtitle": "CMS-subtitel voor de mediapagina.",
       "heroImageAlt": "Mannenkoor tijdens een optreden",
-      "heroImageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-hero.jpg",
+      "heroImageUrl": "../images/about/over-hero-mannenkoor.jpg",
       "introTitle": "CMS-introductie",
       "introText": "Deze introductie komt uit Sanity.",
       "ctaEyebrow": "Kom kennismaken",
@@ -23,10 +23,10 @@
         "summary": "Een sfeervol optreden in de zomer.",
         "isFeatured": true,
         "coverImageAlt": "Optreden tijdens het zomerconcert",
-        "coverImageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-sfeer.jpg",
+        "coverImageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
         "photos": [
-          {"alt": "Eerste foto van het zomerconcert", "caption": "Het mannenkoor tijdens het openingslied.", "imageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-hero.jpg"},
-          {"alt": "Tweede foto van het zomerconcert", "caption": "Applaus na het optreden.", "imageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-intro.jpg"}
+          {"alt": "Eerste foto van het zomerconcert", "caption": "Het mannenkoor tijdens het openingslied.", "imageUrl": "../images/about/over-hero-mannenkoor.jpg"},
+          {"alt": "Tweede foto van het zomerconcert", "caption": "Applaus na het optreden.", "imageUrl": "../images/about/over-intro-mannenkoor.jpg"}
         ]
       },
       {
@@ -36,9 +36,9 @@
         "summary": "Een repetitieavond van Zanggroep Spontaan.",
         "isFeatured": false,
         "coverImageAlt": "Mannenkoor tijdens een repetitie",
-        "coverImageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-intro.jpg",
+        "coverImageUrl": "../images/about/over-intro-mannenkoor.jpg",
         "photos": [
-          {"alt": "Foto van een repetitie", "caption": "Samen werken aan nieuwe muziek.", "imageUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-intro.jpg"}
+          {"alt": "Foto van een repetitie", "caption": "Samen werken aan nieuwe muziek.", "imageUrl": "../images/about/over-intro-mannenkoor.jpg"}
         ]
       }
     ],
@@ -47,8 +47,8 @@
       {"_id": "test-audio-twee", "title": "CMS Audio twee", "recordedAt": "2026-05-10", "summary": "De tweede testopname.", "isFeatured": false, "audioUrl": "https://cdn.sanity.io/files/u66p1mxm/development/audio-twee.mp3"}
     ],
     "videoItems": [
-      {"_id": "test-video-een", "title": "CMS Video één", "recordedAt": "2026-06-21", "summary": "De eerste testvideo.", "isFeatured": false, "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "thumbnailAlt": "Voorbeeld van de eerste video", "thumbnailUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-video.jpg"},
-      {"_id": "test-video-twee", "title": "CMS Video twee", "recordedAt": "2026-05-10", "summary": "De tweede testvideo.", "isFeatured": false, "youtubeUrl": "https://youtu.be/9bZkp7q19f0", "thumbnailAlt": "Voorbeeld van de tweede video", "thumbnailUrl": "https://cdn.sanity.io/images/u66p1mxm/development/test-video.jpg"}
+      {"_id": "test-video-een", "title": "CMS Video één", "recordedAt": "2026-06-21", "summary": "De eerste testvideo.", "isFeatured": false, "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "thumbnailAlt": "Voorbeeld van de eerste video", "thumbnailUrl": "../images/about/over-sfeer-mannenkoor.jpg"},
+      {"_id": "test-video-twee", "title": "CMS Video twee", "recordedAt": "2026-05-10", "summary": "De tweede testvideo.", "isFeatured": false, "youtubeUrl": "https://youtu.be/9bZkp7q19f0", "thumbnailAlt": "Voorbeeld van de tweede video", "thumbnailUrl": "../images/about/over-sfeer-mannenkoor.jpg"}
     ]
   }
 }

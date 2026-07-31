@@ -63,11 +63,21 @@ function normalizePathname(pathname) {
   return pathname.replace(/\/+$/, '') || '/';
 }
 
+function navigationPath(pathname) {
+  const normalizedPath = normalizePathname(pathname);
+
+  if (normalizedPath === '/pages/nieuwsbericht.html') {
+    return '/pages/nieuws.html';
+  }
+
+  return normalizedPath;
+}
+
 function initializeActiveNavigation(navContainer) {
-  const currentPath = normalizePathname(window.location.pathname);
+  const currentPath = navigationPath(window.location.pathname);
 
   navContainer.querySelectorAll('.nav-menu a').forEach((link) => {
-    const targetPath = normalizePathname(
+    const targetPath = navigationPath(
       new URL(link.href, window.location.href).pathname,
     );
     const isCurrentPage = targetPath === currentPath;

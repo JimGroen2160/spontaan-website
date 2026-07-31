@@ -44,6 +44,7 @@ export default defineConfig({
     env: {
       MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json',
       REPERTOIRE_BUILD_FIXTURE: 'tests/fixtures/repertoire-cms.json',
+      CONTACT_BUILD_FIXTURE: 'data/contact-fallback.json',
     },
     url: 'http://localhost:5500',
     reuseExistingServer: !process.env.CI,

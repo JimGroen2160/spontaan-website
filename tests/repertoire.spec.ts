@@ -34,7 +34,7 @@ test.describe('Muziek en repertoire', () => {
     await expect(page.getByRole('link', {name: 'Bekijk Beeld en Geluid'})).toHaveAttribute('href', './media.html');
     const body = await page.locator('body').innerText();
     expect(body).toContain('Onze muzikale wereld');
-    expect(body).toContain('Een ode aan liefde, hoop en herinnering');
+    expect(body).toContain('[TEST] Het verhaal van The Rose.');
     expect(body).not.toMatch(/\u00c3|\u00e2|\ufffd/);
   });
 
