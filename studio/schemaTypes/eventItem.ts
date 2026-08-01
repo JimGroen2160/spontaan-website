@@ -172,6 +172,15 @@ export const eventItem = defineType({
       type: 'boolean',
       initialValue: true,
     }),
+    defineField({
+      name: 'isTestData',
+      title: 'Test- of demodata',
+      type: 'boolean',
+      description: 'Technische markering voor gecontroleerde test- en demodata.',
+      initialValue: false,
+      hidden: true,
+      readOnly: true,
+    }),
   ],
 
   orderings: [
