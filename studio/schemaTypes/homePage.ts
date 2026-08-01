@@ -11,6 +11,14 @@ export const homePage = defineType({
       type: 'string',
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: 'isTestData',
+      title: 'Testdata',
+      type: 'boolean',
+      hidden: true,
+      readOnly: true,
+      initialValue: false,
+    }),
 
     defineField({
       name: 'heroTitle',
