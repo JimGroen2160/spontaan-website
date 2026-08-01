@@ -52,6 +52,28 @@ afterEach(() => {
   delete process.env.HOME_BUILD_FIXTURE;
 });
 
+test('schema en singleton registreren homePage-main', async () => {
+  const [schema, types, singleton, structure] = await Promise.all([
+    readFile('studio/schemaTypes/homePage.ts', 'utf8'),
+    readFile('studio/schemaTypes/index.ts', 'utf8'),
+    readFile('studio/singletonTypes.ts', 'utf8'),
+    readFile('studio/structure.ts', 'utf8'),
+  ]);
+
+  assert.match(schema, /name: 'homePage'/);
+  assert.match(types, /homePage/);
+  assert.match(
+    singleton,
+    /HOME_PAGE_DOCUMENT_ID = 'homePage-main'/,
+  );
+  assert.match(singleton, /'homePage'/);
+  assert.match(structure, /HOME_PAGE_DOCUMENT_ID/);
+  assert.match(
+    structure,
+    /\.documentId\(HOME_PAGE_DOCUMENT_ID\)/,
+  );
+});
+
 test('Homepage-buildfuncties zijn beschikbaar', () => {
   assertHomeBuildExports();
 });

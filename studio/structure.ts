@@ -6,6 +6,7 @@ import {
   ABOUT_PAGE_DOCUMENT_ID,
   CONTACT_PAGE_DOCUMENT_ID,
   FRIENDS_PAGE_DOCUMENT_ID,
+  HOME_PAGE_DOCUMENT_ID,
   MEDIA_PAGE_DOCUMENT_ID,
   REPERTOIRE_PAGE_DOCUMENT_ID,
   SINGLETON_TYPES,
@@ -26,6 +27,17 @@ export const structure: StructureResolver = (
             .id(ABOUT_PAGE_DOCUMENT_ID)
             .schemaType('aboutPage')
             .documentId(ABOUT_PAGE_DOCUMENT_ID)
+        ),
+
+      S.listItem()
+        .id('homePage')
+        .schemaType('homePage')
+        .title('Homepage')
+        .child(
+          S.document()
+            .id(HOME_PAGE_DOCUMENT_ID)
+            .schemaType('homePage')
+            .documentId(HOME_PAGE_DOCUMENT_ID)
         ),
 
       S.listItem()
