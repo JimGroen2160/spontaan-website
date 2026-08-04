@@ -1,4 +1,4 @@
-﻿import {getText} from './media-utils.js';
+import {getText} from './media-utils.js';
 
 const SELECTORS = Object.freeze({
   dialog: '[data-media-gallery]',
@@ -60,7 +60,7 @@ export function createGalleryController(root = document) {
 
     if (elements.counter) {
       elements.counter.textContent =
-        `${state.activeIndex + 1} van ${album.photos.length}`;
+        `Foto ${state.activeIndex + 1} van ${album.photos.length}`;
     }
 
     const hasMultiplePhotos = album.photos.length > 1;

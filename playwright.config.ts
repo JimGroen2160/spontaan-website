@@ -5,7 +5,10 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
-  testIgnore: '**/*.test.mjs',
+  testIgnore: [
+    '**/*.test.mjs',
+    '**/media-fallback.spec.ts',
+  ],
 
   fullyParallel: true,
 

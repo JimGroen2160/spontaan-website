@@ -24,7 +24,31 @@
       "coverImageAlt": "Zanggroep Spontaan tijdens het zomeravondconcert",
       "coverImageUrl": "../images/about/over-hero-mannenkoor.jpg",
       "photos": [
-        {"alt": "Zanggroep Spontaan tijdens het zomeravondconcert", "caption": "Zomeravondconcert", "imageUrl": "../images/about/over-hero-mannenkoor.jpg"}
+        {
+          "imageUrl": "../images/about/over-hero-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een optreden",
+          "caption": "Zanggroep Spontaan tijdens een optreden"
+        },
+        {
+          "imageUrl": "../images/about/over-intro-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een repetitie",
+          "caption": "Samen repeteren"
+        },
+        {
+          "imageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een muzikaal moment",
+          "caption": "Een muzikaal moment"
+        },
+        {
+          "imageUrl": "../images/repertoire/repertoire-feestelijk.jpg",
+          "alt": "Zanggroep Spontaan tijdens een feestelijk optreden",
+          "caption": "Een feestelijk optreden"
+        },
+        {
+          "imageUrl": "../images/repertoire/repertoire-dirigent.jpg",
+          "alt": "De dirigent leidt Zanggroep Spontaan",
+          "caption": "De dirigent en het mannenkoor"
+        }
       ]
     },
     {
@@ -36,7 +60,31 @@
       "coverImageAlt": "Repetitie van Zanggroep Spontaan",
       "coverImageUrl": "../images/about/over-intro-mannenkoor.jpg",
       "photos": [
-        {"alt": "Repetitie van Zanggroep Spontaan", "caption": "Repetitie", "imageUrl": "../images/about/over-intro-mannenkoor.jpg"}
+        {
+          "imageUrl": "../images/about/over-intro-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een repetitie",
+          "caption": "Samen repeteren"
+        },
+        {
+          "imageUrl": "../images/about/over-hero-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een optreden",
+          "caption": "Zanggroep Spontaan tijdens een optreden"
+        },
+        {
+          "imageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een muzikaal moment",
+          "caption": "Een muzikaal moment"
+        },
+        {
+          "imageUrl": "../images/repertoire/repertoire-feestelijk.jpg",
+          "alt": "Zanggroep Spontaan tijdens een feestelijk optreden",
+          "caption": "Een feestelijk optreden"
+        },
+        {
+          "imageUrl": "../images/repertoire/repertoire-dirigent.jpg",
+          "alt": "De dirigent leidt Zanggroep Spontaan",
+          "caption": "De dirigent en het mannenkoor"
+        }
       ]
     },
     {
@@ -48,7 +96,31 @@
       "coverImageAlt": "Voorjaarsoptreden van Zanggroep Spontaan",
       "coverImageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
       "photos": [
-        {"alt": "Voorjaarsoptreden van Zanggroep Spontaan", "caption": "Voorjaarsoptreden", "imageUrl": "../images/about/over-sfeer-mannenkoor.jpg"}
+        {
+          "imageUrl": "../images/about/over-sfeer-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een muzikaal moment",
+          "caption": "Een muzikaal moment"
+        },
+        {
+          "imageUrl": "../images/about/over-hero-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een optreden",
+          "caption": "Zanggroep Spontaan tijdens een optreden"
+        },
+        {
+          "imageUrl": "../images/about/over-intro-mannenkoor.jpg",
+          "alt": "Zanggroep Spontaan tijdens een repetitie",
+          "caption": "Samen repeteren"
+        },
+        {
+          "imageUrl": "../images/repertoire/repertoire-feestelijk.jpg",
+          "alt": "Zanggroep Spontaan tijdens een feestelijk optreden",
+          "caption": "Een feestelijk optreden"
+        },
+        {
+          "imageUrl": "../images/repertoire/repertoire-dirigent.jpg",
+          "alt": "De dirigent leidt Zanggroep Spontaan",
+          "caption": "De dirigent en het mannenkoor"
+        }
       ]
     }
   ],

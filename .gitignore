@@ -18,3 +18,5 @@ node_modules/
 
 # Lokale Lighthouse-resultaten
 /.lighthouseci/
+
+/dist-media-fallback/
