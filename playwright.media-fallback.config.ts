@@ -40,9 +40,10 @@ export default defineConfig({
 
   webServer: {
     command:
-      'npm run build && npx http-server dist -p 5510 -c-1',
+      'npm run build && npx http-server dist-media-fallback -p 5510 -c-1',
     env: {
       VERCEL_ENV: 'production',
+      SITE_OUTPUT_DIR: 'dist-media-fallback',
       MEDIA_BUILD_FIXTURE:
         'tests/fixtures/media-error.json',
     },

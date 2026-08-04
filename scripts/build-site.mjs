@@ -4,7 +4,24 @@ import {fileURLToPath} from 'node:url';
 import {assertNoMojibake, checkProjectEncoding} from './check-encoding.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUTPUT = resolve(ROOT, 'dist');
+const configuredOutputDirectory =
+  process.env.SITE_OUTPUT_DIR?.trim() || 'dist';
+
+if (
+  configuredOutputDirectory.includes('..') ||
+  configuredOutputDirectory.startsWith('/') ||
+  configuredOutputDirectory.startsWith('\\') ||
+  /^[A-Za-z]:/.test(configuredOutputDirectory)
+) {
+  throw new Error(
+    'SITE_OUTPUT_DIR moet een veilige relatieve projectmap zijn',
+  );
+}
+
+const OUTPUT = resolve(
+  ROOT,
+  configuredOutputDirectory,
+);
 const MEDIA_TEMPLATE = resolve(ROOT, 'build/media.template.html');
 const REPERTOIRE_TEMPLATE = resolve(ROOT, 'build/repertoire.template.html');
 const FRIENDS_TEMPLATE = resolve(ROOT, 'build/friends.template.html');
