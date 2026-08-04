@@ -83,15 +83,25 @@ jobs:
       - name: Validate text encoding
         run: npm run test:encoding
 
+      - name: Run media build and fallback data tests
+        id: media-build-tests
+        run: npm run test:media-build
+
       - name: Run Playwright tests
         id: playwright-tests
         run: npx playwright test
+
+      - name: Run production fallback media tests
+        id: media-fallback-tests
+        run: npm run test:media-fallback
 
       - name: Publish Playwright test coverage summary
         if: always()
         shell: bash
         run: |
           playwright_outcome="${{ steps.playwright-tests.outcome }}"
+          media_build_outcome="${{ steps.media-build-tests.outcome }}"
+          media_fallback_outcome="${{ steps.media-fallback-tests.outcome }}"
 
           case "$playwright_outcome" in
             success)
@@ -108,6 +118,36 @@ jobs:
               ;;
           esac
 
+          case "$media_build_outcome" in
+            success)
+              media_build_status="UITGEVOERD / GESLAAGD"
+              ;;
+            failure)
+              media_build_status="UITGEVOERD / GEFAALD"
+              ;;
+            skipped)
+              media_build_status="NIET UITGEVOERD"
+              ;;
+            *)
+              media_build_status="ONBEKENDE STATUS"
+              ;;
+          esac
+
+          case "$media_fallback_outcome" in
+            success)
+              media_fallback_status="UITGEVOERD / GESLAAGD"
+              ;;
+            failure)
+              media_fallback_status="UITGEVOERD / GEFAALD"
+              ;;
+            skipped)
+              media_fallback_status="NIET UITGEVOERD"
+              ;;
+            *)
+              media_fallback_status="ONBEKENDE STATUS"
+              ;;
+          esac
+
           {
             echo
             echo "## Playwright testdekking"
@@ -115,6 +155,8 @@ jobs:
             echo "| Testgroep | Automatische PR-CI | Toelichting |"
             echo "|---|---|---|"
             echo "| Algemene website-, accessibility-, login-, logout- en resettests | $playwright_status | Zie de Playwright-job voor het volledige testresultaat. |"
+            echo "| Media build- en fallbackdatatests | $media_build_status | Valideert buildgedrag en vijf gevalideerde fallbackfoto's per album. |"
+            echo "| Media production/fallbackbrowsertests | $media_fallback_status | Valideert alle albums, cyclische navigatie, 50 foto-items, accessibility en responsive gedrag op Chromium, Firefox en WebKit. |"
             echo "| Statusmutatie active/inactive met directe backendcontrole | NIET UITGEVOERD | Vereist service-role en afgeschermde testdata. |"
             echo "| Profielbewerking met apart testlid | NIET UITGEVOERD | Profieltest-secrets worden nog niet aan deze workflow aangeboden. |"
             echo "| Pending naar active | NIET UITGEVOERD | Vereist service-role en gedeelde Supabase-testdata. |"

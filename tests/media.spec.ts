@@ -28,7 +28,20 @@ test.describe('Beeld en Geluid - gebouwde CMS-pagina', () => {
     );
     await expect(page.locator('[data-media-photo-grid] .media-photo-tile')).toHaveCount(2);
     await expect(page.locator('[data-media-audio-list] .media-audio-tile')).toHaveCount(2);
+    await expect(
+      page.locator('[data-media-audio-list] .media-item-counter'),
+    ).toHaveText([
+      'Audio 1 van 2',
+      'Audio 2 van 2',
+    ]);
+
     await expect(page.locator('[data-media-video-grid] .media-video-tile')).toHaveCount(2);
+    await expect(
+      page.locator('[data-media-video-grid] .media-item-counter'),
+    ).toHaveText([
+      'Video 1 van 2',
+      'Video 2 van 2',
+    ]);
     await expect(page.locator('[data-media-page-primary-button]')).toHaveAttribute('href', '/pages/contact.html');
     await expect(page.locator('[data-media-page-secondary-button]')).toHaveAttribute('href', '/pages/agenda.html');
     await expect(page.locator('html')).toHaveAttribute('data-media-source', 'cms');
@@ -63,7 +76,9 @@ test.describe('Beeld en Geluid - gebouwde CMS-pagina', () => {
     const gallery = page.locator('[data-media-gallery]');
     await expect(gallery).toBeVisible();
     await expect(page.locator('[data-media-gallery-image]')).toHaveAttribute('alt', 'Eerste foto van het zomerconcert');
-    await expect(page.locator('[data-media-gallery-counter]')).toContainText(/1.*2/);
+    await expect(
+      page.locator('[data-media-gallery-counter]'),
+    ).toHaveText('Foto 1 van 2');
     await page.locator('[data-media-gallery-next]').click();
     await expect(page.locator('[data-media-gallery-image]')).toHaveAttribute('alt', 'Tweede foto van het zomerconcert');
     await page.keyboard.press('Escape');

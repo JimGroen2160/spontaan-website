@@ -1304,12 +1304,14 @@ function photoTiles(items) {
 
 function audioTiles(items) {
   if (!items.length) return '<p class="media-empty-state">Er zijn momenteel geen audio-opnamen beschikbaar.</p>';
-  return items.slice(0, 2).map((item) => `<article class="media-audio-tile"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.summary || 'Audio-opname van Zanggroep Spontaan')}</p><div class="media-audio-control"><button class="media-audio-control__play" type="button" data-audio-url="${escapeHtml(item.audioUrl)}" data-state="play" aria-pressed="false" aria-label="Speel ${escapeHtml(item.title)} af"></button><span class="media-audio-control__wave" aria-hidden="true"><span class="media-audio-control__progress"></span></span><span class="media-audio-control__time">0:00 / --:--</span><span class="media-audio-control__status" role="status" aria-live="polite">Gereed</span></div></article>`).join('');
+  const visibleItems = items.slice(0, 2);
+  return visibleItems.map((item, index) => `<article class="media-audio-tile"><p class="media-item-counter">Audio ${index + 1} van ${visibleItems.length}</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.summary || 'Audio-opname van Zanggroep Spontaan')}</p><div class="media-audio-control"><button class="media-audio-control__play" type="button" data-audio-url="${escapeHtml(item.audioUrl)}" data-state="play" aria-pressed="false" aria-label="Speel ${escapeHtml(item.title)} af"></button><span class="media-audio-control__wave" aria-hidden="true"><span class="media-audio-control__progress"></span></span><span class="media-audio-control__time">0:00 / --:--</span><span class="media-audio-control__status" role="status" aria-live="polite">Gereed</span></div></article>`).join('');
 }
 
 function videoTiles(items) {
   if (!items.length) return '<p class="media-empty-state">Er zijn momenteel geen video-opnamen beschikbaar.</p>';
-  return items.slice(0, 2).map((item) => `<article class="media-video-tile"><button class="media-video-tile__preview" type="button" data-youtube-id="${escapeHtml(item.youtubeId)}" aria-label="Speel ${escapeHtml(item.title)} af">${image(item.thumbnailUrl, item.thumbnailAlt || item.title, 640, 360)}<span class="media-video-tile__play-icon" aria-hidden="true"></span></button><div class="media-video-tile__meta"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.date || 'Video')}</p></div></article>`).join('');
+  const visibleItems = items.slice(0, 2);
+  return visibleItems.map((item, index) => `<article class="media-video-tile"><p class="media-item-counter media-item-counter--video">Video ${index + 1} van ${visibleItems.length}</p><button class="media-video-tile__preview" type="button" data-youtube-id="${escapeHtml(item.youtubeId)}" aria-label="Speel ${escapeHtml(item.title)} af">${image(item.thumbnailUrl, item.thumbnailAlt || item.title, 640, 360)}<span class="media-video-tile__play-icon" aria-hidden="true"></span></button><div class="media-video-tile__meta"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.date || 'Video')}</p></div></article>`).join('');
 }
 
 const REPERTOIRE_WIREFRAME_PRESENTATION = {

@@ -73,6 +73,55 @@ test('renderer escapt CMS-tekst en bevat geen runtime-query', async () => {
   assert.match(html, /dataset\.mediaSource="fallback"/);
 });
 
+test('media renderer toont positie en totaal voor audio en video', async () => {
+  const template = await readFile('build/media.template.html', 'utf8');
+  const content = normalizeContent(
+    JSON.parse(await readFile('data/media-fallback.json', 'utf8')),
+  );
+
+  content.audioItems = [1, 2, 3].map((number) => ({
+    id: `test-audio-${number}`,
+    type: 'audio',
+    title: `Testaudio ${number}`,
+    summary: `Testaudio ${number}`,
+    date: '2026-08-04',
+    isFeatured: false,
+    audioUrl:
+      `https://cdn.sanity.io/files/u66p1mxm/development/test-${number}.mp3`,
+  }));
+
+  content.videoItems = [
+    ['dQw4w9WgXcQ', 'een'],
+    ['M7lc1UVf-VE', 'twee'],
+    ['aqz-KE-bpKQ', 'drie'],
+  ].map(([youtubeId, suffix], index) => ({
+    id: `test-video-${suffix}`,
+    type: 'video',
+    title: `Testvideo ${index + 1}`,
+    summary: `Testvideo ${index + 1}`,
+    date: '2026-08-04',
+    isFeatured: false,
+    youtubeId,
+    thumbnailUrl:
+      '../images/about/over-hero-mannenkoor.jpg',
+    thumbnailAlt: `Testvideo ${index + 1}`,
+  }));
+
+  const html = renderMediaPage(
+    template,
+    content,
+    'cms',
+  );
+
+  assert.match(html, /Audio 1 van 2/);
+  assert.match(html, /Audio 2 van 2/);
+  assert.doesNotMatch(html, /Audio 3 van/);
+
+  assert.match(html, /Video 1 van 2/);
+  assert.match(html, /Video 2 van 2/);
+  assert.doesNotMatch(html, /Video 3 van/);
+});
+
 test('encodingpoort weigert mojibake uit gerenderde CMS-inhoud', async () => {
   const template = await readFile('build/media.template.html', 'utf8');
   const fallback = normalizeContent(
