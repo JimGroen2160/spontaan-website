@@ -1,9 +1,65 @@
 (() => {
-  const config = {
-    projectId: 'u66p1mxm',
-    dataset: 'development',
-    apiVersion: '2026-07-06',
-  };
+  function getRuntimeConfig() {
+    const candidate = window.SpontaanRuntimeConfig;
+
+    if (!candidate || typeof candidate !== 'object') {
+      throw new Error('Publieke runtimeconfiguratie ontbreekt');
+    }
+
+    const projectId =
+      typeof candidate.projectId === 'string'
+        ? candidate.projectId.trim()
+        : '';
+    const dataset =
+      typeof candidate.dataset === 'string'
+        ? candidate.dataset.trim()
+        : '';
+    const apiVersion =
+      typeof candidate.apiVersion === 'string'
+        ? candidate.apiVersion.trim()
+        : '';
+    const environment =
+      typeof candidate.environment === 'string'
+        ? candidate.environment.trim()
+        : '';
+
+    if (
+      !/^[a-z0-9-]+$/i.test(projectId) ||
+      !['development', 'production'].includes(dataset) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(apiVersion) ||
+      !['development', 'preview', 'production'].includes(environment)
+    ) {
+      throw new Error('Publieke runtimeconfiguratie is ongeldig');
+    }
+
+    if (
+      environment === 'production' &&
+      dataset !== 'production'
+    ) {
+      throw new Error(
+        'Production mag uitsluitend de production-dataset gebruiken',
+      );
+    }
+
+    if (
+      environment !== 'production' &&
+      dataset !== 'development'
+    ) {
+      throw new Error(
+        'Niet-productieomgevingen gebruiken uitsluitend development',
+      );
+    }
+
+    return {
+      projectId,
+      dataset,
+      apiVersion,
+      environment,
+      allowDemo:
+        candidate.allowDemo === true &&
+        environment !== 'production',
+    };
+  }
 
   const query = `*[
     _type == "newsItem" &&
@@ -241,6 +297,7 @@
   }
 
   async function fetchNewsItem(slug) {
+    const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
     const encodedSlug = encodeURIComponent(JSON.stringify(slug));
     const url =
@@ -362,10 +419,40 @@
         return;
       }
     } catch (error) {
+      let useStaticFallback = false;
+
+      try {
+        useStaticFallback =
+          getRuntimeConfig().environment !== 'production';
+      } catch {
+        useStaticFallback = false;
+      }
+
       console.info(
-        'Sanity-nieuwsbericht niet geladen; statische detailfallback wordt gebruikt.',
+        useStaticFallback
+          ? 'Sanity-nieuwsbericht niet geladen; statische ontwikkelfallback wordt gebruikt.'
+          : 'Het actuele nieuwsbericht kon niet veilig worden geladen.',
         error
       );
+
+      if (!useStaticFallback) {
+        renderNotFound();
+        return;
+      }
+    }
+
+    let useStaticFallback = false;
+
+    try {
+      useStaticFallback =
+        getRuntimeConfig().environment !== 'production';
+    } catch {
+      useStaticFallback = false;
+    }
+
+    if (!useStaticFallback) {
+      renderNotFound();
+      return;
     }
 
     const fallbackItem = Object.hasOwn(fallbackItems, slug)

@@ -1,9 +1,65 @@
 ﻿(() => {
-  const config = {
-    projectId: 'u66p1mxm',
-    dataset: 'development',
-    apiVersion: '2026-07-06',
-  };
+  function getRuntimeConfig() {
+    const candidate = window.SpontaanRuntimeConfig;
+
+    if (!candidate || typeof candidate !== 'object') {
+      throw new Error('Publieke runtimeconfiguratie ontbreekt');
+    }
+
+    const projectId =
+      typeof candidate.projectId === 'string'
+        ? candidate.projectId.trim()
+        : '';
+    const dataset =
+      typeof candidate.dataset === 'string'
+        ? candidate.dataset.trim()
+        : '';
+    const apiVersion =
+      typeof candidate.apiVersion === 'string'
+        ? candidate.apiVersion.trim()
+        : '';
+    const environment =
+      typeof candidate.environment === 'string'
+        ? candidate.environment.trim()
+        : '';
+
+    if (
+      !/^[a-z0-9-]+$/i.test(projectId) ||
+      !['development', 'production'].includes(dataset) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(apiVersion) ||
+      !['development', 'preview', 'production'].includes(environment)
+    ) {
+      throw new Error('Publieke runtimeconfiguratie is ongeldig');
+    }
+
+    if (
+      environment === 'production' &&
+      dataset !== 'production'
+    ) {
+      throw new Error(
+        'Production mag uitsluitend de production-dataset gebruiken',
+      );
+    }
+
+    if (
+      environment !== 'production' &&
+      dataset !== 'development'
+    ) {
+      throw new Error(
+        'Niet-productieomgevingen gebruiken uitsluitend development',
+      );
+    }
+
+    return {
+      projectId,
+      dataset,
+      apiVersion,
+      environment,
+      allowDemo:
+        candidate.allowDemo === true &&
+        environment !== 'production',
+    };
+  }
 
   const query = `*[
     _type == "eventItem" &&
@@ -45,8 +101,20 @@
     calendarDate: new Date(),
   };
 
-  const isDemoMode =
-    new URLSearchParams(window.location.search).get('demo') === '1';
+  function isDemoModeAllowed() {
+    const requested =
+      new URLSearchParams(window.location.search).get('demo') === '1';
+
+    if (!requested) {
+      return false;
+    }
+
+    try {
+      return getRuntimeConfig().allowDemo;
+    } catch {
+      return false;
+    }
+  }
 
   const demoEventItems = [
     {
@@ -300,6 +368,7 @@
   }
 
   async function fetchEventItems() {
+    const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
     const url =
       `https://${config.projectId}.apicdn.sanity.io/` +
@@ -812,7 +881,7 @@
 
     let items = [];
 
-    if (isDemoMode) {
+    if (isDemoModeAllowed()) {
       items = demoEventItems
         .map(normalizeEventItem)
         .filter(Boolean);
