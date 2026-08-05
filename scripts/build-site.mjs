@@ -44,15 +44,64 @@ const ALLOWED_SANITY_DATASETS = new Set(['development', 'production']);
 
 export function resolveSanityDataset(environment = process.env) {
   const configuredDataset = environment.SANITY_DATASET?.trim();
+  const vercelEnvironment = environment.VERCEL_ENV?.trim();
+  const runtimeEnvironment =
+    vercelEnvironment === 'production'
+      ? 'production'
+      : vercelEnvironment === 'preview'
+        ? 'preview'
+        : 'development';
+  const requiredDataset =
+    runtimeEnvironment === 'production'
+      ? 'production'
+      : 'development';
   const dataset =
-    configuredDataset ||
-    (environment.VERCEL_ENV === 'production' ? 'production' : 'development');
+    configuredDataset || requiredDataset;
 
   if (!ALLOWED_SANITY_DATASETS.has(dataset)) {
     throw new Error(`Ongeldige Sanity-dataset: ${dataset}`);
   }
 
+  if (dataset !== requiredDataset) {
+    throw new Error(
+      `Ongeldige OTAP-combinatie: ${runtimeEnvironment} vereist dataset ${requiredDataset}, niet ${dataset}`,
+    );
+  }
+
   return dataset;
+}
+
+export function resolveRuntimeConfig(environment = process.env) {
+  const vercelEnvironment = environment.VERCEL_ENV?.trim();
+  const runtimeEnvironment =
+    vercelEnvironment === 'production'
+      ? 'production'
+      : vercelEnvironment === 'preview'
+        ? 'preview'
+        : 'development';
+
+  return {
+    projectId:
+      environment.SANITY_PROJECT_ID?.trim() ||
+      'u66p1mxm',
+    dataset: resolveSanityDataset(environment),
+    apiVersion:
+      environment.SANITY_API_VERSION?.trim() ||
+      '2026-07-06',
+    environment: runtimeEnvironment,
+    allowDemo: runtimeEnvironment !== 'production',
+  };
+}
+
+export function runtimeConfigSource(environment = process.env) {
+  const serialized = JSON.stringify(
+    resolveRuntimeConfig(environment),
+  ).replace(/</g, '\\u003c');
+
+  return (
+    'window.SpontaanRuntimeConfig = ' +
+    `Object.freeze(${serialized});\n`
+  );
 }
 
 export const MEDIA_QUERY = `{
@@ -2045,7 +2094,16 @@ async function copyPublicSite() {
   for (const file of PUBLIC_FILES) await cp(resolve(ROOT, file), resolve(OUTPUT, file));
 }
 
+async function writeRuntimeConfig() {
+  await writeFile(
+    resolve(OUTPUT, 'js/runtime-config.js'),
+    runtimeConfigSource(),
+    'utf8',
+  );
+}
+
 export async function build() {
+  resolveRuntimeConfig();
   await checkProjectEncoding(ROOT);
   const fallback = normalizeContent(JSON.parse(await readFile(FALLBACK, 'utf8')));
   let content = fallback;
@@ -2060,6 +2118,7 @@ export async function build() {
   }
   assertNoMojibake(content, `genormaliseerde media-inhoud (${source})`);
   await copyPublicSite();
+  await writeRuntimeConfig();
   const [template, navigation, footer] = await Promise.all([
     readFile(MEDIA_TEMPLATE, 'utf8'),
     readFile(NAVIGATION, 'utf8'),

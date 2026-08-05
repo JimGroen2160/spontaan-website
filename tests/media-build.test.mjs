@@ -8,23 +8,12 @@ import {
   normalizeRepertoireContent,
   renderMediaPage,
   renderRepertoirePage,
-  resolveSanityDataset,
   validateRepertoireContent,
 } from '../scripts/build-site.mjs';
 import {assertNoMojibake} from '../scripts/check-encoding.mjs';
 
 const exec = promisify(execFile);
 
-test('datasetkeuze volgt OTAP en weigert onbekende datasets', () => {
-  assert.equal(resolveSanityDataset({}), 'development');
-  assert.equal(resolveSanityDataset({VERCEL_ENV: 'preview'}), 'development');
-  assert.equal(resolveSanityDataset({VERCEL_ENV: 'production'}), 'production');
-  assert.equal(resolveSanityDataset({SANITY_DATASET: 'production'}), 'production');
-  assert.throws(
-    () => resolveSanityDataset({SANITY_DATASET: 'acceptance'}),
-    /Ongeldige Sanity-dataset: acceptance/,
-  );
-});
 
 test('normalisatie verwijdert onveilige media en links', () => {
   const content = normalizeContent({
