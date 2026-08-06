@@ -336,6 +336,91 @@ export function normalizeContent(value = {}) {
   };
 }
 
+export function validateMediaContent(content) {
+  const {
+    page,
+    photoAlbums,
+    audioItems,
+    videoItems,
+  } = content;
+
+  const requiredPageValues = [
+    page.heroTitle,
+    page.heroSubtitle,
+    page.heroImageUrl,
+    page.heroImageAlt,
+    page.introTitle,
+    page.introText,
+    page.ctaEyebrow,
+    page.ctaTitle,
+    page.ctaText,
+    page.primaryButtonLabel,
+    page.primaryButtonLink,
+    page.secondaryButtonLabel,
+    page.secondaryButtonLink,
+  ];
+
+  if (requiredPageValues.some((value) => !value)) {
+    throw new Error(
+      'Verplichte Beeld-en-Geluid-paginavelden ontbreken',
+    );
+  }
+
+  const allItems = [
+    ...photoAlbums,
+    ...audioItems,
+    ...videoItems,
+  ];
+
+  if (!allItems.length) {
+    throw new Error(
+      'Beeld en Geluid vereist minimaal één geldig media-item',
+    );
+  }
+
+  const observedIds = new Set();
+
+  for (const item of allItems) {
+    if (observedIds.has(item.id)) {
+      throw new Error(
+        `Dubbel media-item-ID: ${item.id}`,
+      );
+    }
+
+    observedIds.add(item.id);
+  }
+
+  for (const album of photoAlbums) {
+    if (!album.coverImageAlt) {
+      throw new Error(
+        `Fotoalbum mist cover-alttekst: ${album.title}`,
+      );
+    }
+
+    if (!album.photos.length) {
+      throw new Error(
+        `Fotoalbum bevat geen geldige foto's: ${album.title}`,
+      );
+    }
+
+    if (album.photos.some((photo) => !photo.alt)) {
+      throw new Error(
+        `Fotoalbum bevat een foto zonder alttekst: ${album.title}`,
+      );
+    }
+  }
+
+  for (const video of videoItems) {
+    if (!video.thumbnailAlt) {
+      throw new Error(
+        `Video mist miniatuur-alttekst: ${video.title}`,
+      );
+    }
+  }
+
+  return content;
+}
+
 function normalizeSupportItem(value) {
   return {
     title: text(value?.title, 80),
@@ -2087,6 +2172,190 @@ export async function fetchContactCmsContent() {
   }
 }
 
+
+const cmsFetchCache = new Map();
+const preparedCmsContent = new Map();
+
+function fetchCmsOnce(key, fetcher) {
+  if (!cmsFetchCache.has(key)) {
+    cmsFetchCache.set(
+      key,
+      Promise.resolve().then(fetcher),
+    );
+  }
+
+  return cmsFetchCache.get(key);
+}
+
+function cmsErrorMessage(error) {
+  if (
+    error instanceof Error &&
+    error.message.trim()
+  ) {
+    return error.message.trim();
+  }
+
+  return String(
+    error || 'Onbekende CMS-fout',
+  );
+}
+
+async function normalizedCmsContent(
+  key,
+  fetcher,
+  normalizer,
+) {
+  if (preparedCmsContent.has(key)) {
+    return preparedCmsContent.get(key);
+  }
+
+  const content = normalizer(
+    await fetchCmsOnce(key, fetcher),
+  );
+
+  preparedCmsContent.set(key, content);
+  return content;
+}
+
+async function prepareProductionCmsContent(
+  runtimeConfig,
+) {
+  if (
+    runtimeConfig.environment !== 'production'
+  ) {
+    return;
+  }
+
+  const definitions = [
+    {
+      key: 'media',
+      label: 'Beeld en Geluid',
+      fetcher: fetchCmsContent,
+      normalize: normalizeContent,
+      validate: validateMediaContent,
+      documentExists(raw) {
+        return Boolean(
+          raw?.page &&
+          typeof raw.page === 'object',
+        );
+      },
+    },
+    {
+      key: 'repertoire',
+      label: 'Muziek en repertoire',
+      fetcher: fetchRepertoireCmsContent,
+      normalize: normalizeRepertoireContent,
+      validate: validateRepertoireContent,
+      documentExists(raw) {
+        return Boolean(
+          raw?.page &&
+          typeof raw.page === 'object',
+        );
+      },
+    },
+    {
+      key: 'friends',
+      label: 'Vrienden van Spontaan',
+      fetcher: fetchFriendsCmsContent,
+      normalize: normalizeFriendsContent,
+      validate: validateFriendsContent,
+      documentExists(raw) {
+        return Boolean(
+          raw?.page &&
+          typeof raw.page === 'object',
+        );
+      },
+    },
+    {
+      key: 'about',
+      label: 'Over Spontaan',
+      fetcher: fetchAboutCmsContent,
+      normalize: normalizeAboutContent,
+      validate: validateAboutContent,
+      documentExists(raw) {
+        return Boolean(
+          raw &&
+          typeof raw === 'object',
+        );
+      },
+    },
+    {
+      key: 'contact',
+      label: 'Contact',
+      fetcher: fetchContactCmsContent,
+      normalize: normalizeContactContent,
+      validate: validateContactContent,
+      documentExists(raw) {
+        return Boolean(
+          raw &&
+          typeof raw === 'object',
+        );
+      },
+    },
+    {
+      key: 'home',
+      label: 'Homepage',
+      fetcher: fetchHomeCmsContent,
+      normalize: normalizeHomeContent,
+      validate: validateHomeContent,
+      documentExists(raw) {
+        return Boolean(
+          raw &&
+          typeof raw === 'object',
+        );
+      },
+    },
+  ];
+
+  const preparedEntries = new Map();
+  const results = await Promise.all(
+    definitions.map(async (definition) => {
+      try {
+        const raw = await fetchCmsOnce(
+          definition.key,
+          definition.fetcher,
+        );
+
+        if (!definition.documentExists(raw)) {
+          throw new Error(
+            'CMS-paginadocument ontbreekt',
+          );
+        }
+
+        const content = definition.normalize(raw);
+        definition.validate(content);
+        assertNoMojibake(
+          content,
+          `Production CMS-inhoud ${definition.label}`,
+        );
+        preparedEntries.set(
+          definition.key,
+          content,
+        );
+        return null;
+      } catch (error) {
+        return (
+          `- ${definition.label}: ` +
+          cmsErrorMessage(error)
+        );
+      }
+    }),
+  );
+
+  const errors = results.filter(Boolean);
+
+  if (errors.length > 0) {
+    throw new Error(
+      'Production-CMS-validatie mislukt:\n' +
+      errors.join('\n'),
+    );
+  }
+
+  for (const [key, content] of preparedEntries) {
+    preparedCmsContent.set(key, content);
+  }
+}
+
 async function copyPublicSite() {
   await rm(OUTPUT, {recursive: true, force: true});
   await mkdir(OUTPUT, {recursive: true});
@@ -2103,14 +2372,26 @@ async function writeRuntimeConfig() {
 }
 
 export async function build() {
-  resolveRuntimeConfig();
+  const runtimeConfig = resolveRuntimeConfig();
+
+  cmsFetchCache.clear();
+  preparedCmsContent.clear();
+
   await checkProjectEncoding(ROOT);
+  await prepareProductionCmsContent(
+    runtimeConfig,
+  );
   const fallback = normalizeContent(JSON.parse(await readFile(FALLBACK, 'utf8')));
   let content = fallback;
   let source = 'fallback';
   try {
-    const cms = normalizeContent(await fetchCmsContent());
-    if (!cms.page.heroTitle || !cms.page.heroImageUrl) throw new Error('Verplichte CMS-paginavelden ontbreken');
+    const cms = await normalizedCmsContent(
+      'media',
+      fetchCmsContent,
+      normalizeContent,
+    );
+
+    validateMediaContent(cms);
     content = cms;
     source = 'cms';
   } catch (error) {
@@ -2141,12 +2422,16 @@ export async function build() {
   let repertoireSource = 'fallback';
   let fetchedRepertoire = null;
   try {
-    fetchedRepertoire = await fetchRepertoireCmsContent();
+    fetchedRepertoire = await normalizedCmsContent(
+      'repertoire',
+      fetchRepertoireCmsContent,
+      normalizeRepertoireContent,
+    );
   } catch (error) {
     console.warn(`REPERTOIRE BUILD: fallback gebruikt (${error.message})`);
   }
   if (fetchedRepertoire) {
-    const normalizedRepertoire = normalizeRepertoireContent(fetchedRepertoire);
+    const normalizedRepertoire = fetchedRepertoire;
     if (normalizedRepertoire.page.heroTitle) {
       validateRepertoireContent(normalizedRepertoire);
       repertoireContent = normalizedRepertoire;
@@ -2181,7 +2466,11 @@ export async function build() {
   let fetchedFriends = null;
 
   try {
-    fetchedFriends = await fetchFriendsCmsContent();
+    fetchedFriends = await normalizedCmsContent(
+      'friends',
+      fetchFriendsCmsContent,
+      normalizeFriendsContent,
+    );
   } catch (error) {
     console.warn(
       `FRIENDS BUILD: fallback gebruikt (${error.message})`,
@@ -2189,8 +2478,7 @@ export async function build() {
   }
 
   if (fetchedFriends) {
-    const normalizedFriends =
-      normalizeFriendsContent(fetchedFriends);
+    const normalizedFriends = fetchedFriends;
 
     if (normalizedFriends.page.heroTitle) {
       validateFriendsContent(normalizedFriends);
@@ -2236,9 +2524,13 @@ export async function build() {
   let aboutContent = aboutFallback;
   let aboutSource = 'fallback';
   try {
-    const fetchedAbout = await fetchAboutCmsContent();
+    const fetchedAbout = await normalizedCmsContent(
+      'about',
+      fetchAboutCmsContent,
+      normalizeAboutContent,
+    );
     if (fetchedAbout?.heroTitle) {
-      const normalizedAbout = normalizeAboutContent(fetchedAbout);
+      const normalizedAbout = fetchedAbout;
       validateAboutContent(normalizedAbout);
       aboutContent = normalizedAbout;
       aboutSource = 'cms';
@@ -2263,9 +2555,13 @@ export async function build() {
   let contactContent = contactFallback;
   let contactSource = 'fallback';
   try {
-    const fetchedContact = await fetchContactCmsContent();
+    const fetchedContact = await normalizedCmsContent(
+      'contact',
+      fetchContactCmsContent,
+      normalizeContactContent,
+    );
     if (fetchedContact?.heroTitle) {
-      const normalizedContact = normalizeContactContent(fetchedContact);
+      const normalizedContact = fetchedContact;
       validateContactContent(normalizedContact);
       contactContent = normalizedContact;
       contactSource = 'cms';
@@ -2296,11 +2592,14 @@ export async function build() {
   let homeSource = 'fallback';
 
   try {
-    const fetchedHome = await fetchHomeCmsContent();
+    const fetchedHome = await normalizedCmsContent(
+      'home',
+      fetchHomeCmsContent,
+      normalizeHomeContent,
+    );
 
     if (fetchedHome?.heroTitle) {
-      const normalizedHome =
-        normalizeHomeContent(fetchedHome);
+      const normalizedHome = fetchedHome;
 
       validateHomeContent(normalizedHome);
       homeContent = normalizedHome;
