@@ -974,6 +974,36 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
   welcomeText,
   welcomeButtonLabel,
   welcomeButtonLink,
+  featuredNewsTitle,
+  featuredNewsIntro,
+  featuredNewsButtonLabel,
+  featuredNewsButtonLink,
+  "manualFeaturedNewsItems": featuredNewsItems[]->{
+    _id,
+    title,
+    "slug": slug.current,
+    publishedAt,
+    isVisible,
+    summary,
+    mainImageAlt,
+    "imageUrl": mainImage.asset->url
+  },
+  "automaticFeaturedNewsItems": *[
+    _type == "newsItem" &&
+    isVisible == true &&
+    isFeatured == true &&
+    defined(slug.current) &&
+    defined(publishedAt)
+  ] | order(publishedAt desc) [0...3] {
+    _id,
+    title,
+    "slug": slug.current,
+    publishedAt,
+    isVisible,
+    summary,
+    mainImageAlt,
+    "imageUrl": mainImage.asset->url
+  },
   visitTitle,
   visitText,
   visitPrimaryButtonLabel,
@@ -1034,6 +1064,98 @@ function normalizeHomeQuickLinks(value) {
     }));
 }
 
+function normalizeHomeNewsItem(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  if (value.isVisible !== true) {
+    return null;
+  }
+
+  const title = text(value.title, 96);
+  const slug = text(value.slug, 96).toLowerCase();
+  const summary = text(value.summary, 240);
+  const imageUrl = homeProjectPath(value.imageUrl, 'image');
+  const imageAlt = text(value.mainImageAlt, 160);
+  const publishedAt = text(value.publishedAt, 64);
+
+  if (
+    !title ||
+    !slug ||
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
+    !summary ||
+    !imageUrl ||
+    !imageAlt ||
+    !publishedAt
+  ) {
+    return null;
+  }
+
+  const date = new Date(publishedAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const buttonLink = homeProjectPath(
+    `pages/nieuwsbericht.html?slug=${encodeURIComponent(slug)}`,
+    'link',
+  );
+
+  if (!buttonLink) {
+    return null;
+  }
+
+  return {
+    id: text(value._id, 160),
+    title,
+    slug,
+    summary,
+    imageUrl,
+    imageAlt,
+    publishedAt: date.toISOString(),
+    buttonLink,
+  };
+}
+
+function normalizeHomeFeaturedNews(source) {
+  const manual = Array.isArray(source?.manualFeaturedNewsItems)
+    ? source.manualFeaturedNewsItems
+        .map(normalizeHomeNewsItem)
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+
+  if (manual.length) {
+    return {
+      selectionMode: 'manual',
+      items: manual,
+    };
+  }
+
+  const automatic = Array.isArray(
+    source?.automaticFeaturedNewsItems,
+  )
+    ? source.automaticFeaturedNewsItems
+        .map(normalizeHomeNewsItem)
+        .filter(Boolean)
+        .sort(
+          (left, right) =>
+            Date.parse(right.publishedAt) -
+            Date.parse(left.publishedAt),
+        )
+        .slice(0, 3)
+    : [];
+
+  return {
+    selectionMode: automatic.length
+      ? 'featured'
+      : 'empty',
+    items: automatic,
+  };
+}
+
 export function normalizeHomeContent(value) {
   const source =
     value && typeof value === 'object'
@@ -1064,6 +1186,23 @@ export function normalizeHomeContent(value) {
       source.welcomeButtonLink,
       'link',
     ),
+    featuredNewsTitle: text(
+      source.featuredNewsTitle,
+      120,
+    ),
+    featuredNewsIntro: text(
+      source.featuredNewsIntro,
+      300,
+    ),
+    featuredNewsButtonLabel: text(
+      source.featuredNewsButtonLabel,
+      80,
+    ),
+    featuredNewsButtonLink: homeProjectPath(
+      source.featuredNewsButtonLink,
+      'link',
+    ),
+    featuredNews: normalizeHomeFeaturedNews(source),
     visitTitle: text(source.visitTitle, 120),
     visitText: text(source.visitText, 600),
     visitPrimaryButtonLabel: text(
@@ -1184,6 +1323,100 @@ function renderHomeQuickLinks(items) {
       );
     })
     .join('');
+}
+
+function renderHomeFeaturedNews(content) {
+  const items = Array.isArray(content?.featuredNews?.items)
+    ? content.featuredNews.items
+    : [];
+
+  if (!items.length) {
+    return (
+      '<section class="homepage-section ' +
+      'homepage-section--featured-news" ' +
+      'data-homepage-featured-news hidden></section>'
+    );
+  }
+
+  const title = content.featuredNewsTitle
+    ? (
+        '<h2 id="homepage-featured-news-title">' +
+        `${escapeHtml(content.featuredNewsTitle)}</h2>`
+      )
+    : '';
+
+  const intro = content.featuredNewsIntro
+    ? `<p>${escapeHtml(content.featuredNewsIntro)}</p>`
+    : '';
+
+  const header =
+    title || intro
+      ? (
+          '<div class="homepage-section__header">' +
+          '<p class="homepage-section__eyebrow">Nieuws</p>' +
+          title +
+          intro +
+          '</div>'
+        )
+      : '';
+
+  const cards = items
+    .map(
+      (item) =>
+        '<article class="homepage-news-card">' +
+        '<div class="homepage-news-card__media">' +
+        `<img src="${escapeHtml(item.imageUrl)}" ` +
+        `alt="${escapeHtml(item.imageAlt)}" ` +
+        'loading="lazy" decoding="async">' +
+        '</div>' +
+        '<div class="homepage-news-card__content">' +
+        `<h3>${escapeHtml(item.title)}</h3>` +
+        `<p>${escapeHtml(item.summary)}</p>` +
+        renderHomeButton(
+          'Lees bericht',
+          item.buttonLink,
+        ) +
+        '</div>' +
+        '</article>',
+    )
+    .join('');
+
+  const overviewButton = renderHomeButton(
+    content.featuredNewsButtonLabel,
+    content.featuredNewsButtonLink,
+  );
+
+  const overview =
+    overviewButton
+      ? (
+          '<p class="homepage-actions ' +
+          'homepage-featured-news__actions">' +
+          overviewButton +
+          '</p>'
+        )
+      : '';
+
+  const accessibilityAttribute = title
+    ? ' aria-labelledby="homepage-featured-news-title"'
+    : ' aria-label="Uitgelicht nieuws"';
+
+  return (
+    '<section class="homepage-section ' +
+    'homepage-section--featured-news" ' +
+    'data-homepage-featured-news ' +
+    `data-homepage-featured-news-mode="${escapeHtml(
+      content.featuredNews.selectionMode,
+    )}"` +
+    accessibilityAttribute +
+    '>' +
+    header +
+    '<div class="homepage-news-grid" ' +
+    'data-homepage-featured-news-items>' +
+    cards +
+    '</div>' +
+    overview +
+    '</section>'
+  );
 }
 
 function replaceHomeText(
@@ -1318,6 +1551,13 @@ export function renderHomePage(
     /(<div class="homepage-card-grid" data-homepage-quicklinks>)[\s\S]*?(<\/div>\s*<\/section>)/,
     `$1${renderHomeQuickLinks(content.quickLinks)}$2`,
     'Homepage snelkoppelingen',
+  );
+
+  html = replaceRequired(
+    html,
+    /<section[^>]*data-homepage-featured-news[^>]*>[\s\S]*?<\/section>/,
+    renderHomeFeaturedNews(content),
+    'Homepage uitgelicht nieuws',
   );
 
   html = replaceRequired(

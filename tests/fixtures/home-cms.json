@@ -43,6 +43,45 @@
                    "visitPrimaryButtonLink":  "pages/contact.html",
                    "visitSecondaryButtonLabel":  "[TEST] Bekijk agenda",
                    "visitSecondaryButtonLink":  "pages/agenda.html",
-                   "heroImageAlt":  "[TEST] Zanggroep Spontaan tijdens een optreden"
+                   "heroImageAlt":  "[TEST] Zanggroep Spontaan tijdens een optreden",
+                   "featuredNewsTitle":  "[TEST] Uitgelicht nieuws",
+                   "featuredNewsIntro":  "[TEST] Bekijk een selectie van onze laatste nieuwsberichten.",
+                   "featuredNewsButtonLabel":  "[TEST] Bekijk al het nieuws",
+                   "featuredNewsButtonLink":  "pages/nieuws.html",
+                   "manualFeaturedNewsItems":  [
+                                                   {
+                                                       "_id":  "test-home-news-1",
+                                                       "title":  "[TEST] Terugblik op ons laatste optreden",
+                                                       "slug":  "test-terugblik-laatste-optreden",
+                                                       "publishedAt":  "2026-08-06T18:00:00.000Z",
+                                                       "isVisible":  true,
+                                                       "summary":  "[TEST] Een muzikale avond met samenzang en een enthousiast publiek.",
+                                                       "mainImageAlt":  "[TEST] Zanggroep Spontaan tijdens een optreden",
+                                                       "imageUrl":  "images/news/nieuws-terugblik-optreden.webp"
+                                                   },
+                                                   {
+                                                       "_id":  "test-home-news-2",
+                                                       "title":  "[TEST] Voorbereidingen voor het volgende optreden",
+                                                       "slug":  "test-voorbereidingen-volgende-optreden",
+                                                       "publishedAt":  "2026-08-03T18:00:00.000Z",
+                                                       "isVisible":  true,
+                                                       "summary":  "[TEST] Tijdens de repetities werken we aan repertoire en presentatie.",
+                                                       "mainImageAlt":  "[TEST] Voorbereiding op een optreden",
+                                                       "imageUrl":  "images/news/nieuws-optreden-voorbereiden.webp"
+                                                   },
+                                                   {
+                                                       "_id":  "test-home-news-3",
+                                                       "title":  "[TEST] Beeld en geluid van Spontaan",
+                                                       "slug":  "test-beeld-en-geluid-van-spontaan",
+                                                       "publishedAt":  "2026-07-29T18:00:00.000Z",
+                                                       "isVisible":  true,
+                                                       "summary":  "[TEST] Bekijk foto\u0027s en luister naar fragmenten van Zanggroep Spontaan.",
+                                                       "mainImageAlt":  "[TEST] Zanggroep Spontaan tijdens een muzikaal optreden",
+                                                       "imageUrl":  "images/media/beeld-en-geluid-hero.jpg"
+                                                   }
+                                               ],
+                   "automaticFeaturedNewsItems":  [
+
+                                                  ]
                }
 }
