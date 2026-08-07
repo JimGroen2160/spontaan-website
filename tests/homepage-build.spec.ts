@@ -81,6 +81,41 @@ test.describe('Gebouwde Homepage', () => {
       page.locator('[data-homepage-welcome-title]'),
     ).toHaveText('[TEST] Samen zingen met plezier');
 
+    const featuredNews = page.locator(
+      '[data-homepage-featured-news]',
+    );
+
+    await expect(featuredNews).toBeVisible();
+
+    await expect(featuredNews).toHaveAttribute(
+      'data-homepage-featured-news-mode',
+      'manual',
+    );
+
+    await expect(
+      featuredNews.locator('.homepage-news-card'),
+    ).toHaveCount(3);
+
+    await expect(
+      featuredNews.locator('h3'),
+    ).toHaveText([
+      '[TEST] Terugblik op ons laatste optreden',
+      '[TEST] Voorbereidingen voor het volgende optreden',
+      '[TEST] Beeld en geluid van Spontaan',
+    ]);
+
+    await expect(
+      featuredNews.locator(
+        'a[href="pages/nieuwsbericht.html?slug=test-terugblik-laatste-optreden"]',
+      ),
+    ).toBeVisible();
+
+    await expect(
+      featuredNews.locator(
+        'a[href="pages/nieuws.html"]',
+      ),
+    ).toHaveText('[TEST] Bekijk al het nieuws');
+
     await expect(
       page.locator('[data-homepage-visit-title]'),
     ).toHaveText('[TEST] Zing je mee met Spontaan?');

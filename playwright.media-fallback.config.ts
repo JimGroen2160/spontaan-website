@@ -42,10 +42,24 @@ export default defineConfig({
     command:
       'npm run build && npx http-server dist-media-fallback -p 5510 -c-1',
     env: {
-      VERCEL_ENV: 'production',
+      VERCEL_ENV: 'preview',
       SITE_OUTPUT_DIR: 'dist-media-fallback',
+
+      // Alle CMS-bronnen zijn deterministisch.
+      // Alleen Media faalt bewust, zodat de Media-fallback
+      // zonder live Sanity-afhankelijkheid wordt getest.
       MEDIA_BUILD_FIXTURE:
         'tests/fixtures/media-error.json',
+      REPERTOIRE_BUILD_FIXTURE:
+        'tests/fixtures/repertoire-cms.json',
+      FRIENDS_BUILD_FIXTURE:
+        'tests/fixtures/friends-cms.json',
+      ABOUT_BUILD_FIXTURE:
+        'data/about-fallback.json',
+      CONTACT_BUILD_FIXTURE:
+        'data/contact-fallback.json',
+      HOME_BUILD_FIXTURE:
+        'tests/fixtures/home-cms.json',
     },
     url: 'http://127.0.0.1:5510',
     reuseExistingServer: false,

@@ -91,7 +91,7 @@ jobs:
         id: playwright-tests
         run: npx playwright test
 
-      - name: Run production fallback media tests
+      - name: Run media fallback browser tests
         id: media-fallback-tests
         run: npm run test:media-fallback
 
@@ -156,7 +156,7 @@ jobs:
             echo "|---|---|---|"
             echo "| Algemene website-, accessibility-, login-, logout- en resettests | $playwright_status | Zie de Playwright-job voor het volledige testresultaat. |"
             echo "| Media build- en fallbackdatatests | $media_build_status | Valideert buildgedrag en vijf gevalideerde fallbackfoto's per album. |"
-            echo "| Media production/fallbackbrowsertests | $media_fallback_status | Valideert alle albums, cyclische navigatie, 50 foto-items, accessibility en responsive gedrag op Chromium, Firefox en WebKit. |"
+            echo "| Media fallbackbrowsertests | $media_fallback_status | Valideert alle albums, cyclische navigatie, 50 foto-items, accessibility en responsive gedrag op Chromium, Firefox en WebKit. |"
             echo "| Statusmutatie active/inactive met directe backendcontrole | NIET UITGEVOERD | Vereist service-role en afgeschermde testdata. |"
             echo "| Profielbewerking met apart testlid | NIET UITGEVOERD | Profieltest-secrets worden nog niet aan deze workflow aangeboden. |"
             echo "| Pending naar active | NIET UITGEVOERD | Vereist service-role en gedeelde Supabase-testdata. |"
