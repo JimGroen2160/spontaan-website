@@ -35,6 +35,15 @@ export const newsItem = defineType({
       initialValue: true,
     }),
     defineField({
+      name: 'isTestData',
+      title: 'Test- of demodata',
+      type: 'boolean',
+      description: 'Technische markering voor gecontroleerde test- en demodata.',
+      initialValue: false,
+      hidden: true,
+      readOnly: true,
+    }),
+    defineField({
       name: 'isFeatured',
       title: 'Uitgelicht op homepage',
       type: 'boolean',

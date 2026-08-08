@@ -984,6 +984,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     "slug": slug.current,
     publishedAt,
     isVisible,
+    isTestData,
     summary,
     mainImageAlt,
     "imageUrl": mainImage.asset->url
@@ -991,6 +992,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
   "automaticFeaturedNewsItems": *[
     _type == "newsItem" &&
     isVisible == true &&
+    isTestData != true &&
     isFeatured == true &&
     defined(slug.current) &&
     defined(publishedAt)
@@ -1069,7 +1071,10 @@ function normalizeHomeNewsItem(value) {
     return null;
   }
 
-  if (value.isVisible !== true) {
+  if (
+    value.isVisible !== true ||
+    value.isTestData === true
+  ) {
     return null;
   }
 

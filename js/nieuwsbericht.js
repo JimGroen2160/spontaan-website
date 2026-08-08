@@ -64,6 +64,7 @@
   const query = `*[
     _type == "newsItem" &&
     isVisible == true &&
+    isTestData != true &&
     slug.current == $slug
   ][0]{
     title,
