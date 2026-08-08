@@ -65,6 +65,7 @@
     _type == "eventItem" &&
     isVisible == true &&
     isPublic == true &&
+    isTestData != true &&
     eventType != "besloten" &&
     defined(startAt) &&
     startAt >= now()

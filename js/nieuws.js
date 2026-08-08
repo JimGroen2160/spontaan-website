@@ -66,6 +66,7 @@
   const query = `*[
     _type == "newsItem" &&
     isVisible == true &&
+    isTestData != true &&
     defined(slug.current)
   ] | order(publishedAt desc) {
     title,

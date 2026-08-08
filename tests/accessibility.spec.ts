@@ -9,6 +9,7 @@ const pages = [
   { name: 'media', path: '/pages/media.html' },
   { name: 'repertoire', path: '/pages/repertoire.html' },
   { name: 'nieuws', path: '/pages/nieuws.html' },
+  { name: 'nieuwsdetail', path: '/pages/nieuwsbericht.html?slug=spontaan-zingt-tijdens-een-sfeervolle-zomeravond' },
   { name: 'vrienden', path: '/pages/vrienden.html' },
   { name: 'contact', path: '/pages/contact.html' },
   { name: 'ledenlogin', path: '/leden/login.html' },
