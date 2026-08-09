@@ -7,7 +7,7 @@ const TEXT_EXTENSIONS = new Set([
   '.css', '.html', '.js', '.json', '.md', '.mjs', '.sql', '.ts', '.txt', '.yml', '.yaml',
 ]);
 const EXCLUDED_DIRECTORIES = new Set([
-  '.git', '.lighthouseci', 'Downloads', 'dist', 'node_modules', 'playwright-report', 'test-results',
+  '.git', '.lighthouseci', 'Downloads', 'dist', 'node_modules', 'playwright-report', 'test-output', 'test-results',
 ]);
 
 const SUSPICIOUS_SEQUENCES = [

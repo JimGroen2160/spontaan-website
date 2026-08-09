@@ -20,3 +20,5 @@ node_modules/
 /.lighthouseci/
 
 /dist-media-fallback/
+
+/test-output/
