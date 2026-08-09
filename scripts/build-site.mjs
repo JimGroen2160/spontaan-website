@@ -2462,14 +2462,23 @@ async function normalizedCmsContent(
   return content;
 }
 
-async function prepareProductionCmsContent(
+async function prepareStrictCmsContent(
   runtimeConfig,
+  environment = process.env,
 ) {
-  if (
-    runtimeConfig.environment !== 'production'
-  ) {
+  const isProduction =
+    runtimeConfig.environment === 'production';
+
+  const isAcceptancePreview =
+    runtimeConfig.environment === 'preview' &&
+    environment.VERCEL_GIT_COMMIT_REF?.trim() === 'acceptance';
+
+  if (!isProduction && !isAcceptancePreview) {
     return;
   }
+
+  const validationContext =
+    isProduction ? 'Production' : 'Acceptatie';
 
   const definitions = [
     {
@@ -2571,7 +2580,7 @@ async function prepareProductionCmsContent(
         definition.validate(content);
         assertNoMojibake(
           content,
-          `Production CMS-inhoud ${definition.label}`,
+          `${validationContext} CMS-inhoud ${definition.label}`,
         );
         preparedEntries.set(
           definition.key,
@@ -2591,7 +2600,7 @@ async function prepareProductionCmsContent(
 
   if (errors.length > 0) {
     throw new Error(
-      'Production-CMS-validatie mislukt:\n' +
+      `${validationContext}-CMS-validatie mislukt:\n` +
       errors.join('\n'),
     );
   }
@@ -2623,7 +2632,7 @@ export async function build() {
   preparedCmsContent.clear();
 
   await checkProjectEncoding(ROOT);
-  await prepareProductionCmsContent(
+  await prepareStrictCmsContent(
     runtimeConfig,
   );
   const fallback = normalizeContent(JSON.parse(await readFile(FALLBACK, 'utf8')));

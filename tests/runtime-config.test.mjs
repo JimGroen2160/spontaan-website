@@ -264,12 +264,14 @@ function productionBuildEnvironment({
   outputDirectory,
   fixtures,
   vercelEnvironment = 'production',
+  gitCommitRef,
 }) {
   const environment = {...process.env};
 
   for (const name of [
     ...allBuildFixtureNames,
     'VERCEL_ENV',
+    'VERCEL_GIT_COMMIT_REF',
     'SANITY_DATASET',
     'SITE_OUTPUT_DIR',
   ]) {
@@ -279,6 +281,9 @@ function productionBuildEnvironment({
   return {
     ...environment,
     VERCEL_ENV: vercelEnvironment,
+    ...(gitCommitRef
+      ? {VERCEL_GIT_COMMIT_REF: gitCommitRef}
+      : {}),
     SANITY_DATASET:
       vercelEnvironment === 'production'
         ? 'production'
@@ -307,7 +312,7 @@ test(
   'Production bouwt uitsluitend met zes geldige CMS-bronnen',
   async () => {
     const outputDirectory =
-      'Downloads/test-production-cms-gate-success';
+      'test-output/test-production-cms-gate-success';
 
     await rm(outputDirectory, {
       recursive: true,
@@ -369,7 +374,7 @@ test(
   'Production verzamelt zes fouten en behoudt bestaande output',
   async () => {
     const testRoot =
-      'Downloads/test-production-cms-gate-failure';
+      'test-output/test-production-cms-gate-failure';
 
     const outputDirectory =
       `${testRoot}/output`;
@@ -486,10 +491,174 @@ test(
 );
 
 test(
+  'Acceptatie-Preview bouwt uitsluitend met zes geldige CMS-bronnen',
+  async () => {
+    const outputDirectory =
+      'test-output/test-acceptance-cms-gate-success';
+
+    await rm(outputDirectory, {
+      recursive: true,
+      force: true,
+    });
+
+    try {
+      const result = await exec(
+        process.execPath,
+        ['scripts/build-site.mjs'],
+        {
+          env: productionBuildEnvironment({
+            outputDirectory,
+            fixtures: validProductionFixtures,
+            vercelEnvironment: 'preview',
+            gitCommitRef: 'acceptance',
+          }),
+        },
+      );
+
+      for (const name of [
+        'MEDIA',
+        'REPERTOIRE',
+        'FRIENDS',
+        'ABOUT',
+        'CONTACT',
+        'HOME',
+      ]) {
+        assert.match(
+          result.stdout,
+          new RegExp(`${name} BUILD: cms`),
+        );
+      }
+
+      const runtimeConfig = await readFile(
+        `${outputDirectory}/js/runtime-config.js`,
+        'utf8',
+      );
+
+      assert.match(
+        runtimeConfig,
+        /"dataset":"development"/,
+      );
+
+      assert.match(
+        runtimeConfig,
+        /"environment":"preview"/,
+      );
+    } finally {
+      await rm(outputDirectory, {
+        recursive: true,
+        force: true,
+      });
+    }
+  },
+);
+
+test(
+  'Acceptatie-Preview weigert ontbrekende CMS-documenten en behoudt bestaande output',
+  async () => {
+    const testRoot =
+      'test-output/test-acceptance-cms-gate-failure';
+
+    const outputDirectory =
+      `${testRoot}/output`;
+
+    const missingFixture =
+      `${testRoot}/missing.json`;
+
+    const sentinelFile =
+      `${outputDirectory}/bestaande-output.txt`;
+
+    const sentinelText =
+      'Deze bestaande output mag niet worden gewijzigd.';
+
+    await rm(testRoot, {
+      recursive: true,
+      force: true,
+    });
+
+    await mkdir(outputDirectory, {
+      recursive: true,
+    });
+
+    await writeFile(
+      missingFixture,
+      JSON.stringify({result: null}),
+      'utf8',
+    );
+
+    await writeFile(
+      sentinelFile,
+      sentinelText,
+      'utf8',
+    );
+
+    const missingFixtures =
+      Object.fromEntries(
+        allBuildFixtureNames.map(
+          (name) => [name, missingFixture],
+        ),
+      );
+
+    try {
+      await assert.rejects(
+        exec(
+          process.execPath,
+          ['scripts/build-site.mjs'],
+          {
+            env: productionBuildEnvironment({
+              outputDirectory,
+              fixtures: missingFixtures,
+              vercelEnvironment: 'preview',
+              gitCommitRef: 'acceptance',
+            }),
+          },
+        ),
+        (error) => {
+          const combined =
+            `${error.stdout || ''}\n` +
+            `${error.stderr || ''}`;
+
+          assert.match(
+            combined,
+            /Acceptatie-CMS-validatie mislukt/,
+          );
+
+          assert.doesNotMatch(
+            combined,
+            /BUILD: fallback ->/,
+          );
+
+          return true;
+        },
+      );
+
+      assert.equal(
+        await readFile(
+          sentinelFile,
+          'utf8',
+        ),
+        sentinelText,
+      );
+
+      await assert.rejects(
+        readFile(
+          `${outputDirectory}/js/runtime-config.js`,
+          'utf8',
+        ),
+        /ENOENT/,
+      );
+    } finally {
+      await rm(testRoot, {
+        recursive: true,
+        force: true,
+      });
+    }
+  },
+);
+test(
   'Preview behoudt fallback bij zes ontbrekende CMS-documenten',
   async () => {
     const testRoot =
-      'Downloads/test-preview-cms-fallback';
+      'test-output/test-preview-cms-fallback';
 
     const outputDirectory =
       `${testRoot}/output`;
@@ -528,6 +697,7 @@ test(
             outputDirectory,
             fixtures: missingFixtures,
             vercelEnvironment: 'preview',
+            gitCommitRef: 'o/test-preview',
           }),
         },
       );
@@ -575,7 +745,7 @@ test(
   'Production weigert onvolledige Media-inhoud en behoudt output',
   async () => {
     const testRoot =
-      'Downloads/test-production-invalid-media';
+      'test-output/test-production-invalid-media';
     const outputDirectory =
       `${testRoot}/output`;
     const fixtureFile =
@@ -726,7 +896,7 @@ test(
 
     for (const [index, testCase] of cases.entries()) {
       const testRoot =
-        `Downloads/test-production-mojibake-${index + 1}`;
+        `test-output/test-production-mojibake-${index + 1}`;
       const outputDirectory =
         `${testRoot}/output`;
       const fixtureFile =
