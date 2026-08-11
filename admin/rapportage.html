@@ -229,7 +229,7 @@
         }
 
         const profile = await window.authHelpers.getCurrentProfile();
-        if (!profile || profile.role !== "admin" || profile.status !== "active") {
+        if (!profile || !["admin", "contentmanager"].includes(profile.role) || profile.status !== "active") {
           window.location.href = loginPath;
           return;
         }

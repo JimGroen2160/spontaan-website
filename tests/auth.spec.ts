@@ -7,6 +7,9 @@ const ADMIN_DISPLAY_NAME = process.env.TEST_ADMIN_DISPLAY_NAME;
 const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL;
 const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD;
 const MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_DISPLAY_NAME;
+const CONTENTMANAGER_EMAIL = process.env.TEST_CONTENTMANAGER_EMAIL;
+const CONTENTMANAGER_PASSWORD = process.env.TEST_CONTENTMANAGER_PASSWORD;
+const CONTENTMANAGER_DISPLAY_NAME = process.env.TEST_CONTENTMANAGER_DISPLAY_NAME;
 const PENDING_MEMBER_EMAIL = process.env.TEST_MEMBER_PENDING_EMAIL;
 const PENDING_MEMBER_PASSWORD = process.env.TEST_MEMBER_PENDING_PASSWORD;
 const PENDING_MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_PENDING_DISPLAY_NAME;
@@ -43,6 +46,16 @@ if (!MEMBER_EMAIL || !MEMBER_PASSWORD) {
 
 if (!MEMBER_DISPLAY_NAME) {
   throw new Error('Missing required environment variable: TEST_MEMBER_DISPLAY_NAME');
+}
+
+if (!CONTENTMANAGER_EMAIL || !CONTENTMANAGER_PASSWORD) {
+  throw new Error(
+    'Missing required environment variables: TEST_CONTENTMANAGER_EMAIL and/or TEST_CONTENTMANAGER_PASSWORD'
+  );
+}
+
+if (!CONTENTMANAGER_DISPLAY_NAME) {
+  throw new Error('Missing required environment variable: TEST_CONTENTMANAGER_DISPLAY_NAME');
 }
 
 const CONTROLLED_MEMBERS = Array.from({ length: 55 }, (_, index) => {
@@ -219,6 +232,7 @@ async function loginAsAdmin(page) {
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', VALID_EMAIL!);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', VALID_PASSWORD!);
   await page.click('button[type="submit"]');
 
@@ -226,10 +240,24 @@ async function loginAsAdmin(page) {
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
+async function protectPasswordFromFailureArtifacts(page) {
+  await page.evaluate(() => {
+    const form = document.getElementById('login-form');
+    const password = document.getElementById('password');
+
+    form?.addEventListener('submit', () => {
+      if (password instanceof HTMLInputElement) {
+        password.value = '';
+      }
+    });
+  });
+}
+
 async function loginAsMember(page) {
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', MEMBER_EMAIL!);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', MEMBER_PASSWORD!);
   await page.click('button[type="submit"]');
 
@@ -237,6 +265,17 @@ async function loginAsMember(page) {
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
+async function loginAsContentmanager(page) {
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', CONTENTMANAGER_EMAIL!);
+  await protectPasswordFromFailureArtifacts(page);
+  await page.fill('#password', CONTENTMANAGER_PASSWORD!);
+  await page.click('button[type="submit"]');
+
+  await page.waitForURL(/dashboard.html/, { timeout: 15000 });
+  await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
+}
 async function waitForLedenlijstReady(page) {
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Ledenbeheer is geladen.', {
     timeout: 15000,
@@ -255,7 +294,7 @@ async function openAdminAndWaitUntilReady(page) {
   await page.goto('http://localhost:5500/admin/index.html');
 
   await expect(page).toHaveURL(/admin\/index\.html/);
-  await expect(page.locator('main')).toContainText('Welkom (Admin)');
+  await expect(page.locator('main')).toContainText('Welkom in de beheeromgeving');
   await expect(page.locator('#ledenbeheer')).toBeVisible();
   await expect(page.locator('#nieuw-lid-form')).toBeVisible();
 
@@ -368,7 +407,7 @@ async function openAdminWithControlledMembers(page) {
   await page.goto('http://localhost:5500/admin/index.html');
 
   await expect(page).toHaveURL(/admin\/index\.html/);
-  await expect(page.locator('main')).toContainText('Welkom (Admin)');
+  await expect(page.locator('main')).toContainText('Welkom in de beheeromgeving');
   await expect(page.locator('#ledenbeheer')).toBeVisible();
   await expect(page.locator('#nieuw-lid-form')).toBeVisible();
 
@@ -456,11 +495,27 @@ test('Ingelogde member kan adminpagina niet openen', async ({ page }) => {
   await expect(page).toHaveURL(/login\.html/);
 });
 
-test('Ingelogde admin ziet navigatie naar adminomgeving op dashboard', async ({ page }) => {
+test('Ingelogde contentmanager kan beheeromgeving openen', async ({ page }) => {
+  await loginAsContentmanager(page);
+  await openAdminAndWaitUntilReady(page);
+});
+
+test('Ingelogde contentmanager ziet navigatie naar beheeromgeving op dashboard', async ({ page }) => {
+  await loginAsContentmanager(page);
+
+  await expect(page.locator('#admin-link')).toBeVisible();
+  await expect(page.locator('#admin-link')).toContainText('Naar beheeromgeving');
+
+  await page.click('#admin-link');
+
+  await expect(page).toHaveURL(/admin\/index.html/);
+  await expect(page.locator('#ledenbeheer')).toBeVisible();
+});
+test('Ingelogde admin ziet navigatie naar beheeromgeving op dashboard', async ({ page }) => {
   await loginAsAdmin(page);
 
   await expect(page.locator('#admin-link')).toBeVisible();
-  await expect(page.locator('#admin-link')).toContainText('Naar adminomgeving');
+  await expect(page.locator('#admin-link')).toContainText('Naar beheeromgeving');
 
   await page.click('#admin-link');
 
@@ -468,7 +523,7 @@ test('Ingelogde admin ziet navigatie naar adminomgeving op dashboard', async ({ 
   await expect(page.locator('#ledenbeheer')).toBeVisible();
 });
 
-test('Ingelogde member ziet geen navigatie naar adminomgeving op dashboard', async ({ page }) => {
+test('Ingelogde member ziet geen navigatie naar beheeromgeving op dashboard', async ({ page }) => {
   await loginAsMember(page);
 
   await expect(page.locator('#admin-link')).toBeHidden();
@@ -677,6 +732,39 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
   await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toContainText('Deactiveren');
 });
 
+test('Ingelogde contentmanager ziet beheeracties voor gewone member', async ({ page }) => {
+  await loginAsContentmanager(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const memberRow = await openMemberActionMenu(page);
+
+  await expect(memberRow.locator('.ledenbeheer-menu-action.edit')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-menu-action.edit')).toContainText('Bewerken');
+  await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toContainText('Deactiveren');
+});
+
+test('Ingelogde contentmanager krijgt geen beheeracties voor beheeraccounts', async ({ page }) => {
+  await loginAsContentmanager(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await page.fill('#ledenbeheer-zoek', ADMIN_DISPLAY_NAME!);
+
+  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: ADMIN_DISPLAY_NAME });
+  await expect(adminRow).toBeVisible();
+  await expect(adminRow).toContainText('Beheeraccount');
+  await expect(adminRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
+
+  await page.fill('#ledenbeheer-zoek', CONTENTMANAGER_DISPLAY_NAME!);
+
+  const contentmanagerRow = page
+    .locator('#ledenbeheer-lijst-body tr')
+    .filter({ hasText: CONTENTMANAGER_DISPLAY_NAME });
+
+  await expect(contentmanagerRow).toBeVisible();
+  await expect(contentmanagerRow).toContainText('Eigen account');
+  await expect(contentmanagerRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
+});
 // Test statusmutatie: active -> inactive -> active met exacte assertions
 test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, browserName }) => {
   // Deze test wijzigt Supabase-testdata en mag niet parallel draaien in meerdere browsers.
@@ -1364,6 +1452,7 @@ test('Pending lid wordt automatisch geactiveerd bij dashboard-login', async ({ p
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', PENDING_MEMBER_EMAIL);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', PENDING_MEMBER_PASSWORD);
   await page.click('button[type="submit"]');
 
@@ -1401,6 +1490,7 @@ test('Inactief lid krijgt geen toegang tot dashboard', async ({ page, browserNam
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', INACTIVE_MEMBER_EMAIL);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', INACTIVE_MEMBER_PASSWORD);
   await page.click('button[type="submit"]');
 

@@ -506,6 +506,10 @@
       return "Eigen account";
     }
 
+    if (currentProfile?.role === "contentmanager" && role !== "member") {
+      return isCurrentUser ? "Eigen account" : "Beheeraccount";
+    }
+
     let statusActie = "";
 
     if (status === "active") {

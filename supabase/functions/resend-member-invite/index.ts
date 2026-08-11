@@ -123,25 +123,25 @@ Deno.serve(async (req: Request) => {
       },
     });
 
-    const { data: adminProfile, error: adminProfileError } = await adminClient
+    const { data: managerProfile, error: managerProfileError } = await adminClient
       .from("profiles")
       .select("auth_user_id, role, status")
       .eq("auth_user_id", userId)
       .single();
 
-    if (adminProfileError || !adminProfile) {
-      console.error("Adminprofiel fout:", adminProfileError);
+    if (managerProfileError || !managerProfile) {
+      console.error("Beheerprofiel fout:", managerProfileError);
       return jsonResponse(
         {
           success: false,
           code: "FORBIDDEN",
-          message: "Profiel van admin is niet beschikbaar.",
+          message: "Beheerprofiel is niet beschikbaar.",
         },
         403,
       );
     }
 
-    if (adminProfile.role !== "admin" || adminProfile.status !== "active") {
+    if (!["admin", "contentmanager"].includes(managerProfile.role) || managerProfile.status !== "active") {
       return jsonResponse(
         {
           success: false,
