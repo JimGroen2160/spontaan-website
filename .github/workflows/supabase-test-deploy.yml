@@ -101,8 +101,8 @@ jobs:
       - name: Check Edge Functions
         shell: bash
         run: |
-          deno check supabase/functions/create-member/index.ts
-          deno check supabase/functions/resend-member-invite/index.ts
+          deno check --node-modules-dir=auto supabase/functions/create-member/index.ts
+          deno check --node-modules-dir=auto supabase/functions/resend-member-invite/index.ts
 
   deploy-test:
     name: Deploy to Supabase test
