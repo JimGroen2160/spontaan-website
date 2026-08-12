@@ -104,81 +104,9 @@ jobs:
           deno check --node-modules-dir=auto supabase/functions/create-member/index.ts
           deno check --node-modules-dir=auto supabase/functions/resend-member-invite/index.ts
 
-  # TIJDELIJKE EENMALIGE REPAIR:
-  # De drie profiles-basismigraties zijn eerder handmatig in Supabase TEST
-  # uitgevoerd en ontbreken daardoor alleen in de CLI-migratiehistorie.
-  # Na succesvolle history-repair en TEST-deployment verwijderen.
-  repair-history:
-    name: Repair Supabase test migration history
-    needs: validate
-    if: github.event_name == 'pull_request' && github.head_ref == 'o/contentmanager-rbac-contentbeheer'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: supabase-test
-
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v2
-        with:
-          version: 2.101.0
-
-      - name: Verify Supabase credentials
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
-            echo "SUPABASE_ACCESS_TOKEN ontbreekt."
-            exit 1
-          fi
-
-          if [ -z "${SUPABASE_DB_PASSWORD:-}" ]; then
-            echo "SUPABASE_DB_PASSWORD ontbreekt."
-            exit 1
-          fi
-
-      - name: Verify CLI and fixed test target
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          supabase --version
-
-          if [ "$SUPABASE_TEST_PROJECT_REF" != "lldmyfvhjypomxfpltlx" ]; then
-            echo "STOP: onverwachte Supabase project-ref."
-            exit 1
-          fi
-
-          echo "Doelproject bevestigd: $SUPABASE_TEST_PROJECT_REF"
-
-      - name: Link Supabase test project
-        run: supabase link --project-ref "$SUPABASE_TEST_PROJECT_REF"
-
-      - name: Show migration state before repair
-        run: supabase migration list --linked
-
-      - name: Mark historical migrations as applied
-        run: >
-          supabase migration repair
-          20260625120001
-          20260625120002
-          20260625120003
-          --status applied
-          --linked
-
-      - name: Verify migration state after repair
-        run: supabase migration list --linked
-
   preview-test:
     name: Preview Supabase test database migrations
-    needs: repair-history
+    needs: validate
     if: github.event_name == 'workflow_dispatch' || github.head_ref == 'o/contentmanager-rbac-contentbeheer'
     runs-on: ubuntu-latest
     timeout-minutes: 15
