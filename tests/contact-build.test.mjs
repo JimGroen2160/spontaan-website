@@ -13,6 +13,12 @@ import {
 } from '../scripts/build-site.mjs'
 
 const exec = promisify(execFile)
+
+const TEST_BROWSER_SUPABASE_ENV = {
+  SUPABASE_URL: 'https://synthetic-test-project.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic_test_only',
+}
+
 const fallback = JSON.parse(await readFile('data/contact-fallback.json', 'utf8'))
 const template = await readFile('build/contact.template.html', 'utf8')
 
@@ -188,6 +194,7 @@ test('gedeelde navigatie en footer worden elk precies eenmaal ingebed', async ()
 test('gerichte build levert CMS- en fallbackoutput zonder runtime-Sanity-fetch', async () => {
   const common = {
     ...process.env,
+    ...TEST_BROWSER_SUPABASE_ENV,
     MEDIA_BUILD_FIXTURE: 'tests/fixtures/media-cms.json',
     REPERTOIRE_BUILD_FIXTURE: 'tests/fixtures/repertoire-cms.json',
     FRIENDS_BUILD_FIXTURE: 'tests/fixtures/friends-cms.json',

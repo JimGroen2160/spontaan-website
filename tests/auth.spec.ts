@@ -25,8 +25,8 @@ const CREATE_MEMBER_EMAIL = process.env.TEST_CREATE_MEMBER_EMAIL;
 const CREATE_MEMBER_DISPLAY_NAME = process.env.TEST_CREATE_MEMBER_DISPLAY_NAME;
 const CREATE_MEMBER_E2E_ENABLED = process.env.TEST_CREATE_MEMBER_E2E_ENABLED === 'true';
 const RESEND_MEMBER_INVITE_E2E_ENABLED = process.env.TEST_RESEND_MEMBER_INVITE_E2E_ENABLED === 'true';
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const TEST_SUPABASE_URL = process.env.TEST_SUPABASE_URL;
+const TEST_SUPABASE_SERVICE_ROLE_KEY = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!VALID_EMAIL || !VALID_PASSWORD) {
   throw new Error(
@@ -82,11 +82,11 @@ const CONTROLLED_MEMBERS = Array.from({ length: 55 }, (_, index) => {
 });
 
 function getSupabaseAdminClient() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
     return null;
   }
 
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  return createClient(TEST_SUPABASE_URL, TEST_SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -99,7 +99,7 @@ async function findAuthUserByEmailForCleanup(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const targetEmail = email.trim().toLowerCase();
@@ -135,7 +135,7 @@ async function cleanupCreateMemberTestIdentity(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const targetEmail = email.trim().toLowerCase();
@@ -164,7 +164,7 @@ async function getCreateMemberProfile(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -184,7 +184,7 @@ async function setTestProfileStatus(email: string, status: 'pending' | 'active' 
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -212,7 +212,7 @@ async function getTestProfileStatus(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -446,7 +446,7 @@ async function getTestProfileDetails(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -750,7 +750,7 @@ test('Ingelogde contentmanager krijgt geen beheeracties voor beheeraccounts', as
 
   await page.fill('#ledenbeheer-zoek', ADMIN_DISPLAY_NAME!);
 
-  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: ADMIN_DISPLAY_NAME });
+  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: VALID_EMAIL! });
   await expect(adminRow).toBeVisible();
   await expect(adminRow).toContainText('Beheeraccount');
   await expect(adminRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
@@ -759,7 +759,7 @@ test('Ingelogde contentmanager krijgt geen beheeracties voor beheeraccounts', as
 
   const contentmanagerRow = page
     .locator('#ledenbeheer-lijst-body tr')
-    .filter({ hasText: CONTENTMANAGER_DISPLAY_NAME });
+    .filter({ hasText: CONTENTMANAGER_EMAIL! });
 
   await expect(contentmanagerRow).toBeVisible();
   await expect(contentmanagerRow).toContainText('Eigen account');
@@ -776,8 +776,8 @@ test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, brows
   test.skip(
     !STATUS_MEMBER_EMAIL ||
       !STATUS_MEMBER_DISPLAY_NAME ||
-      !process.env.SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY,
+      !process.env.TEST_SUPABASE_URL ||
+      !process.env.TEST_SUPABASE_SERVICE_ROLE_KEY,
     'Statusmutatie-testidentity of Supabase service credentials ontbreken.'
   );
 
@@ -922,7 +922,7 @@ test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstell
     );
   }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
     test.skip(true, 'Supabase service credentials ontbreken voor backend- en persistentiecontrole.');
   }
 
@@ -1322,8 +1322,8 @@ test('Ingelogde admin kan pending lid opnieuw uitnodigen via opt-in test', async
   test.skip(
     !PENDING_MEMBER_EMAIL ||
       !PENDING_MEMBER_DISPLAY_NAME ||
-      !process.env.SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY,
+      !process.env.TEST_SUPABASE_URL ||
+      !process.env.TEST_SUPABASE_SERVICE_ROLE_KEY,
     'Pending testidentity of Supabase service credentials ontbreken.'
   );
 
@@ -1373,8 +1373,8 @@ test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', asy
     return;
   }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    test.skip(true, 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ontbreekt; cleanup en controle zijn niet mogelijk.');
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'TEST_SUPABASE_URL/TEST_SUPABASE_SERVICE_ROLE_KEY ontbreekt; cleanup en controle zijn niet mogelijk.');
     return;
   }
 
@@ -1440,8 +1440,8 @@ test('Pending lid wordt automatisch geactiveerd bij dashboard-login', async ({ p
   }
 
   // Skip als Supabase service-role configuratie ontbreekt
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    test.skip(true, 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ontbreekt; pending activatie-test wordt overgeslagen.');
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'TEST_SUPABASE_URL/TEST_SUPABASE_SERVICE_ROLE_KEY ontbreekt; pending activatie-test wordt overgeslagen.');
     return;
   }
 

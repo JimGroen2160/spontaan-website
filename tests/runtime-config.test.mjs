@@ -11,39 +11,66 @@ import test from 'node:test';
 
 import {
   resolveRuntimeConfig,
+  resolveSupabaseBrowserConfig,
   runtimeConfigSource,
 } from '../scripts/build-site.mjs';
 
 const exec = promisify(execFile);
 
+const TEST_BROWSER_SUPABASE_URL =
+  'https://synthetic-test-project.supabase.co';
+const TEST_BROWSER_SUPABASE_KEY =
+  'sb_publishable_synthetic_test_only';
+
+function withBrowserSupabase(environment = {}) {
+  return {
+    SUPABASE_URL: TEST_BROWSER_SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY:
+      TEST_BROWSER_SUPABASE_KEY,
+    ...environment,
+  };
+}
+
 test('runtimeconfig volgt development, Preview en Production', () => {
-  assert.deepEqual(resolveRuntimeConfig({}), {
+  assert.deepEqual(resolveRuntimeConfig(withBrowserSupabase()), {
     projectId: 'u66p1mxm',
     dataset: 'development',
     apiVersion: '2026-07-06',
     environment: 'development',
     allowDemo: true,
+    supabase: {
+      url: TEST_BROWSER_SUPABASE_URL,
+      publishableKey: TEST_BROWSER_SUPABASE_KEY,
+    },
   });
 
   assert.deepEqual(
-    resolveRuntimeConfig({VERCEL_ENV: 'preview'}),
+    resolveRuntimeConfig(withBrowserSupabase({VERCEL_ENV: 'preview'})),
     {
       projectId: 'u66p1mxm',
       dataset: 'development',
       apiVersion: '2026-07-06',
       environment: 'preview',
       allowDemo: true,
+      supabase: {
+        url: TEST_BROWSER_SUPABASE_URL,
+        publishableKey: TEST_BROWSER_SUPABASE_KEY,
+      },
     },
   );
 
   assert.deepEqual(
-    resolveRuntimeConfig({VERCEL_ENV: 'production'}),
+    resolveRuntimeConfig(withBrowserSupabase({VERCEL_ENV: 'production'})),
     {
       projectId: 'u66p1mxm',
       dataset: 'production',
       apiVersion: '2026-07-06',
       environment: 'production',
       allowDemo: false,
+      supabase: {
+        url: TEST_BROWSER_SUPABASE_URL,
+        publishableKey: TEST_BROWSER_SUPABASE_KEY,
+      },
     },
   );
 });
@@ -77,7 +104,7 @@ test('runtimeconfig weigert iedere OTAP-datasetmismatch', () => {
 
   invalidCombinations.forEach(({environment, message}) => {
     assert.throws(
-      () => resolveRuntimeConfig(environment),
+      () => resolveRuntimeConfig(withBrowserSupabase(environment)),
       (error) =>
         error instanceof Error &&
         error.message === message,
@@ -87,25 +114,25 @@ test('runtimeconfig weigert iedere OTAP-datasetmismatch', () => {
 
 test('expliciete geldige OTAP-datasets blijven toegestaan', () => {
   assert.equal(
-    resolveRuntimeConfig({
+    resolveRuntimeConfig(withBrowserSupabase({
       SANITY_DATASET: 'development',
-    }).dataset,
+    })).dataset,
     'development',
   );
 
   assert.equal(
-    resolveRuntimeConfig({
+    resolveRuntimeConfig(withBrowserSupabase({
       VERCEL_ENV: 'preview',
       SANITY_DATASET: 'development',
-    }).dataset,
+    })).dataset,
     'development',
   );
 
   assert.equal(
-    resolveRuntimeConfig({
+    resolveRuntimeConfig(withBrowserSupabase({
       VERCEL_ENV: 'production',
       SANITY_DATASET: 'production',
-    }).dataset,
+    })).dataset,
     'production',
   );
 });
@@ -113,18 +140,70 @@ test('expliciete geldige OTAP-datasets blijven toegestaan', () => {
 test('runtimeconfig weigert een onbekende dataset', () => {
   assert.throws(
     () =>
-      resolveRuntimeConfig({
+      resolveRuntimeConfig(withBrowserSupabase({
         SANITY_DATASET: 'acceptance',
-      }),
+      })),
     /Ongeldige Sanity-dataset: acceptance/,
   );
 });
 
+test('Supabase browserconfig vereist URL en publishable key', () => {
+  assert.throws(
+    () => resolveSupabaseBrowserConfig({}),
+    /SUPABASE_URL ontbreekt/,
+  );
+
+  assert.throws(
+    () =>
+      resolveSupabaseBrowserConfig({
+        SUPABASE_URL:
+          TEST_BROWSER_SUPABASE_URL,
+      }),
+    /SUPABASE_PUBLISHABLE_KEY ontbreekt/,
+  );
+});
+
+test('Supabase browserconfig weigert onveilige configuratie', () => {
+  assert.throws(
+    () =>
+      resolveSupabaseBrowserConfig({
+        SUPABASE_URL:
+          'http://synthetic-test-project.supabase.co',
+        SUPABASE_PUBLISHABLE_KEY:
+          TEST_BROWSER_SUPABASE_KEY,
+      }),
+    /SUPABASE_URL moet HTTPS gebruiken/,
+  );
+
+  assert.throws(
+    () =>
+      resolveSupabaseBrowserConfig({
+        SUPABASE_URL:
+          'https://user:password@synthetic-test-project.supabase.co',
+        SUPABASE_PUBLISHABLE_KEY:
+          TEST_BROWSER_SUPABASE_KEY,
+      }),
+    /SUPABASE_URL mag geen credentials bevatten/,
+  );
+
+  assert.throws(
+    () =>
+      resolveSupabaseBrowserConfig({
+        SUPABASE_URL:
+          TEST_BROWSER_SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY:
+          'service_role_mag_niet',
+      }),
+    /moet een publishable key zijn/,
+  );
+});
 test('runtimeconfig bevat geen geheime omgevingswaarden', () => {
-  const source = runtimeConfigSource({
+  const source = runtimeConfigSource(withBrowserSupabase({
     VERCEL_ENV: 'production',
     SANITY_API_TOKEN: 'nooit-publiceren',
-  });
+    SUPABASE_SERVICE_ROLE_KEY:
+      'service-role-nooit-publiceren',
+  }));
 
   assert.match(
     source,
@@ -133,7 +212,21 @@ test('runtimeconfig bevat geen geheime omgevingswaarden', () => {
   assert.match(source, /"dataset":"production"/);
   assert.match(source, /"environment":"production"/);
   assert.match(source, /"allowDemo":false/);
+  assert.match(source, /"supabase":/);
+  assert.match(
+    source,
+    /synthetic-test-project\.supabase\.co/,
+  );
+  assert.match(
+    source,
+    /sb_publishable_synthetic_test_only/,
+  );
   assert.doesNotMatch(source, /SANITY_API_TOKEN/);
+  assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(
+    source,
+    /service-role-nooit-publiceren/,
+  );
   assert.doesNotMatch(source, /nooit-publiceren/);
 });
 
@@ -203,6 +296,10 @@ test('build schrijft config en scriptreferenties naar alternatieve output', asyn
           ...process.env,
           SITE_OUTPUT_DIR: outputDirectory,
           VERCEL_ENV: 'preview',
+          SUPABASE_URL:
+            TEST_BROWSER_SUPABASE_URL,
+          SUPABASE_PUBLISHABLE_KEY:
+            TEST_BROWSER_SUPABASE_KEY,
           MEDIA_BUILD_FIXTURE:
             'tests/fixtures/media-cms.json',
           REPERTOIRE_BUILD_FIXTURE:
@@ -273,6 +370,9 @@ function productionBuildEnvironment({
     'VERCEL_ENV',
     'VERCEL_GIT_COMMIT_REF',
     'SANITY_DATASET',
+    'SUPABASE_URL',
+    'SUPABASE_PUBLISHABLE_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
     'SITE_OUTPUT_DIR',
   ]) {
     delete environment[name];
@@ -288,6 +388,10 @@ function productionBuildEnvironment({
       vercelEnvironment === 'production'
         ? 'production'
         : 'development',
+    SUPABASE_URL:
+      TEST_BROWSER_SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY:
+      TEST_BROWSER_SUPABASE_KEY,
     SITE_OUTPUT_DIR: outputDirectory,
     ...fixtures,
   };

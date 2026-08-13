@@ -1,5 +1,47 @@
-const SUPABASE_URL = 'https://wqtpngqematpnswetxxj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_HZFlCh-O1XyjGVAVlUAUFA_OfNmlApL';
+function resolveSupabaseBrowserConfig() {
+  const runtimeConfig = window.SpontaanRuntimeConfig;
+  const supabaseConfig = runtimeConfig?.supabase;
+
+  if (!runtimeConfig || !supabaseConfig) {
+    throw new Error("Supabase runtimeconfig ontbreekt");
+  }
+
+  const supabaseUrl = supabaseConfig.url?.trim();
+  const supabaseKey = supabaseConfig.publishableKey?.trim();
+
+  if (!supabaseUrl) {
+    throw new Error("Supabase URL ontbreekt");
+  }
+
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(supabaseUrl);
+  } catch {
+    throw new Error("Ongeldige Supabase URL");
+  }
+
+  if (parsedUrl.protocol !== 'https:') {
+    throw new Error("Supabase URL moet HTTPS gebruiken");
+  }
+
+  if (parsedUrl.username || parsedUrl.password) {
+    throw new Error("Supabase URL mag geen credentials bevatten");
+  }
+  if (!supabaseKey || !supabaseKey.startsWith('sb_publishable_')) {
+    throw new Error("Ongeldige Supabase publishable key");
+  }
+
+  return {
+    url: parsedUrl.origin,
+    publishableKey: supabaseKey,
+  };
+}
+
+const {
+  url: SUPABASE_URL,
+  publishableKey: SUPABASE_KEY,
+} = resolveSupabaseBrowserConfig();
 
 function ensureSupabaseClient() {
   if (!window.supabase) {
