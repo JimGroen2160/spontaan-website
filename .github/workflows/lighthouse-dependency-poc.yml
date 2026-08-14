@@ -3,7 +3,7 @@ name: Lighthouse Dependency PoC - Ubuntu
 on:
   push:
     tags:
-      - "poc-lighthouse-linux-20260814-01"
+      - "poc-lighthouse-linux-20260814-02"
 
 permissions:
   contents: read
@@ -11,7 +11,7 @@ permissions:
 jobs:
   dependency-proof:
     name: lighthouse-dependency-proof
-    if: github.ref == 'refs/tags/poc-lighthouse-linux-20260814-01'
+    if: github.ref == 'refs/tags/poc-lighthouse-linux-20260814-02'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -20,8 +20,6 @@ jobs:
         shell: bash
         working-directory: poc/lighthouse-dependency
 
-    env:
-      PUPPETEER_CACHE_DIR: ${{ runner.temp }}/puppeteer-cache-observation
 
     steps:
       - name: Checkout exact tagged commit
@@ -83,6 +81,8 @@ jobs:
           test "$lock_hash" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
 
       - name: Install exact locked dependency tree
+        env:
+          PUPPETEER_CACHE_DIR: ${{ runner.temp }}/puppeteer-cache-observation
         run: |
           set -euo pipefail
 
