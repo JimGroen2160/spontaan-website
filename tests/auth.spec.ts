@@ -318,16 +318,133 @@ async function openAdminAndWaitUntilReady(page) {
   await waitForLedenlijstReady(page);
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getMemberRowByEmail(page, email: string) {
+  const exactEmail = new RegExp(`^\\s*${escapeRegExp(email)}\\s*$`);
+
+  const emailCell = page
+    .locator('td[data-label="E-mailadres"]')
+    .filter({ hasText: exactEmail });
+
+  return page
+    .locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row')
+    .filter({ has: emailCell });
+}
+
 async function openMemberActionMenu(page) {
-  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: MEMBER_DISPLAY_NAME });
+  const memberRow = getMemberRowByEmail(page, MEMBER_EMAIL!);
 
-  await expect(memberRow.locator('.ledenbeheer-action-trigger')).toBeVisible();
-  await memberRow.locator('.ledenbeheer-action-trigger').click();
+  await expect(memberRow).toHaveCount(1);
+  await expect(
+    memberRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText(MEMBER_EMAIL!);
 
-  await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
+  await expect(
+    memberRow.locator('.ledenbeheer-action-trigger')
+  ).toBeVisible();
+
+  await memberRow
+    .locator('.ledenbeheer-action-trigger')
+    .click();
+
+  await expect(
+    memberRow.locator('.ledenbeheer-action-menu')
+  ).toHaveClass(/open/);
 
   return memberRow;
 }
+
+test('Ledenrijselectie blijft uniek bij gelijke en overlappende namen', async ({ page }) => {
+  await page.setContent(`
+    <table>
+      <tbody id="ledenbeheer-lijst-body">
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Gelijke Naam</td>
+          <td data-label="E-mailadres">admin@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Gelijke Naam</td>
+          <td data-label="E-mailadres">contentmanager@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Gelijke Naam Extra</td>
+          <td data-label="E-mailadres">member@example.test</td>
+        </tr>
+      </tbody>
+    </table>
+  `);
+
+  const adminRow = getMemberRowByEmail(
+    page,
+    'admin@example.test'
+  );
+
+  const contentmanagerRow = getMemberRowByEmail(
+    page,
+    'contentmanager@example.test'
+  );
+
+  await expect(adminRow).toHaveCount(1);
+
+  await expect(
+    adminRow.locator('td[data-label="Naam"]')
+  ).toHaveText('Gelijke Naam');
+
+  await expect(
+    adminRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText('admin@example.test');
+
+  await expect(contentmanagerRow).toHaveCount(1);
+
+  await expect(
+    contentmanagerRow.locator('td[data-label="Naam"]')
+  ).toHaveText('Gelijke Naam');
+
+  await expect(
+    contentmanagerRow.locator(
+      'td[data-label="E-mailadres"]'
+    )
+  ).toHaveText('contentmanager@example.test');
+});
+
+test('Ledenrijselectie gebruikt exacte e-mailmatch en geen substring', async ({ page }) => {
+  await page.setContent(`
+    <table>
+      <tbody id="ledenbeheer-lijst-body">
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Doelaccount</td>
+          <td data-label="E-mailadres">beheer@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Prefixaccount</td>
+          <td data-label="E-mailadres">extra-beheer@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Suffixaccount</td>
+          <td data-label="E-mailadres">beheer@example.test.invalid</td>
+        </tr>
+      </tbody>
+    </table>
+  `);
+
+  const targetRow = getMemberRowByEmail(
+    page,
+    'beheer@example.test'
+  );
+
+  await expect(targetRow).toHaveCount(1);
+
+  await expect(
+    targetRow.locator('td[data-label="Naam"]')
+  ).toHaveText('Doelaccount');
+
+  await expect(
+    targetRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText('beheer@example.test');
+});
 
 function isControlledMembersListUrl(url: URL) {
   const selectedColumns = (url.searchParams.get('select') || '')
@@ -721,7 +838,14 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
 
   await expect(page.locator('th')).toContainText(['Naam', 'E-mailadres', 'Rol', 'Status', 'Acties']);
 
-  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: ADMIN_DISPLAY_NAME });
+  const adminRow = getMemberRowByEmail(page, VALID_EMAIL!);
+
+  await expect(adminRow).toHaveCount(1);
+
+  await expect(
+    adminRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText(VALID_EMAIL!);
+
   await expect(adminRow).toContainText('Eigen account');
 
   const memberRow = await openMemberActionMenu(page);
@@ -750,18 +874,33 @@ test('Ingelogde contentmanager krijgt geen beheeracties voor beheeraccounts', as
 
   await page.fill('#ledenbeheer-zoek', ADMIN_DISPLAY_NAME!);
 
-  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: VALID_EMAIL! });
+  const adminRow = getMemberRowByEmail(page, VALID_EMAIL!);
+
+  await expect(adminRow).toHaveCount(1);
   await expect(adminRow).toBeVisible();
+
+  await expect(
+    adminRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText(VALID_EMAIL!);
+
   await expect(adminRow).toContainText('Beheeraccount');
   await expect(adminRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
 
   await page.fill('#ledenbeheer-zoek', CONTENTMANAGER_DISPLAY_NAME!);
 
-  const contentmanagerRow = page
-    .locator('#ledenbeheer-lijst-body tr')
-    .filter({ hasText: CONTENTMANAGER_EMAIL! });
+  const contentmanagerRow = getMemberRowByEmail(
+    page,
+    CONTENTMANAGER_EMAIL!
+  );
 
+  await expect(contentmanagerRow).toHaveCount(1);
   await expect(contentmanagerRow).toBeVisible();
+
+  await expect(
+    contentmanagerRow.locator(
+      'td[data-label="E-mailadres"]'
+    )
+  ).toHaveText(CONTENTMANAGER_EMAIL!);
   await expect(contentmanagerRow).toContainText('Eigen account');
   await expect(contentmanagerRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
 });
