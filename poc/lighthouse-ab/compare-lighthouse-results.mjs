@@ -420,7 +420,7 @@ if (!environment) {
 
   if (
     environment.chromeFlags !==
-    "--no-sandbox --disable-dev-shm-usage"
+    "--no-sandbox --disable-dev-shm-usage --headless=new"
   ) {
     errors.push(
       "Chrome-flagscontract wijkt af: " +

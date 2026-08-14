@@ -3,7 +3,7 @@ name: Lighthouse 12 vs 13 A/B PoC
 on:
   push:
     tags:
-      - "poc-lighthouse-ab-20260814-01"
+      - "poc-lighthouse-ab-20260814-02"
 
 permissions:
   contents: read
@@ -11,7 +11,7 @@ permissions:
 jobs:
   lighthouse-ab:
     name: lighthouse-12-vs-13-ab
-    if: github.ref == 'refs/tags/poc-lighthouse-ab-20260814-01'
+    if: github.ref == 'refs/tags/poc-lighthouse-ab-20260814-02'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -218,7 +218,7 @@ jobs:
           export NPM_VERSION="$(npm --version)"
           export LH12_VERSION="$(node -p "require('./node_modules/lighthouse/package.json').version")"
           export LH13_VERSION="$(node -p "require('./poc/lighthouse-dependency/node_modules/lighthouse/package.json').version")"
-          export CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
+          export CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --headless=new"
 
           node - <<'NODE'
           const fs = require("node:fs");
@@ -253,7 +253,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          chrome_flags="--no-sandbox --disable-dev-shm-usage"
+          chrome_flags="--no-sandbox --disable-dev-shm-usage --headless=new"
           order_file="$RESULTS_DIR/run-order.tsv"
 
           : > "$order_file"
