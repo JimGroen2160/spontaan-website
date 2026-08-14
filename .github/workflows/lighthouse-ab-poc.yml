@@ -1,0 +1,378 @@
+name: Lighthouse 12 vs 13 A/B PoC
+
+on:
+  push:
+    tags:
+      - "poc-lighthouse-ab-20260814-01"
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse-ab:
+    name: lighthouse-12-vs-13-ab
+    if: github.ref == 'refs/tags/poc-lighthouse-ab-20260814-01'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact tagged commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup exact Node version
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.18.0
+          package-manager-cache: false
+
+      - name: Establish isolated PoC paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "RESULTS_DIR=$RUNNER_TEMP/lighthouse-ab-results" >> "$GITHUB_ENV"
+          echo "PUPPETEER_CACHE_DIR=$RUNNER_TEMP/puppeteer-cache-observation" >> "$GITHUB_ENV"
+
+          rm -rf "$RUNNER_TEMP/lighthouse-ab-results"
+          rm -rf "$RUNNER_TEMP/puppeteer-cache-observation"
+
+          mkdir -p "$RUNNER_TEMP/lighthouse-ab-results"
+
+      - name: Verify runner and repository contract
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          node_version="$(node --version)"
+          npm_version="$(npm --version)"
+
+          echo "RUNNER_OS=$RUNNER_OS"
+          uname -a
+          echo "node=$node_version"
+          echo "npm=$npm_version"
+
+          test "$node_version" = "v24.18.0"
+          test "$npm_version" = "11.16.0"
+
+          test "$(git status --porcelain --untracked-files=all)" = ""
+
+          test "$(node -p "require('./package-lock.json').packages['node_modules/@lhci/cli'].version")" = "0.15.1"
+          test "$(node -p "require('./package-lock.json').packages['node_modules/lighthouse'].version")" = "12.6.1"
+
+          test "$(sha256sum poc/lighthouse-dependency/package.json | awk '{print $1}')" = "1d2c3ac8ab48ed77d4dcc62a88f94149b38313ccc55de55dc9c4cae1ab34ad96"
+          test "$(sha256sum poc/lighthouse-dependency/package-lock.json | awk '{print $1}')" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
+
+      - name: Install exact Lighthouse 12 tree without scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_before="$(sha256sum package.json | awk '{print $1}')"
+          lock_before="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          npm ci --ignore-scripts
+
+          package_after="$(sha256sum package.json | awk '{print $1}')"
+          lock_after="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          test "$package_before" = "$package_after"
+          test "$lock_before" = "$lock_after"
+
+          test "$(node -p "require('./node_modules/lighthouse/package.json').version")" = "12.6.1"
+          test "$(node -p "require('./node_modules/@lhci/cli/package.json').version")" = "0.15.1"
+          test "$(node -p "require('./node_modules/extract-zip/package.json').version")" = "2.0.1"
+
+          if [ -d "$PUPPETEER_CACHE_DIR" ] &&
+             [ -n "$(find "$PUPPETEER_CACHE_DIR" -mindepth 1 -print -quit)" ]; then
+            echo "Unexpected Puppeteer cache/download activity during Lighthouse 12 install."
+            find "$PUPPETEER_CACHE_DIR" -maxdepth 4 -print
+            exit 1
+          fi
+
+      - name: Install exact Lighthouse 13 tree without scripts
+        shell: bash
+        working-directory: poc/lighthouse-dependency
+        run: |
+          set -euo pipefail
+
+          package_before="$(sha256sum package.json | awk '{print $1}')"
+          lock_before="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          npm ci --ignore-scripts
+
+          package_after="$(sha256sum package.json | awk '{print $1}')"
+          lock_after="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          test "$package_before" = "1d2c3ac8ab48ed77d4dcc62a88f94149b38313ccc55de55dc9c4cae1ab34ad96"
+          test "$package_after" = "$package_before"
+          test "$lock_before" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
+          test "$lock_after" = "$lock_before"
+
+          test "$(node -p "require('./node_modules/lighthouse/package.json').version")" = "13.4.1"
+          test "$(node -p "require('./node_modules/puppeteer-core/package.json').version")" = "25.7.0"
+          test "$(node -p "require('./node_modules/@puppeteer/browsers/package.json').version")" = "3.2.0"
+
+          test ! -e node_modules/extract-zip
+          test ! -e node_modules/@lhci/cli
+          test ! -e node_modules/@lhci/utils
+
+          npm audit --audit-level=info
+
+          if [ -d "$PUPPETEER_CACHE_DIR" ] &&
+             [ -n "$(find "$PUPPETEER_CACHE_DIR" -mindepth 1 -print -quit)" ]; then
+            echo "Unexpected Puppeteer cache/download activity during Lighthouse 13 install."
+            find "$PUPPETEER_CACHE_DIR" -maxdepth 4 -print
+            exit 1
+          fi
+
+      - name: Build one immutable production-like dist
+        shell: bash
+        env:
+          MEDIA_BUILD_FIXTURE: tests/fixtures/media-cms.json
+          SUPABASE_URL: https://synthetic-test-project.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_synthetic_test_only
+        run: |
+          set -euo pipefail
+
+          npm run build
+
+          test -f dist/index.html
+          test -f dist/pages/media.html
+          test -f dist/pages/repertoire.html
+
+          (
+            cd dist
+            find . -type f -print0 |
+              LC_ALL=C sort -z |
+              xargs -0 sha256sum
+          ) > "$RESULTS_DIR/dist-before.sha256"
+
+          test -s "$RESULTS_DIR/dist-before.sha256"
+
+      - name: Resolve one exact Chrome binary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          chrome_candidate=""
+
+          for command_name in google-chrome-stable google-chrome chromium chromium-browser; do
+            if command -v "$command_name" >/dev/null 2>&1; then
+              chrome_candidate="$(command -v "$command_name")"
+              break
+            fi
+          done
+
+          if [ -z "$chrome_candidate" ]; then
+            echo "Geen bruikbare Chrome/Chromium-installatie gevonden."
+            exit 1
+          fi
+
+          chrome_path="$(realpath "$chrome_candidate")"
+          chrome_version="$("$chrome_path" --version)"
+
+          test -x "$chrome_path"
+          test -n "$chrome_version"
+
+          echo "CHROME_PATH=$chrome_path" >> "$GITHUB_ENV"
+          echo "CHROME_VERSION=$chrome_version" >> "$GITHUB_ENV"
+
+          echo "Chrome path: $chrome_path"
+          echo "Chrome version: $chrome_version"
+
+      - name: Start exact current-style local server
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npx --yes http-server@14.1.1 dist -p 5500 > "$RESULTS_DIR/http-server.log" 2>&1 &
+          server_pid=$!
+          echo "$server_pid" > "$RESULTS_DIR/http-server.pid"
+
+          ready=0
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://localhost:5500/ >/dev/null; then
+              ready=1
+              break
+            fi
+
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat "$RESULTS_DIR/http-server.log"
+            exit 1
+          fi
+
+          curl --fail --silent --show-error http://localhost:5500/pages/media.html >/dev/null
+          curl --fail --silent --show-error http://localhost:5500/pages/repertoire.html >/dev/null
+
+      - name: Record immutable A/B environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          export NPM_VERSION="$(npm --version)"
+          export LH12_VERSION="$(node -p "require('./node_modules/lighthouse/package.json').version")"
+          export LH13_VERSION="$(node -p "require('./poc/lighthouse-dependency/node_modules/lighthouse/package.json').version")"
+          export CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
+
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+
+          const output = {
+            runnerOs: process.env.RUNNER_OS ?? null,
+            imageOs: process.env.ImageOS ?? null,
+            imageVersion: process.env.ImageVersion ?? null,
+            node: process.version,
+            npm: process.env.NPM_VERSION,
+            chromePath: process.env.CHROME_PATH,
+            chromeVersion: process.env.CHROME_VERSION,
+            chromeFlags: process.env.CHROME_FLAGS,
+            lh12: process.env.LH12_VERSION,
+            lh13: process.env.LH13_VERSION,
+            server: "http-server@14.1.1",
+            rootCommit: process.env.GITHUB_SHA,
+          };
+
+          fs.writeFileSync(
+            path.join(process.env.RESULTS_DIR, "environment.json"),
+            `${JSON.stringify(output, null, 2)}\n`,
+            "utf8",
+          );
+          NODE
+
+          node -e 'const e=require(process.env.RESULTS_DIR+"/environment.json"); if(e.npm!=="11.16.0") process.exit(1)'
+
+      - name: Run paired Lighthouse 12 and 13 measurements
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          chrome_flags="--no-sandbox --disable-dev-shm-usage"
+          order_file="$RESULTS_DIR/run-order.tsv"
+
+          : > "$order_file"
+
+          declare -A urls=(
+            [home]="http://localhost:5500/"
+            [media]="http://localhost:5500/pages/media.html"
+            [repertoire]="http://localhost:5500/pages/repertoire.html"
+          )
+
+          run_lighthouse() {
+            local version_key="$1"
+            local page_key="$2"
+            local run_number="$3"
+            local cli_path="$4"
+            local url="$5"
+
+            local output_dir="$RESULTS_DIR/$version_key/$page_key"
+            local output_base="$output_dir/run-$run_number"
+
+            mkdir -p "$output_dir"
+
+            printf '%s\t%s\t%s\t%s\n' \
+              "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              "$version_key" \
+              "$page_key" \
+              "$run_number" >> "$order_file"
+
+            CHROME_PATH="$CHROME_PATH" \
+              node "$cli_path" "$url" \
+                --quiet \
+                --chrome-flags="$chrome_flags" \
+                --output=json \
+                --output=html \
+                --output-path="$output_base"
+
+            test -s "$output_base.report.json"
+            test -s "$output_base.report.html"
+          }
+
+          lh12_cli="$GITHUB_WORKSPACE/node_modules/lighthouse/cli/index.js"
+          lh13_cli="$GITHUB_WORKSPACE/poc/lighthouse-dependency/node_modules/lighthouse/cli/index.js"
+
+          test -f "$lh12_cli"
+          test -f "$lh13_cli"
+
+          for page_key in home media repertoire; do
+            url="${urls[$page_key]}"
+
+            run_lighthouse lh12 "$page_key" 1 "$lh12_cli" "$url"
+            run_lighthouse lh13 "$page_key" 1 "$lh13_cli" "$url"
+
+            run_lighthouse lh13 "$page_key" 2 "$lh13_cli" "$url"
+            run_lighthouse lh12 "$page_key" 2 "$lh12_cli" "$url"
+
+            run_lighthouse lh12 "$page_key" 3 "$lh12_cli" "$url"
+            run_lighthouse lh13 "$page_key" 3 "$lh13_cli" "$url"
+          done
+
+          test "$(wc -l < "$order_file" | tr -d ' ')" = "18"
+
+          if [ -d "$PUPPETEER_CACHE_DIR" ] &&
+             [ -n "$(find "$PUPPETEER_CACHE_DIR" -mindepth 1 -print -quit)" ]; then
+            echo "Unexpected Puppeteer cache/download activity during A/B runs."
+            find "$PUPPETEER_CACHE_DIR" -maxdepth 4 -print
+            exit 1
+          fi
+
+      - name: Prove dist stayed byte-identical
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          (
+            cd dist
+            find . -type f -print0 |
+              LC_ALL=C sort -z |
+              xargs -0 sha256sum
+          ) > "$RESULTS_DIR/dist-after.sha256"
+
+          cmp "$RESULTS_DIR/dist-before.sha256" "$RESULTS_DIR/dist-after.sha256"
+
+          echo "dist bleef byte-identiek over alle 18 Lighthouse-runs - OK"
+
+      - name: Analyze Lighthouse A/B contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node poc/lighthouse-ab/compare-lighthouse-results.mjs "$RESULTS_DIR"
+
+      - name: Upload PoC evidence artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-ab-poc-evidence
+          path: ${{ runner.temp }}/lighthouse-ab-results
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Final immutable repository check
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${RESULTS_DIR:-}" ] && [ -f "$RESULTS_DIR/http-server.pid" ]; then
+            server_pid="$(cat "$RESULTS_DIR/http-server.pid")"
+            kill "$server_pid" 2>/dev/null || true
+          fi
+
+          git diff --exit-code
+
+          status="$(git status --porcelain --untracked-files=all)"
+
+          if [ -n "$status" ]; then
+            echo "Unexpected repository changes:"
+            printf '%s\n' "$status"
+            exit 1
+          fi
+
+          echo "Repository bleef volledig schoon - OK"
+          echo "POC-3 A/B DATA COLLECTION COMPLETED - MANUAL DELTA REVIEW REQUIRED"
