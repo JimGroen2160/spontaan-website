@@ -1,0 +1,188 @@
+name: Lighthouse Dependency PoC - Ubuntu
+
+on:
+  push:
+    tags:
+      - "poc-lighthouse-linux-20260814-01"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-proof:
+    name: lighthouse-dependency-proof
+    if: github.ref == 'refs/tags/poc-lighthouse-linux-20260814-01'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: poc/lighthouse-dependency
+
+    env:
+      PUPPETEER_CACHE_DIR: ${{ runner.temp }}/puppeteer-cache-observation
+
+    steps:
+      - name: Checkout exact tagged commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup exact Node version
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.18.0
+          package-manager-cache: false
+
+      - name: Record runner and tool contract
+        run: |
+          set -euo pipefail
+
+          echo "RUNNER_OS=$RUNNER_OS"
+          uname -a
+
+          node_version="$(node --version)"
+          npm_version="$(npm --version)"
+          ignore_scripts="$(npm config get ignore-scripts)"
+          omit_config="$(npm config get omit)"
+          registry="$(npm config get registry)"
+
+          echo "node=$node_version"
+          echo "npm=$npm_version"
+          echo "ignore-scripts=$ignore_scripts"
+          echo "omit=$omit_config"
+          echo "registry=$registry"
+
+          test "$node_version" = "v24.18.0"
+          test "$npm_version" = "11.16.0"
+          test "$ignore_scripts" != "true"
+          test "$registry" = "https://registry.npmjs.org/"
+
+          if printf '%s\n' "$omit_config" |
+             tr ', ' '\n' |
+             grep -Fxq 'dev'; then
+            echo "npm omit unexpectedly contains dev."
+            exit 1
+          fi
+
+          test -z "${PUPPETEER_SKIP_DOWNLOAD:-}"
+          test -z "${PUPPETEER_SKIP_CHROME_DOWNLOAD:-}"
+
+      - name: Verify approved input hashes
+        run: |
+          set -euo pipefail
+
+          package_hash="$(sha256sum package.json | awk '{print $1}')"
+          lock_hash="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          echo "package.json SHA-256:      $package_hash"
+          echo "package-lock.json SHA-256: $lock_hash"
+
+          test "$package_hash" = "1d2c3ac8ab48ed77d4dcc62a88f94149b38313ccc55de55dc9c4cae1ab34ad96"
+          test "$lock_hash" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
+
+      - name: Install exact locked dependency tree
+        run: |
+          set -euo pipefail
+
+          package_before="$(sha256sum package.json | awk '{print $1}')"
+          lock_before="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          rm -rf "$PUPPETEER_CACHE_DIR"
+
+          npm ci --foreground-scripts
+
+          package_after="$(sha256sum package.json | awk '{print $1}')"
+          lock_after="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          echo "package.json before:      $package_before"
+          echo "package.json after:       $package_after"
+          echo "package-lock.json before: $lock_before"
+          echo "package-lock.json after:  $lock_after"
+
+          test "$package_before" = "1d2c3ac8ab48ed77d4dcc62a88f94149b38313ccc55de55dc9c4cae1ab34ad96"
+          test "$package_after" = "1d2c3ac8ab48ed77d4dcc62a88f94149b38313ccc55de55dc9c4cae1ab34ad96"
+
+          test "$lock_before" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
+          test "$lock_after" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
+
+          if [ -d "$PUPPETEER_CACHE_DIR" ] &&
+             [ -n "$(find "$PUPPETEER_CACHE_DIR" -mindepth 1 -print -quit)" ]; then
+            echo "Unexpected Puppeteer cache/download activity."
+            find "$PUPPETEER_CACHE_DIR" -maxdepth 4 -print
+            exit 1
+          fi
+
+          echo "No Puppeteer browser download/cache activity - OK"
+
+      - name: Verify exact dependency contract
+        run: |
+          set -euo pipefail
+
+          lighthouse_version="$(node -p "require('./node_modules/lighthouse/package.json').version")"
+          puppeteer_core_version="$(node -p "require('./node_modules/puppeteer-core/package.json').version")"
+          browsers_version="$(node -p "require('./node_modules/@puppeteer/browsers/package.json').version")"
+
+          echo "lighthouse=$lighthouse_version"
+          echo "puppeteer-core=$puppeteer_core_version"
+          echo "@puppeteer/browsers=$browsers_version"
+
+          test "$lighthouse_version" = "13.4.1"
+          test "$puppeteer_core_version" = "25.7.0"
+          test "$browsers_version" = "3.2.0"
+
+          if grep -Fiq "extract-zip" package-lock.json; then
+            echo "extract-zip unexpectedly present in lockfile."
+            exit 1
+          fi
+
+          if grep -Fiq "@lhci/cli" package-lock.json; then
+            echo "@lhci/cli unexpectedly present in lockfile."
+            exit 1
+          fi
+
+          if grep -Fiq "@lhci/utils" package-lock.json; then
+            echo "@lhci/utils unexpectedly present in lockfile."
+            exit 1
+          fi
+
+          if grep -Eiq '"hasInstallScript"[[:space:]]*:[[:space:]]*true' package-lock.json; then
+            echo "Unexpected hasInstallScript=true in lockfile."
+            exit 1
+          fi
+
+          test ! -e node_modules/extract-zip
+          test ! -e node_modules/@lhci/cli
+          test ! -e node_modules/@lhci/utils
+
+          npm ls --all
+          npm ls modern-tar --all
+
+      - name: Audit complete dependency tree
+        run: |
+          set -euo pipefail
+          npm audit --audit-level=info
+
+      - name: Final fail-closed immutable-state check
+        run: |
+          set -euo pipefail
+
+          package_hash="$(sha256sum package.json | awk '{print $1}')"
+          lock_hash="$(sha256sum package-lock.json | awk '{print $1}')"
+
+          test "$package_hash" = "1d2c3ac8ab48ed77d4dcc62a88f94149b38313ccc55de55dc9c4cae1ab34ad96"
+          test "$lock_hash" = "cb815bdf34b08d480bcf3f65f4ca72c25c3a4620d1f55388eea155daebb069d8"
+
+          git diff --exit-code
+
+          status="$(git status --porcelain --untracked-files=all)"
+
+          if [ -n "$status" ]; then
+            echo "Unexpected repository changes:"
+            printf '%s\n' "$status"
+            exit 1
+          fi
+
+          echo "Repository remains completely clean - OK"
+          echo "POC-2C UBUNTU DEPENDENCY GATE - GO"
