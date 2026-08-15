@@ -93,6 +93,14 @@ jobs:
 
           echo "RBAC-migratiecontract bevestigd."
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+
+      - name: Validate service-role RBAC contract
+        run: node --test tests/supabase-rbac-service-role-contract.test.mjs
+
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
