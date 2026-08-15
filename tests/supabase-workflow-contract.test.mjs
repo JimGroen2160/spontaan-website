@@ -5,6 +5,9 @@ import test from 'node:test'
 const WORKFLOW =
   '.github/workflows/supabase-test-deploy.yml'
 
+const EXPECTED_BASE =
+  '89a2bfb82d723fbad628a0ac64a54691f11e5a90'
+
 function jobBlock(source, jobName) {
   const lines = source
     .replace(/\r\n/g, '\n')
@@ -14,11 +17,7 @@ function jobBlock(source, jobName) {
     (line) => line === `  ${jobName}:`,
   )
 
-  assert.notEqual(
-    start,
-    -1,
-    `Job ${jobName} ontbreekt`,
-  )
+  assert.notEqual(start, -1, `Job ${jobName} ontbreekt`)
 
   let end = lines.length
 
@@ -37,48 +36,76 @@ async function workflowSource() {
 }
 
 test(
-  'echte Supabase TEST-deployment vereist expliciete workflow_dispatch',
+  'workflow_dispatch blijft de permanente expliciete deploymentroute',
+  async () => {
+    const source = await workflowSource()
+    const deploy = jobBlock(source, 'deploy-test')
+
+    assert.match(source, /^\s*workflow_dispatch:$/m)
+    assert.match(source, /DEPLOY_SUPABASE_TEST/)
+    assert.match(deploy, /github\.event_name == 'workflow_dispatch'/)
+    assert.match(deploy, /^    needs: preview-test$/m)
+    assert.match(deploy, /^        run: supabase db push$/m)
+    assert.match(deploy, /supabase functions deploy create-member/)
+    assert.match(deploy, /supabase functions deploy resend-member-invite/)
+  },
+)
+
+test(
+  'tijdelijke PR72-deployment vereist exact de gelabelde fail-closed route',
   async () => {
     const source = await workflowSource()
     const deploy = jobBlock(source, 'deploy-test')
 
     assert.match(
+      source,
+      /^    types: \[opened, synchronize, reopened, labeled\]$/m,
+    )
+
+    assert.match(deploy, /github\.event_name == 'pull_request'/)
+    assert.match(deploy, /github\.event\.action == 'labeled'/)
+
+    assert.match(
       deploy,
-      /^    if: github\.event_name == 'workflow_dispatch'$/m,
+      /github\.event\.label\.name == 'deploy-supabase-test'/,
     )
 
     assert.match(
       deploy,
-      /^      - name: Apply database migrations$/m,
+      /github\.event\.pull_request\.number == 72/,
     )
 
     assert.match(
       deploy,
-      /^        run: supabase db push$/m,
+      /github\.head_ref == 'o\/contentmanager-rbac-contentbeheer'/,
     )
 
     assert.match(
       deploy,
-      /supabase functions deploy create-member/,
+      /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
     )
 
     assert.match(
       deploy,
-      /supabase functions deploy resend-member-invite/,
+      new RegExp(
+        `github\\.event\\.pull_request\\.base\\.sha == '${EXPECTED_BASE}'`,
+      ),
+    )
+
+    assert.match(
+      deploy,
+      /github\.actor == 'JimGroen2160'/,
     )
   },
 )
 
 test(
-  'pull-requestpad mag Supabase TEST alleen previewen',
+  'gewone pull-requestflow mag Supabase TEST uitsluitend previewen',
   async () => {
     const source = await workflowSource()
     const preview = jobBlock(source, 'preview-test')
 
-    assert.match(
-      preview,
-      /supabase db push --dry-run/,
-    )
+    assert.match(preview, /supabase db push --dry-run/)
 
     assert.doesNotMatch(
       preview,
@@ -93,25 +120,28 @@ test(
 )
 
 test(
-  'handmatige deployment behoudt expliciete bevestigingswaarde',
+  'validate-job dwingt het workflowcontract zelf af',
+  async () => {
+    const source = await workflowSource()
+    const validate = jobBlock(source, 'validate')
+
+    assert.match(
+      validate,
+      /node --test tests\/supabase-workflow-contract\.test\.mjs/,
+    )
+  },
+)
+
+test(
+  'deployment blijft vast op het afgescheiden TEST-project zonder JWT-bypass',
   async () => {
     const source = await workflowSource()
 
     assert.match(
       source,
-      /^\s*workflow_dispatch:$/m,
+      /SUPABASE_TEST_PROJECT_REF: lldmyfvhjypomxfpltlx/,
     )
 
-    assert.match(
-      source,
-      /DEPLOY_SUPABASE_TEST/,
-    )
-
-    const deploy = jobBlock(source, 'deploy-test')
-
-    assert.match(
-      deploy,
-      /^    needs: preview-test$/m,
-    )
+    assert.doesNotMatch(source, /--no-verify-jwt/)
   },
 )
