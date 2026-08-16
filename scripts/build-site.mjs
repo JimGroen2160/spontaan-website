@@ -42,6 +42,7 @@ const REQUEST_TIMEOUT_MS = 8000;
 
 const ALLOWED_SANITY_DATASETS = new Set(['development', 'production']);
 
+
 export function resolveSanityDataset(environment = process.env) {
   const configuredDataset = environment.SANITY_DATASET?.trim();
   const vercelEnvironment = environment.VERCEL_ENV?.trim();
@@ -71,6 +72,49 @@ export function resolveSanityDataset(environment = process.env) {
   return dataset;
 }
 
+export function resolveSupabaseBrowserConfig(environment = process.env) {
+  const url = environment.SUPABASE_URL?.trim();
+  const publishableKey =
+    environment.SUPABASE_PUBLISHABLE_KEY?.trim();
+
+  if (!url) {
+    throw new Error('SUPABASE_URL ontbreekt');
+  }
+
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw new Error('SUPABASE_URL is geen geldige URL');
+  }
+
+  if (parsedUrl.protocol !== 'https:') {
+    throw new Error('SUPABASE_URL moet HTTPS gebruiken');
+  }
+
+  if (
+    parsedUrl.username ||
+    parsedUrl.password
+  ) {
+    throw new Error('SUPABASE_URL mag geen credentials bevatten');
+  }
+
+  if (!publishableKey) {
+    throw new Error('SUPABASE_PUBLISHABLE_KEY ontbreekt');
+  }
+
+  if (!publishableKey.startsWith('sb_publishable_')) {
+    throw new Error(
+      'SUPABASE_PUBLISHABLE_KEY moet een publishable key zijn',
+    );
+  }
+
+  return Object.freeze({
+    url: parsedUrl.origin,
+    publishableKey,
+  });
+}
 export function resolveRuntimeConfig(environment = process.env) {
   const vercelEnvironment = environment.VERCEL_ENV?.trim();
   const runtimeEnvironment =
@@ -90,6 +134,7 @@ export function resolveRuntimeConfig(environment = process.env) {
       '2026-07-06',
     environment: runtimeEnvironment,
     allowDemo: runtimeEnvironment !== 'production',
+    supabase: resolveSupabaseBrowserConfig(environment),
   };
 }
 

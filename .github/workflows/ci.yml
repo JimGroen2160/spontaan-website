@@ -19,6 +19,11 @@ jobs:
       TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
       TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
       TEST_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_DISPLAY_NAME }}
+      TEST_CONTENTMANAGER_EMAIL: ${{ secrets.TEST_CONTENTMANAGER_EMAIL }}
+      TEST_CONTENTMANAGER_PASSWORD: ${{ secrets.TEST_CONTENTMANAGER_PASSWORD }}
+      TEST_CONTENTMANAGER_DISPLAY_NAME: ${{ secrets.TEST_CONTENTMANAGER_DISPLAY_NAME }}
+      TEST_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+      TEST_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TEST_SUPABASE_PUBLISHABLE_KEY }}
       TEST_STATUS_MEMBER_EMAIL: ${{ secrets.TEST_STATUS_MEMBER_EMAIL }}
       TEST_STATUS_MEMBER_PASSWORD: ${{ secrets.TEST_STATUS_MEMBER_PASSWORD }}
       TEST_STATUS_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_STATUS_MEMBER_DISPLAY_NAME }}
@@ -39,6 +44,11 @@ jobs:
             TEST_MEMBER_EMAIL
             TEST_MEMBER_PASSWORD
             TEST_MEMBER_DISPLAY_NAME
+            TEST_CONTENTMANAGER_EMAIL
+            TEST_CONTENTMANAGER_PASSWORD
+            TEST_CONTENTMANAGER_DISPLAY_NAME
+            TEST_SUPABASE_URL
+            TEST_SUPABASE_PUBLISHABLE_KEY
           )
 
           for variable_name in "${required_variables[@]}"; do
@@ -187,6 +197,8 @@ jobs:
       - name: Build production-like site
         env:
           MEDIA_BUILD_FIXTURE: tests/fixtures/media-cms.json
+          SUPABASE_URL: https://synthetic-test-project.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_synthetic_test_only
         run: npm run build
 
       - name: Validate Lighthouse runner contract

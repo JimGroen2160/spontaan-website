@@ -14,6 +14,11 @@ import {assertNoMojibake} from '../scripts/check-encoding.mjs';
 
 const exec = promisify(execFile);
 
+const TEST_BROWSER_SUPABASE_ENV = {
+  SUPABASE_URL: 'https://synthetic-test-project.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic_test_only',
+};
+
 
 test('normalisatie verwijdert onveilige media en links', () => {
   const content = normalizeContent({
@@ -175,7 +180,10 @@ test('repertoire weigert een ontbrekende featured-koppeling en escapt CMS-tekst'
 });
 
 test('mislukte CMS-build levert volledige fallback en herstelt CMS-testbuild', async () => {
-  const environment = {...process.env};
+  const environment = {
+    ...process.env,
+    ...TEST_BROWSER_SUPABASE_ENV,
+  };
 
   try {
     const fallbackRun = await exec(

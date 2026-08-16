@@ -2,6 +2,33 @@ require('dotenv').config();
 
 import { defineConfig, devices } from '@playwright/test';
 
+const SYNTHETIC_SUPABASE_URL =
+  'https://synthetic-test-project.supabase.co';
+const SYNTHETIC_SUPABASE_PUBLISHABLE_KEY =
+  'sb_publishable_synthetic_test_only';
+
+const testSupabaseUrl =
+  process.env.TEST_SUPABASE_URL?.trim();
+const testSupabasePublishableKey =
+  process.env.TEST_SUPABASE_PUBLISHABLE_KEY?.trim();
+
+if (
+  Boolean(testSupabaseUrl) !==
+  Boolean(testSupabasePublishableKey)
+) {
+  throw new Error(
+    'TEST_SUPABASE_URL en TEST_SUPABASE_PUBLISHABLE_KEY moeten beide aanwezig of beide afwezig zijn.',
+  );
+}
+
+const playwrightSupabaseBrowserEnv = {
+  SUPABASE_URL:
+    testSupabaseUrl || SYNTHETIC_SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY:
+    testSupabasePublishableKey ||
+    SYNTHETIC_SUPABASE_PUBLISHABLE_KEY,
+};
+
 export default defineConfig({
   testDir: './tests',
 
@@ -50,6 +77,8 @@ export default defineConfig({
       CONTACT_BUILD_FIXTURE: 'data/contact-fallback.json',
       FRIENDS_BUILD_FIXTURE: 'tests/fixtures/friends-cms.json',
       HOME_BUILD_FIXTURE: 'tests/fixtures/home-cms.json',
+      ...playwrightSupabaseBrowserEnv,
+
     },
     url: 'http://localhost:5500',
     reuseExistingServer: !process.env.CI,

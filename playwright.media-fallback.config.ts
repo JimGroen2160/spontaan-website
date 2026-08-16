@@ -3,6 +3,11 @@ import {
   devices
 } from '@playwright/test';
 
+const SYNTHETIC_SUPABASE_URL =
+  'https://synthetic-test-project.supabase.co';
+const SYNTHETIC_SUPABASE_PUBLISHABLE_KEY =
+  'sb_publishable_synthetic_test_only';
+
 export default defineConfig({
   testDir: './tests',
 
@@ -44,6 +49,9 @@ export default defineConfig({
     env: {
       VERCEL_ENV: 'preview',
       SITE_OUTPUT_DIR: 'dist-media-fallback',
+      SUPABASE_URL: SYNTHETIC_SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY:
+        SYNTHETIC_SUPABASE_PUBLISHABLE_KEY,
 
       // Alle CMS-bronnen zijn deterministisch.
       // Alleen Media faalt bewust, zodat de Media-fallback

@@ -54,8 +54,8 @@ jobs:
             "utf8",
           );
 
-          if (!Array.isArray(manifest.users) || manifest.users.length !== 6) {
-            throw new Error("Het manifest moet exact zes allowlist-users bevatten.");
+          if (!Array.isArray(manifest.users) || manifest.users.length !== 7) {
+            throw new Error("Het manifest moet exact zeven allowlist-users bevatten.");
           }
 
           const ids = manifest.users.map((user) => user.id);
@@ -122,6 +122,9 @@ jobs:
       TEST_PROFILE_MEMBER_EMAIL: ${{ secrets.TEST_PROFILE_MEMBER_EMAIL }}
       TEST_PROFILE_MEMBER_PASSWORD: ${{ secrets.TEST_PROFILE_MEMBER_PASSWORD }}
       TEST_PROFILE_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_PROFILE_MEMBER_DISPLAY_NAME }}
+      TEST_CONTENTMANAGER_EMAIL: ${{ secrets.TEST_CONTENTMANAGER_EMAIL }}
+      TEST_CONTENTMANAGER_PASSWORD: ${{ secrets.TEST_CONTENTMANAGER_PASSWORD }}
+      TEST_CONTENTMANAGER_DISPLAY_NAME: ${{ secrets.TEST_CONTENTMANAGER_DISPLAY_NAME }}
 
     steps:
       - name: Checkout
@@ -149,7 +152,7 @@ jobs:
           printf '%s\n' "$output"
 
           grep -Eq '^[[:space:]]*missing: 0[[:space:]]*$' <<<"$output"
-          grep -Eq '^[[:space:]]*matching: 6[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*matching: 7[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*different: 0[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*conflict: 0[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*error: 0[[:space:]]*$' <<<"$output"
@@ -163,5 +166,5 @@ jobs:
 
           grep -Eq '^[[:space:]]*aangemaakt: 0[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*bijgewerkt: 0[[:space:]]*$' <<<"$output"
-          grep -Eq '^[[:space:]]*ongewijzigd: 6[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*ongewijzigd: 7[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*mislukt: 0[[:space:]]*$' <<<"$output"

@@ -7,6 +7,9 @@ const ADMIN_DISPLAY_NAME = process.env.TEST_ADMIN_DISPLAY_NAME;
 const MEMBER_EMAIL = process.env.TEST_MEMBER_EMAIL;
 const MEMBER_PASSWORD = process.env.TEST_MEMBER_PASSWORD;
 const MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_DISPLAY_NAME;
+const CONTENTMANAGER_EMAIL = process.env.TEST_CONTENTMANAGER_EMAIL;
+const CONTENTMANAGER_PASSWORD = process.env.TEST_CONTENTMANAGER_PASSWORD;
+const CONTENTMANAGER_DISPLAY_NAME = process.env.TEST_CONTENTMANAGER_DISPLAY_NAME;
 const PENDING_MEMBER_EMAIL = process.env.TEST_MEMBER_PENDING_EMAIL;
 const PENDING_MEMBER_PASSWORD = process.env.TEST_MEMBER_PENDING_PASSWORD;
 const PENDING_MEMBER_DISPLAY_NAME = process.env.TEST_MEMBER_PENDING_DISPLAY_NAME;
@@ -22,8 +25,10 @@ const CREATE_MEMBER_EMAIL = process.env.TEST_CREATE_MEMBER_EMAIL;
 const CREATE_MEMBER_DISPLAY_NAME = process.env.TEST_CREATE_MEMBER_DISPLAY_NAME;
 const CREATE_MEMBER_E2E_ENABLED = process.env.TEST_CREATE_MEMBER_E2E_ENABLED === 'true';
 const RESEND_MEMBER_INVITE_E2E_ENABLED = process.env.TEST_RESEND_MEMBER_INVITE_E2E_ENABLED === 'true';
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const RESEND_MEMBER_INVITE_EMAIL = process.env.TEST_RESEND_MEMBER_INVITE_EMAIL;
+const RESEND_MEMBER_INVITE_DISPLAY_NAME = process.env.TEST_RESEND_MEMBER_INVITE_DISPLAY_NAME;
+const TEST_SUPABASE_URL = process.env.TEST_SUPABASE_URL;
+const TEST_SUPABASE_SERVICE_ROLE_KEY = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!VALID_EMAIL || !VALID_PASSWORD) {
   throw new Error(
@@ -43,6 +48,16 @@ if (!MEMBER_EMAIL || !MEMBER_PASSWORD) {
 
 if (!MEMBER_DISPLAY_NAME) {
   throw new Error('Missing required environment variable: TEST_MEMBER_DISPLAY_NAME');
+}
+
+if (!CONTENTMANAGER_EMAIL || !CONTENTMANAGER_PASSWORD) {
+  throw new Error(
+    'Missing required environment variables: TEST_CONTENTMANAGER_EMAIL and/or TEST_CONTENTMANAGER_PASSWORD'
+  );
+}
+
+if (!CONTENTMANAGER_DISPLAY_NAME) {
+  throw new Error('Missing required environment variable: TEST_CONTENTMANAGER_DISPLAY_NAME');
 }
 
 const CONTROLLED_MEMBERS = Array.from({ length: 55 }, (_, index) => {
@@ -69,11 +84,11 @@ const CONTROLLED_MEMBERS = Array.from({ length: 55 }, (_, index) => {
 });
 
 function getSupabaseAdminClient() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
     return null;
   }
 
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  return createClient(TEST_SUPABASE_URL, TEST_SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -86,7 +101,7 @@ async function findAuthUserByEmailForCleanup(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const targetEmail = email.trim().toLowerCase();
@@ -122,7 +137,7 @@ async function cleanupCreateMemberTestIdentity(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const targetEmail = email.trim().toLowerCase();
@@ -147,11 +162,138 @@ async function cleanupCreateMemberTestIdentity(email: string) {
   }
 }
 
+function assertDedicatedResendInviteIdentity(email: string) {
+  const targetEmail = email.trim().toLowerCase();
+
+  const protectedEmails = [
+    VALID_EMAIL,
+    MEMBER_EMAIL,
+    CONTENTMANAGER_EMAIL,
+    PENDING_MEMBER_EMAIL,
+    INACTIVE_MEMBER_EMAIL,
+    STATUS_MEMBER_EMAIL,
+    PROFILE_MEMBER_EMAIL,
+    CREATE_MEMBER_EMAIL,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.trim().toLowerCase());
+
+  if (protectedEmails.includes(targetEmail)) {
+    throw new Error(
+      'TEST_RESEND_MEMBER_INVITE_EMAIL moet een eigen disposable testidentity zijn en mag geen gedeelde testgebruiker hergebruiken.'
+    );
+  }
+}
+
+async function provisionResendMemberInviteTestIdentity(
+  email: string,
+  displayName: string
+) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  assertDedicatedResendInviteIdentity(email);
+
+  const targetEmail = email.trim().toLowerCase();
+
+  const existingAuthUser = await findAuthUserByEmailForCleanup(targetEmail);
+
+  if (existingAuthUser) {
+    throw new Error(
+      `Disposable resend-testidentity bestaat onverwacht al in Auth: ${targetEmail}`
+    );
+  }
+
+  const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .eq('email', targetEmail)
+    .maybeSingle();
+
+  if (profileLookupError) {
+    throw profileLookupError;
+  }
+
+  if (existingProfile) {
+    throw new Error(
+      `Disposable resend-testidentity bestaat onverwacht al in profiles: ${targetEmail}`
+    );
+  }
+
+  const { data: inviteData, error: inviteError } =
+    await supabaseAdmin.auth.admin.inviteUserByEmail(targetEmail, {
+      data: {
+        full_name: displayName,
+      },
+    });
+
+  if (inviteError || !inviteData?.user?.id) {
+    throw new Error(
+      `Kon disposable resend-testidentity niet uitnodigen: ${
+        inviteError?.message ?? 'geen Auth-user terugontvangen'
+      }`
+    );
+  }
+
+  const authUserId = inviteData.user.id;
+
+  try {
+    const { error: profileInsertError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        auth_user_id: authUserId,
+        full_name: displayName,
+        street: 'Teststraat',
+        house_number: '1',
+        postal_code: '1234 AB',
+        city: 'Teststad',
+        phone: '0612345678',
+        email: targetEmail,
+        role: 'member',
+        status: 'pending',
+      });
+
+    if (profileInsertError) {
+      throw profileInsertError;
+    }
+
+    const authUser = await findAuthUserByEmailForCleanup(targetEmail);
+
+    if (!authUser || authUser.id !== authUserId) {
+      throw new Error(
+        'Disposable resend-testidentity heeft na provisioning niet de verwachte Auth-user-ID.'
+      );
+    }
+
+    if (authUser.email_confirmed_at || authUser.confirmed_at) {
+      throw new Error(
+        'Disposable resend-testidentity is onverwacht al bevestigd.'
+      );
+    }
+
+    return authUserId;
+  } catch (error) {
+    const { error: authDeleteError } =
+      await supabaseAdmin.auth.admin.deleteUser(authUserId);
+
+    if (authDeleteError) {
+      throw new Error(
+        `Provisioning mislukt en Auth-cleanup faalde: ${authDeleteError.message}`
+      );
+    }
+
+    throw error;
+  }
+}
+
 async function getCreateMemberProfile(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -171,7 +313,7 @@ async function setTestProfileStatus(email: string, status: 'pending' | 'active' 
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -199,7 +341,7 @@ async function getTestProfileStatus(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -219,6 +361,7 @@ async function loginAsAdmin(page) {
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', VALID_EMAIL!);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', VALID_PASSWORD!);
   await page.click('button[type="submit"]');
 
@@ -226,10 +369,24 @@ async function loginAsAdmin(page) {
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
+async function protectPasswordFromFailureArtifacts(page) {
+  await page.evaluate(() => {
+    const form = document.getElementById('login-form');
+    const password = document.getElementById('password');
+
+    form?.addEventListener('submit', () => {
+      if (password instanceof HTMLInputElement) {
+        password.value = '';
+      }
+    });
+  });
+}
+
 async function loginAsMember(page) {
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', MEMBER_EMAIL!);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', MEMBER_PASSWORD!);
   await page.click('button[type="submit"]');
 
@@ -237,6 +394,17 @@ async function loginAsMember(page) {
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
+async function loginAsContentmanager(page) {
+  await page.goto('http://localhost:5500/leden/login.html');
+
+  await page.fill('#email', CONTENTMANAGER_EMAIL!);
+  await protectPasswordFromFailureArtifacts(page);
+  await page.fill('#password', CONTENTMANAGER_PASSWORD!);
+  await page.click('button[type="submit"]');
+
+  await page.waitForURL(/dashboard.html/, { timeout: 15000 });
+  await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
+}
 async function waitForLedenlijstReady(page) {
   await expect(page.locator('#ledenbeheer-toast')).toContainText('Ledenbeheer is geladen.', {
     timeout: 15000,
@@ -255,7 +423,7 @@ async function openAdminAndWaitUntilReady(page) {
   await page.goto('http://localhost:5500/admin/index.html');
 
   await expect(page).toHaveURL(/admin\/index\.html/);
-  await expect(page.locator('main')).toContainText('Welkom (Admin)');
+  await expect(page.locator('main')).toContainText('Welkom in de beheeromgeving');
   await expect(page.locator('#ledenbeheer')).toBeVisible();
   await expect(page.locator('#nieuw-lid-form')).toBeVisible();
 
@@ -279,16 +447,133 @@ async function openAdminAndWaitUntilReady(page) {
   await waitForLedenlijstReady(page);
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getMemberRowByEmail(page, email: string) {
+  const exactEmail = new RegExp(`^\\s*${escapeRegExp(email)}\\s*$`);
+
+  const emailCell = page
+    .locator('td[data-label="E-mailadres"]')
+    .filter({ hasText: exactEmail });
+
+  return page
+    .locator('#ledenbeheer-lijst-body tr.ledenbeheer-member-row')
+    .filter({ has: emailCell });
+}
+
 async function openMemberActionMenu(page) {
-  const memberRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: MEMBER_DISPLAY_NAME });
+  const memberRow = getMemberRowByEmail(page, MEMBER_EMAIL!);
 
-  await expect(memberRow.locator('.ledenbeheer-action-trigger')).toBeVisible();
-  await memberRow.locator('.ledenbeheer-action-trigger').click();
+  await expect(memberRow).toHaveCount(1);
+  await expect(
+    memberRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText(MEMBER_EMAIL!);
 
-  await expect(memberRow.locator('.ledenbeheer-action-menu')).toHaveClass(/open/);
+  await expect(
+    memberRow.locator('.ledenbeheer-action-trigger')
+  ).toBeVisible();
+
+  await memberRow
+    .locator('.ledenbeheer-action-trigger')
+    .click();
+
+  await expect(
+    memberRow.locator('.ledenbeheer-action-menu')
+  ).toHaveClass(/open/);
 
   return memberRow;
 }
+
+test('Ledenrijselectie blijft uniek bij gelijke en overlappende namen', async ({ page }) => {
+  await page.setContent(`
+    <table>
+      <tbody id="ledenbeheer-lijst-body">
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Gelijke Naam</td>
+          <td data-label="E-mailadres">admin@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Gelijke Naam</td>
+          <td data-label="E-mailadres">contentmanager@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Gelijke Naam Extra</td>
+          <td data-label="E-mailadres">member@example.test</td>
+        </tr>
+      </tbody>
+    </table>
+  `);
+
+  const adminRow = getMemberRowByEmail(
+    page,
+    'admin@example.test'
+  );
+
+  const contentmanagerRow = getMemberRowByEmail(
+    page,
+    'contentmanager@example.test'
+  );
+
+  await expect(adminRow).toHaveCount(1);
+
+  await expect(
+    adminRow.locator('td[data-label="Naam"]')
+  ).toHaveText('Gelijke Naam');
+
+  await expect(
+    adminRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText('admin@example.test');
+
+  await expect(contentmanagerRow).toHaveCount(1);
+
+  await expect(
+    contentmanagerRow.locator('td[data-label="Naam"]')
+  ).toHaveText('Gelijke Naam');
+
+  await expect(
+    contentmanagerRow.locator(
+      'td[data-label="E-mailadres"]'
+    )
+  ).toHaveText('contentmanager@example.test');
+});
+
+test('Ledenrijselectie gebruikt exacte e-mailmatch en geen substring', async ({ page }) => {
+  await page.setContent(`
+    <table>
+      <tbody id="ledenbeheer-lijst-body">
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Doelaccount</td>
+          <td data-label="E-mailadres">beheer@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Prefixaccount</td>
+          <td data-label="E-mailadres">extra-beheer@example.test</td>
+        </tr>
+        <tr class="ledenbeheer-member-row">
+          <td data-label="Naam">Suffixaccount</td>
+          <td data-label="E-mailadres">beheer@example.test.invalid</td>
+        </tr>
+      </tbody>
+    </table>
+  `);
+
+  const targetRow = getMemberRowByEmail(
+    page,
+    'beheer@example.test'
+  );
+
+  await expect(targetRow).toHaveCount(1);
+
+  await expect(
+    targetRow.locator('td[data-label="Naam"]')
+  ).toHaveText('Doelaccount');
+
+  await expect(
+    targetRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText('beheer@example.test');
+});
 
 function isControlledMembersListUrl(url: URL) {
   const selectedColumns = (url.searchParams.get('select') || '')
@@ -368,7 +653,7 @@ async function openAdminWithControlledMembers(page) {
   await page.goto('http://localhost:5500/admin/index.html');
 
   await expect(page).toHaveURL(/admin\/index\.html/);
-  await expect(page.locator('main')).toContainText('Welkom (Admin)');
+  await expect(page.locator('main')).toContainText('Welkom in de beheeromgeving');
   await expect(page.locator('#ledenbeheer')).toBeVisible();
   await expect(page.locator('#nieuw-lid-form')).toBeVisible();
 
@@ -407,7 +692,7 @@ async function getTestProfileDetails(email: string) {
   const supabaseAdmin = getSupabaseAdminClient();
 
   if (!supabaseAdmin) {
-    throw new Error('SUPABASE_URL en/of SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
   }
 
   const { data, error } = await supabaseAdmin
@@ -456,11 +741,27 @@ test('Ingelogde member kan adminpagina niet openen', async ({ page }) => {
   await expect(page).toHaveURL(/login\.html/);
 });
 
-test('Ingelogde admin ziet navigatie naar adminomgeving op dashboard', async ({ page }) => {
+test('Ingelogde contentmanager kan beheeromgeving openen', async ({ page }) => {
+  await loginAsContentmanager(page);
+  await openAdminAndWaitUntilReady(page);
+});
+
+test('Ingelogde contentmanager ziet navigatie naar beheeromgeving op dashboard', async ({ page }) => {
+  await loginAsContentmanager(page);
+
+  await expect(page.locator('#admin-link')).toBeVisible();
+  await expect(page.locator('#admin-link')).toContainText('Naar beheeromgeving');
+
+  await page.click('#admin-link');
+
+  await expect(page).toHaveURL(/admin\/index.html/);
+  await expect(page.locator('#ledenbeheer')).toBeVisible();
+});
+test('Ingelogde admin ziet navigatie naar beheeromgeving op dashboard', async ({ page }) => {
   await loginAsAdmin(page);
 
   await expect(page.locator('#admin-link')).toBeVisible();
-  await expect(page.locator('#admin-link')).toContainText('Naar adminomgeving');
+  await expect(page.locator('#admin-link')).toContainText('Naar beheeromgeving');
 
   await page.click('#admin-link');
 
@@ -468,7 +769,7 @@ test('Ingelogde admin ziet navigatie naar adminomgeving op dashboard', async ({ 
   await expect(page.locator('#ledenbeheer')).toBeVisible();
 });
 
-test('Ingelogde member ziet geen navigatie naar adminomgeving op dashboard', async ({ page }) => {
+test('Ingelogde member ziet geen navigatie naar beheeromgeving op dashboard', async ({ page }) => {
   await loginAsMember(page);
 
   await expect(page.locator('#admin-link')).toBeHidden();
@@ -666,7 +967,14 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
 
   await expect(page.locator('th')).toContainText(['Naam', 'E-mailadres', 'Rol', 'Status', 'Acties']);
 
-  const adminRow = page.locator('#ledenbeheer-lijst-body tr').filter({ hasText: ADMIN_DISPLAY_NAME });
+  const adminRow = getMemberRowByEmail(page, VALID_EMAIL!);
+
+  await expect(adminRow).toHaveCount(1);
+
+  await expect(
+    adminRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText(VALID_EMAIL!);
+
   await expect(adminRow).toContainText('Eigen account');
 
   const memberRow = await openMemberActionMenu(page);
@@ -677,6 +985,54 @@ test('Ingelogde admin ziet beheeracties in ledenlijst', async ({ page }) => {
   await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toContainText('Deactiveren');
 });
 
+test('Ingelogde contentmanager ziet beheeracties voor gewone member', async ({ page }) => {
+  await loginAsContentmanager(page);
+  await openAdminAndWaitUntilReady(page);
+
+  const memberRow = await openMemberActionMenu(page);
+
+  await expect(memberRow.locator('.ledenbeheer-menu-action.edit')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-menu-action.edit')).toContainText('Bewerken');
+  await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toBeVisible();
+  await expect(memberRow.locator('.ledenbeheer-menu-action.deactivate')).toContainText('Deactiveren');
+});
+
+test('Ingelogde contentmanager krijgt geen beheeracties voor beheeraccounts', async ({ page }) => {
+  await loginAsContentmanager(page);
+  await openAdminAndWaitUntilReady(page);
+
+  await page.fill('#ledenbeheer-zoek', ADMIN_DISPLAY_NAME!);
+
+  const adminRow = getMemberRowByEmail(page, VALID_EMAIL!);
+
+  await expect(adminRow).toHaveCount(1);
+  await expect(adminRow).toBeVisible();
+
+  await expect(
+    adminRow.locator('td[data-label="E-mailadres"]')
+  ).toHaveText(VALID_EMAIL!);
+
+  await expect(adminRow).toContainText('Beheeraccount');
+  await expect(adminRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
+
+  await page.fill('#ledenbeheer-zoek', CONTENTMANAGER_DISPLAY_NAME!);
+
+  const contentmanagerRow = getMemberRowByEmail(
+    page,
+    CONTENTMANAGER_EMAIL!
+  );
+
+  await expect(contentmanagerRow).toHaveCount(1);
+  await expect(contentmanagerRow).toBeVisible();
+
+  await expect(
+    contentmanagerRow.locator(
+      'td[data-label="E-mailadres"]'
+    )
+  ).toHaveText(CONTENTMANAGER_EMAIL!);
+  await expect(contentmanagerRow).toContainText('Eigen account');
+  await expect(contentmanagerRow.locator('.ledenbeheer-action-trigger')).toHaveCount(0);
+});
 // Test statusmutatie: active -> inactive -> active met exacte assertions
 test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, browserName }) => {
   // Deze test wijzigt Supabase-testdata en mag niet parallel draaien in meerdere browsers.
@@ -688,8 +1044,8 @@ test('Ingelogde admin kan lid deactiveren en heractiveren', async ({ page, brows
   test.skip(
     !STATUS_MEMBER_EMAIL ||
       !STATUS_MEMBER_DISPLAY_NAME ||
-      !process.env.SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY,
+      !process.env.TEST_SUPABASE_URL ||
+      !process.env.TEST_SUPABASE_SERVICE_ROLE_KEY,
     'Statusmutatie-testidentity of Supabase service credentials ontbreken.'
   );
 
@@ -834,7 +1190,7 @@ test('Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstell
     );
   }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
     test.skip(true, 'Supabase service credentials ontbreken voor backend- en persistentiecontrole.');
   }
 
@@ -1228,46 +1584,132 @@ test('Ingelogde gebruiker kan volledig uitloggen en verliest toegang tot dashboa
 
 
 test('Ingelogde admin kan pending lid opnieuw uitnodigen via opt-in test', async ({ page, browserName }) => {
-  test.skip(browserName !== 'chromium', 'Runtime resend-invite test wordt bewust alleen in Chromium uitgevoerd.');
-  test.skip(!RESEND_MEMBER_INVITE_E2E_ENABLED, 'Resend-member-invite E2E-test is opt-in.');
+  test.setTimeout(120_000);
 
   test.skip(
-    !PENDING_MEMBER_EMAIL ||
-      !PENDING_MEMBER_DISPLAY_NAME ||
-      !process.env.SUPABASE_URL ||
-      !process.env.SUPABASE_SERVICE_ROLE_KEY,
-    'Pending testidentity of Supabase service credentials ontbreken.'
+    browserName !== 'chromium',
+    'Runtime resend-invite test wordt bewust alleen in Chromium uitgevoerd.'
   );
 
-  await setTestProfileStatus(PENDING_MEMBER_EMAIL, 'pending');
-
-  await loginAsAdmin(page);
-  await openAdminAndWaitUntilReady(page);
-
-  await page.selectOption('#ledenbeheer-status-filter', 'pending');
-  await page.fill('#ledenbeheer-zoek', PENDING_MEMBER_EMAIL);
-
-  const pendingMemberRow = page
-    .locator('#ledenbeheer-lijst-body tr')
-    .filter({ hasText: PENDING_MEMBER_EMAIL });
-
-  await expect(pendingMemberRow).toBeVisible({ timeout: 15000 });
-  await expect(pendingMemberRow.locator('.status-badge')).toHaveText(/^pending$/i);
-
-  await pendingMemberRow.locator('[data-action-menu-trigger]').click();
-
-  const resendButton = pendingMemberRow.locator('.ledenbeheer-menu-action.resend-invite');
-  await expect(resendButton).toBeVisible();
-  await expect(resendButton).toContainText('Opnieuw uitnodigen');
-
-  await resendButton.click();
-
-  const toast = page.locator('#ledenbeheer-toast');
-  await expect(toast).toBeVisible({ timeout: 15000 });
-  await expect(toast).toContainText(
-    /Uitnodiging is opnieuw verzonden|opnieuw verzonden|e-maillimiet|tijdelijk geblokkeerd|rate limit/i,
-    { timeout: 15000 }
+  test.skip(
+    !RESEND_MEMBER_INVITE_E2E_ENABLED,
+    'Resend-member-invite E2E-test is opt-in.'
   );
+
+  test.skip(
+    !RESEND_MEMBER_INVITE_EMAIL ||
+      !RESEND_MEMBER_INVITE_DISPLAY_NAME ||
+      !TEST_SUPABASE_URL ||
+      !TEST_SUPABASE_SERVICE_ROLE_KEY,
+    'Disposable resend-testidentity of Supabase service credentials ontbreken.'
+  );
+
+  assertDedicatedResendInviteIdentity(RESEND_MEMBER_INVITE_EMAIL!);
+
+  await cleanupCreateMemberTestIdentity(
+    RESEND_MEMBER_INVITE_EMAIL!
+  );
+
+  try {
+    const originalAuthUserId =
+      await provisionResendMemberInviteTestIdentity(
+        RESEND_MEMBER_INVITE_EMAIL!,
+        RESEND_MEMBER_INVITE_DISPLAY_NAME!
+      );
+
+    // TEST SMTP heeft een minimuminterval van 60 seconden.
+    // Wacht gecontroleerd zodat de tweede uitnodiging niet door die limiet
+    // als fout-negatief wordt geblokkeerd.
+    await page.waitForTimeout(65_000);
+
+    await loginAsAdmin(page);
+    await openAdminAndWaitUntilReady(page);
+
+    await page.selectOption(
+      '#ledenbeheer-status-filter',
+      'pending'
+    );
+
+    await page.fill(
+      '#ledenbeheer-zoek',
+      RESEND_MEMBER_INVITE_EMAIL!
+    );
+
+    const pendingMemberRow = page
+      .locator('#ledenbeheer-lijst-body tr')
+      .filter({
+        hasText: RESEND_MEMBER_INVITE_EMAIL!,
+      });
+
+    await expect(
+      pendingMemberRow
+    ).toBeVisible({ timeout: 15000 });
+
+    await expect(
+      pendingMemberRow.locator('.status-badge')
+    ).toHaveText(/^pending$/i);
+
+    await pendingMemberRow
+      .locator('[data-action-menu-trigger]')
+      .click();
+
+    const resendButton = pendingMemberRow.locator(
+      '.ledenbeheer-menu-action.resend-invite'
+    );
+
+    await expect(resendButton).toBeVisible();
+
+    await expect(resendButton).toContainText(
+      'Opnieuw uitnodigen'
+    );
+
+    await resendButton.click();
+
+    const toast = page.locator('#ledenbeheer-toast');
+
+    await expect(
+      toast
+    ).toBeVisible({ timeout: 15000 });
+
+    await expect(toast).toContainText(
+      'Uitnodiging is opnieuw verzonden.',
+      { timeout: 15000 }
+    );
+
+    const authUserAfterResend =
+      await findAuthUserByEmailForCleanup(
+        RESEND_MEMBER_INVITE_EMAIL!
+      );
+
+    expect(authUserAfterResend).not.toBeNull();
+
+    expect(
+      authUserAfterResend?.id
+    ).toBe(originalAuthUserId);
+
+    expect(
+      Boolean(
+        authUserAfterResend?.email_confirmed_at ||
+        authUserAfterResend?.confirmed_at
+      )
+    ).toBe(false);
+
+    const profileAfterResend =
+      await getCreateMemberProfile(
+        RESEND_MEMBER_INVITE_EMAIL!
+      );
+
+    expect(
+      profileAfterResend
+        ? `${profileAfterResend.role}:${profileAfterResend.status}`
+        : 'missing'
+    ).toBe('member:pending');
+
+  } finally {
+    await cleanupCreateMemberTestIdentity(
+      RESEND_MEMBER_INVITE_EMAIL!
+    );
+  }
 });
 test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', async ({ page, browserName }) => {
   test.skip(
@@ -1285,8 +1727,8 @@ test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', asy
     return;
   }
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    test.skip(true, 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ontbreekt; cleanup en controle zijn niet mogelijk.');
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'TEST_SUPABASE_URL/TEST_SUPABASE_SERVICE_ROLE_KEY ontbreekt; cleanup en controle zijn niet mogelijk.');
     return;
   }
 
@@ -1352,8 +1794,8 @@ test('Pending lid wordt automatisch geactiveerd bij dashboard-login', async ({ p
   }
 
   // Skip als Supabase service-role configuratie ontbreekt
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    test.skip(true, 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ontbreekt; pending activatie-test wordt overgeslagen.');
+  if (!TEST_SUPABASE_URL || !TEST_SUPABASE_SERVICE_ROLE_KEY) {
+    test.skip(true, 'TEST_SUPABASE_URL/TEST_SUPABASE_SERVICE_ROLE_KEY ontbreekt; pending activatie-test wordt overgeslagen.');
     return;
   }
 
@@ -1364,6 +1806,7 @@ test('Pending lid wordt automatisch geactiveerd bij dashboard-login', async ({ p
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', PENDING_MEMBER_EMAIL);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', PENDING_MEMBER_PASSWORD);
   await page.click('button[type="submit"]');
 
@@ -1401,6 +1844,7 @@ test('Inactief lid krijgt geen toegang tot dashboard', async ({ page, browserNam
   await page.goto('http://localhost:5500/leden/login.html');
 
   await page.fill('#email', INACTIVE_MEMBER_EMAIL);
+  await protectPasswordFromFailureArtifacts(page);
   await page.fill('#password', INACTIVE_MEMBER_PASSWORD);
   await page.click('button[type="submit"]');
 

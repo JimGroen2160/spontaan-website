@@ -11,6 +11,11 @@ import {
   validateFriendsContent,
 } from '../scripts/build-site.mjs';
 
+const TEST_BROWSER_SUPABASE_ENV = {
+  SUPABASE_URL: 'https://synthetic-test-project.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic_test_only',
+};
+
 test('vriendenquery haalt pagina en beheerbare vriendenrecords op', () => {
   assert.match(FRIENDS_QUERY, /friendsPage-main/);
   assert.match(FRIENDS_QUERY, /_type == "friendItem"/);
@@ -346,7 +351,10 @@ test('volledige build genereert vriendenpagina met CMS en gedeelde componenten',
   const {promisify} = await import('node:util');
   const exec = promisify(execFile);
 
-  const environment = {...process.env};
+  const environment = {
+    ...process.env,
+    ...TEST_BROWSER_SUPABASE_ENV,
+  };
 
   await exec(
     process.execPath,

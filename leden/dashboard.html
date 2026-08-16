@@ -18,7 +18,7 @@
     <p id="status">Controleren...</p>
 
     <div class="portal-actions">
-      <a id="admin-link" class="portal-action-link" href="../admin/index.html" style="display: none;">Naar adminomgeving</a>
+      <a id="admin-link" class="portal-action-link" href="../admin/index.html" style="display: none;">Naar beheeromgeving</a>
       <button id="logout" class="portal-action-button" style="display: none;">Uitloggen</button>
     </div>
   </section>
@@ -26,6 +26,7 @@
 
 <div id="footer-placeholder"></div>
 
+<script src="../js/runtime-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/auth.js"></script>
 
@@ -104,7 +105,7 @@ window.addEventListener("load", async () => {
     console.log("Session en profiel OK");
     statusEl.innerText = "Je bent succesvol ingelogd.";
 
-    if (profile.role === "admin") {
+    if (["admin", "contentmanager"].includes(profile.role)) {
       adminLink.style.display = "inline-block";
     }
 

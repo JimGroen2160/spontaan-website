@@ -123,25 +123,25 @@ Deno.serve(async (req: Request) => {
       },
     });
 
-    const { data: adminProfile, error: adminProfileError } = await adminClient
+    const { data: managerProfile, error: managerProfileError } = await adminClient
       .from("profiles")
       .select("auth_user_id, role, status")
       .eq("auth_user_id", userId)
       .single();
 
-    if (adminProfileError || !adminProfile) {
-      console.error("Adminprofiel fout:", adminProfileError);
+    if (managerProfileError || !managerProfile) {
+      console.error("Beheerprofiel fout:", managerProfileError);
       return jsonResponse(
         {
           success: false,
           code: "FORBIDDEN",
-          message: "Profiel van admin is niet beschikbaar.",
+          message: "Beheerprofiel is niet beschikbaar.",
         },
         403,
       );
     }
 
-    if (adminProfile.role !== "admin" || adminProfile.status !== "active") {
+    if (!["admin", "contentmanager"].includes(managerProfile.role) || managerProfile.status !== "active") {
       return jsonResponse(
         {
           success: false,
@@ -257,20 +257,35 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { error: resetError } = await adminClient.auth.resetPasswordForEmail(memberProfile.email);
+    if (existingAuthUser.email_confirmed_at || existingAuthUser.confirmed_at) {
+      return jsonResponse(
+        {
+          success: false,
+          code: "AUTH_USER_ALREADY_CONFIRMED",
+          message: "Dit lid heeft de uitnodiging al geaccepteerd en kan niet opnieuw worden uitgenodigd.",
+        },
+        409,
+      );
+    }
 
-    if (resetError) {
-      console.error("Opnieuw uitnodigen mislukt:", resetError);
+    const { data: invitedUserData, error: inviteError } =
+      await adminClient.auth.admin.inviteUserByEmail(memberProfile.email, {
+        data: {
+          full_name: memberProfile.full_name,
+        },
+      });
+
+    if (inviteError || !invitedUserData.user) {
+      console.error("Opnieuw uitnodigen mislukt:", inviteError);
       return jsonResponse(
         {
           success: false,
           code: "RESEND_INVITE_FAILED",
-          message: resetError.message || "Opnieuw uitnodigen is mislukt.",
+          message: inviteError?.message || "Opnieuw uitnodigen is mislukt.",
         },
         500,
       );
     }
-
     return jsonResponse({
       success: true,
       message: "Uitnodiging is opnieuw verzonden.",

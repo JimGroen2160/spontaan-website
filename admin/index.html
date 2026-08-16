@@ -22,10 +22,10 @@
   <main id="admin-content" class="admin-main">
     <section class="admin-intro-card" aria-labelledby="admin-welcome-title">
       <div>
-        <h2 id="admin-welcome-title">Welkom (Admin)</h2>
+        <h2 id="admin-welcome-title">Welkom in de beheeromgeving</h2>
         <p>Vanuit deze omgeving beheer je de ledenadministratie van Zanggroep Spontaan.</p>
       </div>
-      <div class="admin-actions" aria-label="Admin navigatie">
+      <div class="admin-actions" aria-label="Beheernavigatie">
         <a id="rapportage-link" class="admin-action-link" href="./rapportage.html">Naar websiteprestaties</a>
         <a id="ledenomgeving-link" class="admin-action-link" href="../leden/dashboard.html">Naar ledenomgeving</a>
       </div>
@@ -143,6 +143,7 @@
               <select id="ledenbeheer-role-filter">
                 <option value="all">Alle rollen</option>
                 <option value="admin">Admin</option>
+                <option value="contentmanager">Contentmanager</option>
                 <option value="member">Member</option>
               </select>
             </div>
@@ -276,6 +277,7 @@
 
   <div id="footer-placeholder"></div>
 
+  <script src="../js/runtime-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/auth.js"></script>
   <script src="../components/menu.js"></script>
@@ -298,7 +300,7 @@
           return;
         }
 
-        if (profile.role !== "admin" || profile.status !== "active") {
+        if (!["admin", "contentmanager"].includes(profile.role) || profile.status !== "active") {
           window.location.href = loginPath;
           return;
         }

@@ -63,6 +63,15 @@
       "displayNameEnvKey": "TEST_PROFILE_MEMBER_DISPLAY_NAME",
       "role": "member",
       "status": "active"
+    },
+    {
+      "id": "test-contentmanager",
+      "label": "Contentmanager testaccount",
+      "emailEnvKey": "TEST_CONTENTMANAGER_EMAIL",
+      "passwordEnvKey": "TEST_CONTENTMANAGER_PASSWORD",
+      "displayNameEnvKey": "TEST_CONTENTMANAGER_DISPLAY_NAME",
+      "role": "contentmanager",
+      "status": "active"
     }
   ]
 }

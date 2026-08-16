@@ -248,6 +248,16 @@ test.describe('Interactie- en navigatieaudit — Media', () => {
   test('beide audioknoppen wijzigen aantoonbaar de afspeelstatus', async ({
     page,
   }) => {
+    await page.route(
+      'https://cdn.sanity.io/files/u66p1mxm/development/audio-*.mp3',
+      async (route) => {
+        await route.fulfill({
+          path: 'data/test-repertoire-warm.wav',
+          contentType: 'audio/wav',
+        });
+      },
+    );
+
     await page.addInitScript(() => {
       Object.defineProperty(HTMLMediaElement.prototype, 'duration', {
         configurable: true,

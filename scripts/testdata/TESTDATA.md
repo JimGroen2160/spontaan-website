@@ -41,6 +41,7 @@ Voor de Playwright-test van profielgegevens bewerken wordt een aparte actieve me
 | Testgebruiker | Role | Status | Doel |
 |---|---|---|---|
 | Profielbewerking test member (`TEST_PROFILE_MEMBER_EMAIL`, `TEST_PROFILE_MEMBER_PASSWORD`, `TEST_PROFILE_MEMBER_DISPLAY_NAME`) | `member` | `active` | Testen dat een admin toegestane profielvelden kan wijzigen, opslaan, controleren en terugzetten. |
+| Contentmanager testaccount (`TEST_CONTENTMANAGER_EMAIL`, `TEST_CONTENTMANAGER_PASSWORD`, `TEST_CONTENTMANAGER_DISPLAY_NAME`) | `contentmanager` | `active` | Testen van beheerautorisatie en functionele contentmanagerflows. Dit account is geen admin en wordt niet hergebruikt voor membertests. |
 
 
 ### Create-member testidentity
@@ -144,7 +145,7 @@ Playwright-tests (`tests/auth.spec.ts`) mogen niet structureel leunen op echte l
 - CI-secrets en bestaande pipeline: `.github/workflows/ci.yml`
 - Auth/profielen: `js/auth.js`, `leden/dashboard.html`
 - Ledenbeheer: `admin/ledenbeheer.js`
-- Edge Function-broncode: `scripts/create-member/`, `scripts/resend-member-invite/`
+- Edge Function-broncode: `supabase/functions/create-member/`, `supabase/functions/resend-member-invite/`
 - Actuele databasebasis: `supabase/migrations/`
 ### Resend-member-invite opt-in test
 
@@ -188,7 +189,7 @@ Lokale gecontroleerde toepassing:
 
 `node scripts/testdata/seed-test-users.mjs --profiles-apply`
 
-De modus voert eerst een volledige voorcontrole uit voor alle zes allowlist-users.
+De modus voert eerst een volledige voorcontrole uit voor alle zeven allowlist-users.
 Bij `conflict`, `error` of `auth-missing` stopt de verwerking vóór de eerste mutatie.
 
 Daarna geldt:
