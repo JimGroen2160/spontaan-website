@@ -8,17 +8,6 @@ on:
         required: true
         type: string
 
-  # TIJDELIJKE WORKAROUND:
-  # nodig zolang deze nieuwe workflow nog niet op de default branch staat.
-  # Na afronding van PR #72 opnieuw beoordelen en bij voorkeur verwijderen.
-  pull_request:
-    types: [opened, synchronize, reopened, labeled]
-    branches: [main]
-    paths:
-      - ".github/workflows/supabase-test-deploy.yml"
-      - "supabase/migrations/**"
-      - "supabase/functions/**"
-
 permissions:
   contents: read
 
@@ -119,7 +108,7 @@ jobs:
   preview-test:
     name: Preview Supabase test database migrations
     needs: validate
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'o/contentmanager-rbac-contentbeheer'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: supabase-test
@@ -175,20 +164,7 @@ jobs:
   deploy-test:
     name: Deploy to Supabase test
 
-    # TIJDELIJKE PRE-MERGE ROUTE:
-    # uitsluitend voor PR #72 en verwijderen vóór de definitieve merge.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'pull_request' &&
-        github.event.action == 'labeled' &&
-        github.event.label.name == 'deploy-supabase-test' &&
-        github.event.pull_request.number == 72 &&
-        github.head_ref == 'o/contentmanager-rbac-contentbeheer' &&
-        github.event.pull_request.head.repo.full_name == github.repository &&
-        github.event.pull_request.base.sha == '89a2bfb82d723fbad628a0ac64a54691f11e5a90' &&
-        github.actor == 'JimGroen2160'
-      )
+    if: github.event_name == 'workflow_dispatch'
     needs: preview-test
     runs-on: ubuntu-latest
     timeout-minutes: 20

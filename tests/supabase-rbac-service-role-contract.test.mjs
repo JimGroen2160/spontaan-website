@@ -108,3 +108,46 @@ test(
     }
   },
 );
+
+test(
+  "resend-member-invite gebruikt echte inviteflow en blokkeert confirmed Auth-users",
+  async () => {
+    const source = await readFile(
+      new URL(
+        "../supabase/functions/resend-member-invite/index.ts",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    assert.match(
+      source,
+      /adminClient\.auth\.admin\.inviteUserByEmail/,
+    );
+
+    assert.doesNotMatch(
+      source,
+      /resetPasswordForEmail/,
+    );
+
+    assert.match(
+      source,
+      /AUTH_USER_ALREADY_CONFIRMED/,
+    );
+
+    assert.match(
+      source,
+      /existingAuthUser\.email_confirmed_at/,
+    );
+
+    assert.match(
+      source,
+      /existingAuthUser\.confirmed_at/,
+    );
+
+    assert.match(
+      source,
+      /Uitnodiging is opnieuw verzonden\./,
+    );
+  },
+);

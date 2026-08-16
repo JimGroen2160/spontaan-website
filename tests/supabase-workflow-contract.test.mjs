@@ -5,9 +5,6 @@ import test from 'node:test'
 const WORKFLOW =
   '.github/workflows/supabase-test-deploy.yml'
 
-const EXPECTED_BASE =
-  '89a2bfb82d723fbad628a0ac64a54691f11e5a90'
-
 function jobBlock(source, jobName) {
   const lines = source
     .replace(/\r\n/g, '\n')
@@ -52,55 +49,30 @@ test(
 )
 
 test(
-  'tijdelijke PR72-deployment vereist exact de gelabelde fail-closed route',
+  'tijdelijke PR72-deploymentroute is volledig verwijderd',
   async () => {
     const source = await workflowSource()
+    const preview = jobBlock(source, 'preview-test')
     const deploy = jobBlock(source, 'deploy-test')
 
-    assert.match(
-      source,
-      /^    types: \[opened, synchronize, reopened, labeled\]$/m,
-    )
-
-    assert.match(deploy, /github\.event_name == 'pull_request'/)
-    assert.match(deploy, /github\.event\.action == 'labeled'/)
+    assert.doesNotMatch(source, /^\s*pull_request:$/m)
+    assert.doesNotMatch(source, /deploy-supabase-test/)
+    assert.doesNotMatch(source, /github\.head_ref/)
+    assert.doesNotMatch(source, /github\.event\.pull_request/)
 
     assert.match(
-      deploy,
-      /github\.event\.label\.name == 'deploy-supabase-test'/,
+      preview,
+      /github\.event_name == 'workflow_dispatch'/,
     )
 
     assert.match(
       deploy,
-      /github\.event\.pull_request\.number == 72/,
-    )
-
-    assert.match(
-      deploy,
-      /github\.head_ref == 'o\/contentmanager-rbac-contentbeheer'/,
-    )
-
-    assert.match(
-      deploy,
-      /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/,
-    )
-
-    assert.match(
-      deploy,
-      new RegExp(
-        `github\\.event\\.pull_request\\.base\\.sha == '${EXPECTED_BASE}'`,
-      ),
-    )
-
-    assert.match(
-      deploy,
-      /github\.actor == 'JimGroen2160'/,
+      /github\.event_name == 'workflow_dispatch'/,
     )
   },
 )
-
 test(
-  'gewone pull-requestflow mag Supabase TEST uitsluitend previewen',
+  'preview-job blijft niet-muterend',
   async () => {
     const source = await workflowSource()
     const preview = jobBlock(source, 'preview-test')

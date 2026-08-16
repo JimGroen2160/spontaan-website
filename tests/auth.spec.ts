@@ -25,6 +25,8 @@ const CREATE_MEMBER_EMAIL = process.env.TEST_CREATE_MEMBER_EMAIL;
 const CREATE_MEMBER_DISPLAY_NAME = process.env.TEST_CREATE_MEMBER_DISPLAY_NAME;
 const CREATE_MEMBER_E2E_ENABLED = process.env.TEST_CREATE_MEMBER_E2E_ENABLED === 'true';
 const RESEND_MEMBER_INVITE_E2E_ENABLED = process.env.TEST_RESEND_MEMBER_INVITE_E2E_ENABLED === 'true';
+const RESEND_MEMBER_INVITE_EMAIL = process.env.TEST_RESEND_MEMBER_INVITE_EMAIL;
+const RESEND_MEMBER_INVITE_DISPLAY_NAME = process.env.TEST_RESEND_MEMBER_INVITE_DISPLAY_NAME;
 const TEST_SUPABASE_URL = process.env.TEST_SUPABASE_URL;
 const TEST_SUPABASE_SERVICE_ROLE_KEY = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
 
@@ -157,6 +159,133 @@ async function cleanupCreateMemberTestIdentity(email: string) {
     if (authDeleteError) {
       throw authDeleteError;
     }
+  }
+}
+
+function assertDedicatedResendInviteIdentity(email: string) {
+  const targetEmail = email.trim().toLowerCase();
+
+  const protectedEmails = [
+    VALID_EMAIL,
+    MEMBER_EMAIL,
+    CONTENTMANAGER_EMAIL,
+    PENDING_MEMBER_EMAIL,
+    INACTIVE_MEMBER_EMAIL,
+    STATUS_MEMBER_EMAIL,
+    PROFILE_MEMBER_EMAIL,
+    CREATE_MEMBER_EMAIL,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.trim().toLowerCase());
+
+  if (protectedEmails.includes(targetEmail)) {
+    throw new Error(
+      'TEST_RESEND_MEMBER_INVITE_EMAIL moet een eigen disposable testidentity zijn en mag geen gedeelde testgebruiker hergebruiken.'
+    );
+  }
+}
+
+async function provisionResendMemberInviteTestIdentity(
+  email: string,
+  displayName: string
+) {
+  const supabaseAdmin = getSupabaseAdminClient();
+
+  if (!supabaseAdmin) {
+    throw new Error('TEST_SUPABASE_URL en/of TEST_SUPABASE_SERVICE_ROLE_KEY ontbreken.');
+  }
+
+  assertDedicatedResendInviteIdentity(email);
+
+  const targetEmail = email.trim().toLowerCase();
+
+  const existingAuthUser = await findAuthUserByEmailForCleanup(targetEmail);
+
+  if (existingAuthUser) {
+    throw new Error(
+      `Disposable resend-testidentity bestaat onverwacht al in Auth: ${targetEmail}`
+    );
+  }
+
+  const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .eq('email', targetEmail)
+    .maybeSingle();
+
+  if (profileLookupError) {
+    throw profileLookupError;
+  }
+
+  if (existingProfile) {
+    throw new Error(
+      `Disposable resend-testidentity bestaat onverwacht al in profiles: ${targetEmail}`
+    );
+  }
+
+  const { data: inviteData, error: inviteError } =
+    await supabaseAdmin.auth.admin.inviteUserByEmail(targetEmail, {
+      data: {
+        full_name: displayName,
+      },
+    });
+
+  if (inviteError || !inviteData?.user?.id) {
+    throw new Error(
+      `Kon disposable resend-testidentity niet uitnodigen: ${
+        inviteError?.message ?? 'geen Auth-user terugontvangen'
+      }`
+    );
+  }
+
+  const authUserId = inviteData.user.id;
+
+  try {
+    const { error: profileInsertError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        auth_user_id: authUserId,
+        full_name: displayName,
+        street: 'Teststraat',
+        house_number: '1',
+        postal_code: '1234 AB',
+        city: 'Teststad',
+        phone: '0612345678',
+        email: targetEmail,
+        role: 'member',
+        status: 'pending',
+      });
+
+    if (profileInsertError) {
+      throw profileInsertError;
+    }
+
+    const authUser = await findAuthUserByEmailForCleanup(targetEmail);
+
+    if (!authUser || authUser.id !== authUserId) {
+      throw new Error(
+        'Disposable resend-testidentity heeft na provisioning niet de verwachte Auth-user-ID.'
+      );
+    }
+
+    if (authUser.email_confirmed_at || authUser.confirmed_at) {
+      throw new Error(
+        'Disposable resend-testidentity is onverwacht al bevestigd.'
+      );
+    }
+
+    return authUserId;
+  } catch (error) {
+    const { error: authDeleteError } =
+      await supabaseAdmin.auth.admin.deleteUser(authUserId);
+
+    if (authDeleteError) {
+      throw new Error(
+        `Provisioning mislukt en Auth-cleanup faalde: ${authDeleteError.message}`
+      );
+    }
+
+    throw error;
   }
 }
 
@@ -1455,46 +1584,132 @@ test('Ingelogde gebruiker kan volledig uitloggen en verliest toegang tot dashboa
 
 
 test('Ingelogde admin kan pending lid opnieuw uitnodigen via opt-in test', async ({ page, browserName }) => {
-  test.skip(browserName !== 'chromium', 'Runtime resend-invite test wordt bewust alleen in Chromium uitgevoerd.');
-  test.skip(!RESEND_MEMBER_INVITE_E2E_ENABLED, 'Resend-member-invite E2E-test is opt-in.');
+  test.setTimeout(120_000);
 
   test.skip(
-    !PENDING_MEMBER_EMAIL ||
-      !PENDING_MEMBER_DISPLAY_NAME ||
-      !process.env.TEST_SUPABASE_URL ||
-      !process.env.TEST_SUPABASE_SERVICE_ROLE_KEY,
-    'Pending testidentity of Supabase service credentials ontbreken.'
+    browserName !== 'chromium',
+    'Runtime resend-invite test wordt bewust alleen in Chromium uitgevoerd.'
   );
 
-  await setTestProfileStatus(PENDING_MEMBER_EMAIL, 'pending');
-
-  await loginAsAdmin(page);
-  await openAdminAndWaitUntilReady(page);
-
-  await page.selectOption('#ledenbeheer-status-filter', 'pending');
-  await page.fill('#ledenbeheer-zoek', PENDING_MEMBER_EMAIL);
-
-  const pendingMemberRow = page
-    .locator('#ledenbeheer-lijst-body tr')
-    .filter({ hasText: PENDING_MEMBER_EMAIL });
-
-  await expect(pendingMemberRow).toBeVisible({ timeout: 15000 });
-  await expect(pendingMemberRow.locator('.status-badge')).toHaveText(/^pending$/i);
-
-  await pendingMemberRow.locator('[data-action-menu-trigger]').click();
-
-  const resendButton = pendingMemberRow.locator('.ledenbeheer-menu-action.resend-invite');
-  await expect(resendButton).toBeVisible();
-  await expect(resendButton).toContainText('Opnieuw uitnodigen');
-
-  await resendButton.click();
-
-  const toast = page.locator('#ledenbeheer-toast');
-  await expect(toast).toBeVisible({ timeout: 15000 });
-  await expect(toast).toContainText(
-    /Uitnodiging is opnieuw verzonden|opnieuw verzonden|e-maillimiet|tijdelijk geblokkeerd|rate limit/i,
-    { timeout: 15000 }
+  test.skip(
+    !RESEND_MEMBER_INVITE_E2E_ENABLED,
+    'Resend-member-invite E2E-test is opt-in.'
   );
+
+  test.skip(
+    !RESEND_MEMBER_INVITE_EMAIL ||
+      !RESEND_MEMBER_INVITE_DISPLAY_NAME ||
+      !TEST_SUPABASE_URL ||
+      !TEST_SUPABASE_SERVICE_ROLE_KEY,
+    'Disposable resend-testidentity of Supabase service credentials ontbreken.'
+  );
+
+  assertDedicatedResendInviteIdentity(RESEND_MEMBER_INVITE_EMAIL!);
+
+  await cleanupCreateMemberTestIdentity(
+    RESEND_MEMBER_INVITE_EMAIL!
+  );
+
+  try {
+    const originalAuthUserId =
+      await provisionResendMemberInviteTestIdentity(
+        RESEND_MEMBER_INVITE_EMAIL!,
+        RESEND_MEMBER_INVITE_DISPLAY_NAME!
+      );
+
+    // TEST SMTP heeft een minimuminterval van 60 seconden.
+    // Wacht gecontroleerd zodat de tweede uitnodiging niet door die limiet
+    // als fout-negatief wordt geblokkeerd.
+    await page.waitForTimeout(65_000);
+
+    await loginAsAdmin(page);
+    await openAdminAndWaitUntilReady(page);
+
+    await page.selectOption(
+      '#ledenbeheer-status-filter',
+      'pending'
+    );
+
+    await page.fill(
+      '#ledenbeheer-zoek',
+      RESEND_MEMBER_INVITE_EMAIL!
+    );
+
+    const pendingMemberRow = page
+      .locator('#ledenbeheer-lijst-body tr')
+      .filter({
+        hasText: RESEND_MEMBER_INVITE_EMAIL!,
+      });
+
+    await expect(
+      pendingMemberRow
+    ).toBeVisible({ timeout: 15000 });
+
+    await expect(
+      pendingMemberRow.locator('.status-badge')
+    ).toHaveText(/^pending$/i);
+
+    await pendingMemberRow
+      .locator('[data-action-menu-trigger]')
+      .click();
+
+    const resendButton = pendingMemberRow.locator(
+      '.ledenbeheer-menu-action.resend-invite'
+    );
+
+    await expect(resendButton).toBeVisible();
+
+    await expect(resendButton).toContainText(
+      'Opnieuw uitnodigen'
+    );
+
+    await resendButton.click();
+
+    const toast = page.locator('#ledenbeheer-toast');
+
+    await expect(
+      toast
+    ).toBeVisible({ timeout: 15000 });
+
+    await expect(toast).toContainText(
+      'Uitnodiging is opnieuw verzonden.',
+      { timeout: 15000 }
+    );
+
+    const authUserAfterResend =
+      await findAuthUserByEmailForCleanup(
+        RESEND_MEMBER_INVITE_EMAIL!
+      );
+
+    expect(authUserAfterResend).not.toBeNull();
+
+    expect(
+      authUserAfterResend?.id
+    ).toBe(originalAuthUserId);
+
+    expect(
+      Boolean(
+        authUserAfterResend?.email_confirmed_at ||
+        authUserAfterResend?.confirmed_at
+      )
+    ).toBe(false);
+
+    const profileAfterResend =
+      await getCreateMemberProfile(
+        RESEND_MEMBER_INVITE_EMAIL!
+      );
+
+    expect(
+      profileAfterResend
+        ? `${profileAfterResend.role}:${profileAfterResend.status}`
+        : 'missing'
+    ).toBe('member:pending');
+
+  } finally {
+    await cleanupCreateMemberTestIdentity(
+      RESEND_MEMBER_INVITE_EMAIL!
+    );
+  }
 });
 test('Ingelogde admin kan nieuw lid uitnodigen en pending profiel aanmaken', async ({ page, browserName }) => {
   test.skip(
