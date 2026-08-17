@@ -9,7 +9,7 @@ test.describe('Muziek en repertoire', () => {
   });
 
   test('combineert het overzicht en het muzikale verhaal in de bestaande huisstijl', async ({page}) => {
-    await expect(page.getByRole('heading', {name: 'Muziek en repertoire'})).toBeVisible();
+    await expect(page.getByRole('heading', {name: '[TEST] Muziek die verbindt'})).toBeVisible();
     await expect(page.locator('.repertoire-world')).toHaveCount(3);
     await expect(page.locator('.repertoire-audio-card')).toHaveCount(3);
     await expect(page.locator('.repertoire-process li')).toHaveCount(4);
@@ -33,7 +33,7 @@ test.describe('Muziek en repertoire', () => {
     await expect(page.getByRole('link', {name: 'Kom kennismaken'})).toHaveAttribute('href', './contact.html');
     await expect(page.getByRole('link', {name: 'Bekijk Beeld en Geluid'})).toHaveAttribute('href', './media.html');
     const body = await page.locator('body').innerText();
-    expect(body).toContain('Onze muzikale wereld');
+    expect(body).toContain('[TEST] Drie smaken, één klank');
     expect(body).toContain('[TEST] Het verhaal van The Rose.');
     expect(body).not.toMatch(/\u00c3|\u00e2|\ufffd/);
   });

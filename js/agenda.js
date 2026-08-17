@@ -65,7 +65,7 @@
     _type == "eventItem" &&
     isVisible == true &&
     isPublic == true &&
-    isTestData != true &&
+    ($allowDemo == true || isTestData != true) &&
     eventType != "besloten" &&
     defined(startAt) &&
     startAt >= now()
@@ -371,10 +371,14 @@
   async function fetchEventItems() {
     const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
+    const encodedAllowDemo = encodeURIComponent(
+      JSON.stringify(config.allowDemo),
+    );
     const url =
       `https://${config.projectId}.apicdn.sanity.io/` +
       `v${config.apiVersion}/data/query/${config.dataset}` +
-      `?query=${encodedQuery}`;
+      `?query=${encodedQuery}` +
+      `&%24allowDemo=${encodedAllowDemo}`;
 
     const response = await fetch(url, {
       headers: {

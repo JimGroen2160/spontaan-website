@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/studio"
+    schedule:
+      interval: "weekly"
+
+    # Reguliere versie-update-PR's worden hier bewust niet aangemaakt.
+    # Security-updates blijven mogelijk wanneer deze repositoryfunctie
+    # in GitHub is ingeschakeld.
+    open-pull-requests-limit: 0
+
+    groups:
+      studio-security:
+        applies-to: security-updates
+        patterns:
+          - "*"

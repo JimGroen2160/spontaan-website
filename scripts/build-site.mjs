@@ -1037,7 +1037,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
   "automaticFeaturedNewsItems": *[
     _type == "newsItem" &&
     isVisible == true &&
-    isTestData != true &&
+    ($allowDemo == true || isTestData != true) &&
     isFeatured == true &&
     defined(slug.current) &&
     defined(publishedAt)
@@ -1047,6 +1047,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     "slug": slug.current,
     publishedAt,
     isVisible,
+    isTestData,
     summary,
     mainImageAlt,
     "imageUrl": mainImage.asset->url
@@ -1111,14 +1112,14 @@ function normalizeHomeQuickLinks(value) {
     }));
 }
 
-function normalizeHomeNewsItem(value) {
+function normalizeHomeNewsItem(value, allowDemo = false) {
   if (!value || typeof value !== 'object') {
     return null;
   }
 
   if (
     value.isVisible !== true ||
-    value.isTestData === true
+    (!allowDemo && value.isTestData === true)
   ) {
     return null;
   }
@@ -1169,10 +1170,10 @@ function normalizeHomeNewsItem(value) {
   };
 }
 
-function normalizeHomeFeaturedNews(source) {
+function normalizeHomeFeaturedNews(source, allowDemo = false) {
   const manual = Array.isArray(source?.manualFeaturedNewsItems)
     ? source.manualFeaturedNewsItems
-        .map(normalizeHomeNewsItem)
+        .map((item) => normalizeHomeNewsItem(item, allowDemo))
         .filter(Boolean)
         .slice(0, 3)
     : [];
@@ -1188,7 +1189,7 @@ function normalizeHomeFeaturedNews(source) {
     source?.automaticFeaturedNewsItems,
   )
     ? source.automaticFeaturedNewsItems
-        .map(normalizeHomeNewsItem)
+        .map((item) => normalizeHomeNewsItem(item, allowDemo))
         .filter(Boolean)
         .sort(
           (left, right) =>
@@ -1206,11 +1207,13 @@ function normalizeHomeFeaturedNews(source) {
   };
 }
 
-export function normalizeHomeContent(value) {
+export function normalizeHomeContent(value, options = {}) {
   const source =
     value && typeof value === 'object'
       ? value
       : {};
+
+  const allowDemo = options?.allowDemo === true;
 
   return {
     heroTitle: text(source.heroTitle, 100),
@@ -1252,7 +1255,10 @@ export function normalizeHomeContent(value) {
       source.featuredNewsButtonLink,
       'link',
     ),
-    featuredNews: normalizeHomeFeaturedNews(source),
+    featuredNews: normalizeHomeFeaturedNews(
+      source,
+      allowDemo,
+    ),
     visitTitle: text(source.visitTitle, 120),
     visitText: text(source.visitText, 600),
     visitPrimaryButtonLabel: text(
@@ -1676,6 +1682,8 @@ export async function fetchHomeCmsContent() {
   const apiVersion =
     process.env.SANITY_API_VERSION?.trim() ||
     '2025-02-19';
+  const allowDemo =
+    process.env.VERCEL_ENV?.trim() !== 'production';
 
   const controller = new AbortController();
   const timeout = setTimeout(
@@ -1687,7 +1695,10 @@ export async function fetchHomeCmsContent() {
     const url =
       `https://${projectId}.api.sanity.io/` +
       `v${apiVersion}/data/query/${dataset}` +
-      `?query=${encodeURIComponent(HOME_QUERY)}`;
+      `?query=${encodeURIComponent(HOME_QUERY)}` +
+      `&%24allowDemo=${encodeURIComponent(
+        JSON.stringify(allowDemo),
+      )}`;
 
     const response = await fetch(url, {
       headers: {
@@ -1831,7 +1842,10 @@ function repertoireAudioCard(item) {
 }
 
 export function renderRepertoirePage(template, originalContent, source) {
-  const content = wireframePresentation(originalContent);
+  const content =
+    source === 'cms'
+      ? originalContent
+      : wireframePresentation(originalContent);
   const {page} = content;
   const {byId, featured: featuredItem} = validateRepertoireContent(content);
   const worlds = page.worlds.map((world, index) => {
@@ -2490,6 +2504,254 @@ function cmsErrorMessage(error) {
   );
 }
 
+export const PRODUCTION_TESTDATA_QUERY =
+  '*[]{_id,_type,isTestData}';
+
+function productionTestDataReasons(document) {
+  if (
+    !document ||
+    typeof document !== 'object'
+  ) {
+    return [];
+  }
+
+  const id =
+    typeof document._id === 'string'
+      ? document._id.trim()
+      : '';
+
+  const reasons = [];
+
+  if (document.isTestData === true) {
+    reasons.push('isTestData=true');
+  }
+
+  if (/^test-/i.test(id)) {
+    reasons.push('_id=test-*');
+  }
+
+  if (/-demo-/i.test(id)) {
+    reasons.push('_id=*-demo-*');
+  }
+
+  return reasons;
+}
+
+export function assertNoProductionTestData(
+  documents,
+  runtimeConfig,
+) {
+  if (
+    runtimeConfig?.environment !== 'production'
+  ) {
+    return documents;
+  }
+
+  if (!Array.isArray(documents)) {
+    throw new Error(
+      'Production-testdata-guard ontving geen geldige documentlijst',
+    );
+  }
+
+  const violations = documents
+    .flatMap((document) => {
+      const reasons =
+        productionTestDataReasons(document);
+
+      if (!reasons.length) {
+        return [];
+      }
+
+      const id =
+        typeof document?._id === 'string' &&
+        document._id.trim()
+          ? document._id.trim()
+          : '(zonder _id)';
+
+      const type =
+        typeof document?._type === 'string' &&
+        document._type.trim()
+          ? document._type.trim()
+          : '(onbekend type)';
+
+      return [{
+        id,
+        type,
+        reasons,
+      }];
+    })
+    .sort(
+      (left, right) =>
+        left.id.localeCompare(
+          right.id,
+          'en',
+          {sensitivity: 'base'},
+        ),
+    );
+
+  if (!violations.length) {
+    return documents;
+  }
+
+  throw new Error(
+    'Production-testdata-guard geblokkeerd:\n' +
+      violations
+        .map(
+          ({id, type, reasons}) =>
+            `- ${id} (${type}): ` +
+            reasons.join(', '),
+        )
+        .join('\n'),
+  );
+}
+
+const PRODUCTION_TESTDATA_GUARD_FIXTURE =
+  'tests/fixtures/production-testdata-clean.json';
+
+export function resolveProductionTestDataGuardFixture(
+  environment = process.env,
+) {
+  const configured =
+    environment.PRODUCTION_TESTDATA_GUARD_FIXTURE?.trim();
+
+  if (!configured) {
+    return null;
+  }
+
+  const isNodeTest =
+    environment.NODE_ENV?.trim() === 'test';
+
+  const isVercelRuntime =
+    environment.VERCEL?.trim() === '1';
+
+  const outputDirectory =
+    environment.SITE_OUTPUT_DIR?.trim() || '';
+
+  const normalizedOutputDirectory =
+    outputDirectory.replaceAll('\\', '/');
+
+  const isSafeTestOutput =
+    /^test-output\/[A-Za-z0-9._/-]+$/.test(
+      normalizedOutputDirectory,
+    ) &&
+    !normalizedOutputDirectory
+      .split('/')
+      .includes('..');
+
+  if (
+    !isNodeTest ||
+    isVercelRuntime ||
+    !isSafeTestOutput
+  ) {
+    throw new Error(
+      'PRODUCTION_TESTDATA_GUARD_FIXTURE is uitsluitend toegestaan in een lokale geïsoleerde testcontext',
+    );
+  }
+
+  if (
+    configured !==
+    PRODUCTION_TESTDATA_GUARD_FIXTURE
+  ) {
+    throw new Error(
+      'Ongeldige Production-testdata-guard fixture',
+    );
+  }
+
+  return configured;
+}
+
+async function fetchProductionDocumentMetadata(
+  runtimeConfig,
+  environment = process.env,
+) {
+  const fixturePath =
+    resolveProductionTestDataGuardFixture(
+      environment,
+    );
+
+  if (fixturePath) {
+    const fixture = JSON.parse(
+      await readFile(
+        resolve(ROOT, fixturePath),
+        'utf8',
+      ),
+    );
+
+    if (fixture.error) {
+      throw new Error(String(fixture.error));
+    }
+
+    return fixture.result ?? fixture;
+  }
+  const controller = new AbortController();
+
+  const timeout = setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT_MS,
+  );
+
+  const url =
+    `https://${runtimeConfig.projectId}.api.sanity.io/` +
+    `v${runtimeConfig.apiVersion}/data/query/` +
+    `${runtimeConfig.dataset}` +
+    `?query=${encodeURIComponent(
+      PRODUCTION_TESTDATA_QUERY,
+    )}` +
+    '&perspective=published';
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        'Production-testdata-guard Sanity-request ' +
+        `mislukt (${response.status})`,
+      );
+    }
+
+    const payload = await response.json();
+
+    if (payload.error) {
+      throw new Error(
+        payload.error.description ||
+        payload.error.message ||
+        'Onbekende Sanity-fout tijdens Production-testdata-guard',
+      );
+    }
+
+    return payload.result;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function enforceProductionTestDataGuard(
+  runtimeConfig,
+  environment = process.env,
+) {
+  if (
+    runtimeConfig.environment !== 'production'
+  ) {
+    return;
+  }
+
+  const documents =
+    await fetchProductionDocumentMetadata(
+      runtimeConfig,
+      environment,
+    );
+
+  assertNoProductionTestData(
+    documents,
+    runtimeConfig,
+  );
+}
+
 async function normalizedCmsContent(
   key,
   fetcher,
@@ -2595,7 +2857,10 @@ async function prepareStrictCmsContent(
       key: 'home',
       label: 'Homepage',
       fetcher: fetchHomeCmsContent,
-      normalize: normalizeHomeContent,
+      normalize: (raw) =>
+        normalizeHomeContent(raw, {
+          allowDemo: runtimeConfig.allowDemo,
+        }),
       validate: validateHomeContent,
       documentExists(raw) {
         return Boolean(
@@ -2677,6 +2942,7 @@ export async function build() {
   preparedCmsContent.clear();
 
   await checkProjectEncoding(ROOT);
+  await enforceProductionTestDataGuard(runtimeConfig);
   await prepareStrictCmsContent(
     runtimeConfig,
   );
@@ -2894,7 +3160,10 @@ export async function build() {
     const fetchedHome = await normalizedCmsContent(
       'home',
       fetchHomeCmsContent,
-      normalizeHomeContent,
+      (raw) =>
+        normalizeHomeContent(raw, {
+          allowDemo: runtimeConfig.allowDemo,
+        }),
     );
 
     if (fetchedHome?.heroTitle) {
