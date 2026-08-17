@@ -64,7 +64,7 @@
   const query = `*[
     _type == "newsItem" &&
     isVisible == true &&
-    isTestData != true &&
+    ($allowDemo == true || isTestData != true) &&
     slug.current == $slug
   ][0]{
     title,
@@ -301,10 +301,15 @@
     const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
     const encodedSlug = encodeURIComponent(JSON.stringify(slug));
+    const encodedAllowDemo = encodeURIComponent(
+      JSON.stringify(config.allowDemo),
+    );
     const url =
       `https://${config.projectId}.apicdn.sanity.io/` +
       `v${config.apiVersion}/data/query/${config.dataset}` +
-      `?query=${encodedQuery}&%24slug=${encodedSlug}`;
+      `?query=${encodedQuery}` +
+      `&%24slug=${encodedSlug}` +
+      `&%24allowDemo=${encodedAllowDemo}`;
 
     const response = await fetch(url, {
       headers: {

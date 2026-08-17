@@ -1,0 +1,44 @@
+{
+  "result": [
+    {
+      "_id": "aboutPage-main",
+      "_type": "aboutPage",
+      "isTestData": false
+    },
+    {
+      "_id": "contactPage-main",
+      "_type": "contactPage",
+      "isTestData": false
+    },
+    {
+      "_id": "friendsPage-main",
+      "_type": "friendsPage",
+      "isTestData": false
+    },
+    {
+      "_id": "homePage-main",
+      "_type": "homePage",
+      "isTestData": false
+    },
+    {
+      "_id": "mediaPage-main",
+      "_type": "mediaPage",
+      "isTestData": false
+    },
+    {
+      "_id": "repertoirePage-main",
+      "_type": "repertoirePage",
+      "isTestData": false
+    },
+    {
+      "_id": "newsItem-contract-clean",
+      "_type": "newsItem",
+      "isTestData": false
+    },
+    {
+      "_id": "friendItem-contract-clean",
+      "_type": "friendItem",
+      "isTestData": false
+    }
+  ]
+}

@@ -498,6 +498,161 @@ test('Homepage escapt nieuwsinhoud en toont overzichtsknop alleen volledig', () 
     />Al het nieuws<\/a>/,
   );
 });
+test('Homepage laat testnieuws alleen toe wanneer allowDemo expliciet aan staat', () => {
+  const demoItem = {
+    _id: 'news-demo-contract',
+    title: '[DEMO] Contractnieuws',
+    slug: 'demo-contractnieuws',
+    publishedAt: '2026-08-16T16:00:00.000Z',
+    isVisible: true,
+    isTestData: true,
+    summary: 'Demo voor FAT/GAT.',
+    mainImageAlt: 'Zanggroep tijdens een demo-optreden',
+    imageUrl: 'images/news/nieuws-terugblik-optreden.webp',
+  };
+
+  const production = normalizeHomeContent({
+    ...fallback,
+    manualFeaturedNewsItems: [demoItem],
+    automaticFeaturedNewsItems: [demoItem],
+  });
+
+  assert.equal(
+    production.featuredNews.selectionMode,
+    'empty',
+  );
+  assert.deepEqual(production.featuredNews.items, []);
+
+  const previewManual = normalizeHomeContent(
+    {
+      ...fallback,
+      manualFeaturedNewsItems: [demoItem],
+      automaticFeaturedNewsItems: [],
+    },
+    {allowDemo: true},
+  );
+
+  assert.equal(
+    previewManual.featuredNews.selectionMode,
+    'manual',
+  );
+  assert.equal(previewManual.featuredNews.items.length, 1);
+  assert.equal(
+    previewManual.featuredNews.items[0].slug,
+    'demo-contractnieuws',
+  );
+
+  const previewAutomatic = normalizeHomeContent(
+    {
+      ...fallback,
+      manualFeaturedNewsItems: [],
+      automaticFeaturedNewsItems: [demoItem],
+    },
+    {allowDemo: true},
+  );
+
+  assert.equal(
+    previewAutomatic.featuredNews.selectionMode,
+    'featured',
+  );
+  assert.equal(
+    previewAutomatic.featuredNews.items.length,
+    1,
+  );
+
+  const hiddenPreview = normalizeHomeContent(
+    {
+      ...fallback,
+      manualFeaturedNewsItems: [],
+      automaticFeaturedNewsItems: [
+        {
+          ...demoItem,
+          isVisible: false,
+        },
+      ],
+    },
+    {allowDemo: true},
+  );
+
+  assert.equal(
+    hiddenPreview.featuredNews.selectionMode,
+    'empty',
+  );
+});
+
+test('Homepage CMS-query zet allowDemo expliciet per OTAP-omgeving', async () => {
+  const originalFetch = globalThis.fetch;
+
+  const originalEnvironment = {
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    SANITY_DATASET: process.env.SANITY_DATASET,
+    SANITY_PROJECT_ID: process.env.SANITY_PROJECT_ID,
+    SANITY_API_VERSION: process.env.SANITY_API_VERSION,
+  };
+
+  try {
+    process.env.SANITY_PROJECT_ID = 'u66p1mxm';
+    process.env.SANITY_API_VERSION = '2026-07-06';
+
+    let capturedUrl = '';
+
+    globalThis.fetch = async (url) => {
+      capturedUrl = String(url);
+
+      return {
+        ok: true,
+        async json() {
+          return {result: {}};
+        },
+      };
+    };
+
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SANITY_DATASET = 'development';
+
+    await fetchHomeCmsContent();
+
+    const previewUrl = decodeURIComponent(capturedUrl);
+
+    assert.match(
+      previewUrl,
+      /\(\$allowDemo == true \|\| isTestData != true\)/,
+    );
+    assert.match(
+      previewUrl,
+      /\$allowDemo=true/,
+    );
+
+    process.env.VERCEL_ENV = 'production';
+    process.env.SANITY_DATASET = 'production';
+
+    await fetchHomeCmsContent();
+
+    const productionUrl = decodeURIComponent(capturedUrl);
+
+    assert.match(
+      productionUrl,
+      /\(\$allowDemo == true \|\| isTestData != true\)/,
+    );
+    assert.match(
+      productionUrl,
+      /\$allowDemo=false/,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+
+    for (
+      const [name, value] of
+      Object.entries(originalEnvironment)
+    ) {
+      if (value === undefined) {
+        delete process.env[name];
+      } else {
+        process.env[name] = value;
+      }
+    }
+  }
+});
 test('CMS-fixture wordt deterministisch opgehaald', async () => {
   assertHomeBuildExports();
 

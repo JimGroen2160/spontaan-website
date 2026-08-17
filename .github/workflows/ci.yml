@@ -87,11 +87,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Studio dependencies
+        run: npm --prefix studio ci
+
+      - name: Validate Sanity Studio configuration contract
+        run: node --test tests/sanity-studio-config.test.mjs
+
+      - name: Build Sanity Studio
+        run: npm --prefix studio run build
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
       - name: Validate text encoding
         run: npm run test:encoding
+
+      - name: Validate production testdata guard contract
+        run: node --test tests/production-testdata-guard.test.mjs
 
       - name: Run media build and fallback data tests
         id: media-build-tests

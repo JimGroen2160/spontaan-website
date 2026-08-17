@@ -374,6 +374,9 @@ function productionBuildEnvironment({
     'SUPABASE_PUBLISHABLE_KEY',
     'SUPABASE_SERVICE_ROLE_KEY',
     'SITE_OUTPUT_DIR',
+    'PRODUCTION_TESTDATA_GUARD_FIXTURE',
+    'NODE_ENV',
+    'VERCEL',
   ]) {
     delete environment[name];
   }
@@ -393,6 +396,13 @@ function productionBuildEnvironment({
     SUPABASE_PUBLISHABLE_KEY:
       TEST_BROWSER_SUPABASE_KEY,
     SITE_OUTPUT_DIR: outputDirectory,
+    ...(vercelEnvironment === 'production'
+      ? {
+          NODE_ENV: 'test',
+          PRODUCTION_TESTDATA_GUARD_FIXTURE:
+            'tests/fixtures/production-testdata-clean.json',
+        }
+      : {}),
     ...fixtures,
   };
 }

@@ -66,7 +66,7 @@
   const query = `*[
     _type == "newsItem" &&
     isVisible == true &&
-    isTestData != true &&
+    ($allowDemo == true || isTestData != true) &&
     defined(slug.current)
   ] | order(publishedAt desc) {
     title,
@@ -255,10 +255,13 @@
   async function fetchNewsItems() {
     const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
+    const encodedAllowDemo = encodeURIComponent(
+      JSON.stringify(config.allowDemo),
+    );
     const url =
       `https://${config.projectId}.apicdn.sanity.io/` +
       `v${config.apiVersion}/data/query/${config.dataset}` +
-      `?query=${encodedQuery}`;
+      `?query=${encodedQuery}&%24allowDemo=${encodedAllowDemo}`;
 
     const response = await fetch(url, {
       headers: {
