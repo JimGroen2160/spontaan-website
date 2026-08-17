@@ -192,11 +192,16 @@ test.describe('Website basis en huisstijl', () => {
 });
 
 test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
-
-  test('nieuwsbericht markeert Nieuws als actieve hoofdnavigatie', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.route('**/data/query/development**', async (route) => {
       await route.abort('failed');
     });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+  });
+
+  test('nieuwsbericht markeert Nieuws als actieve hoofdnavigatie', async ({ page }) => {
 
     await page.goto(
       '/pages/nieuwsbericht.html?slug=spontaan-zingt-tijdens-een-sfeervolle-zomeravond',
@@ -220,10 +225,6 @@ test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
         '#nav-placeholder .nav-menu a[aria-current="page"]',
       ),
     ).toHaveCount(1);
-  });
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/pages/nieuws.html');
-    await waitForSharedLayout(page);
   });
 
   test('toont zes nieuwskaarten met afzonderlijke afbeeldingen', async ({ page }) => {
