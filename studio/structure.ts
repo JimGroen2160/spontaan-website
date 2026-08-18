@@ -2,6 +2,7 @@ import type {
   StructureBuilder,
   StructureResolver,
 } from 'sanity/structure'
+import {LedenadministratiePane} from './components/LedenadministratiePane'
 import {
   ABOUT_PAGE_DOCUMENT_ID,
   CONTACT_PAGE_DOCUMENT_ID,
@@ -80,6 +81,15 @@ export const structure: StructureResolver = (
                 direction: 'asc',
               },
             ])
+        ),
+
+      S.listItem()
+        .id('ledenadministratie')
+        .title('Ledenadministratie')
+        .child(
+          S.component(LedenadministratiePane)
+            .id('ledenadministratie-pane')
+            .title('Ledenadministratie')
         ),
 
       S.divider(),

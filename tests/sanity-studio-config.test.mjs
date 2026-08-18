@@ -5,6 +5,9 @@ import test from 'node:test'
 const sanityConfigPath = 'studio/sanity.config.ts'
 const singletonTypesPath = 'studio/singletonTypes.ts'
 const ciPath = '.github/workflows/ci.yml'
+const structurePath = 'studio/structure.ts'
+const ledenadministratiePanePath =
+  'studio/components/LedenadministratiePane.tsx'
 
 const expectedSingletonTypes = [
   'aboutPage',
@@ -167,5 +170,104 @@ test('repertoirePage vereist alt-tekst voor verplichte hero-afbeelding', async (
   assert.match(
     source,
     /defineField\(\{name:\s*'heroImageAlt',[^\r\n]*validation:\s*\(rule\)\s*=>\s*rule\.required\(\)\.max\(160\)[^\r\n]*\}\),/
+  )
+})
+
+test('Structure biedt veilige ingang naar Ledenadministratie TEST', async () => {
+  const [structureSource, paneSource] = await Promise.all([
+    readFile(structurePath, 'utf8'),
+    readFile(ledenadministratiePanePath, 'utf8'),
+  ])
+
+  const itemId = ".id('ledenadministratie')"
+
+  assert.equal(
+    structureSource.split(itemId).length - 1,
+    1,
+    'Ledenadministratie-item moet exact eenmaal voorkomen'
+  )
+
+  assert.ok(
+    structureSource.includes(
+      "import {LedenadministratiePane} from './components/LedenadministratiePane'"
+    ),
+    'LedenadministratiePane-import ontbreekt'
+  )
+
+  const friendItemIndex =
+    structureSource.indexOf(".id('friendItem')")
+
+  const ledenadministratieIndex =
+    structureSource.indexOf(itemId)
+
+  const firstDividerIndex =
+    structureSource.indexOf('S.divider()')
+
+  assert.ok(friendItemIndex >= 0)
+  assert.ok(ledenadministratieIndex > friendItemIndex)
+  assert.ok(firstDividerIndex > ledenadministratieIndex)
+
+  const ledenadministratieBlock =
+    structureSource.slice(
+      ledenadministratieIndex,
+      firstDividerIndex
+    )
+
+  assert.ok(
+    ledenadministratieBlock.includes(
+      ".title('Ledenadministratie')"
+    )
+  )
+
+  assert.ok(
+    ledenadministratieBlock.includes(
+      'S.component(LedenadministratiePane)'
+    )
+  )
+
+  assert.ok(
+    ledenadministratieBlock.includes(
+      ".id('ledenadministratie-pane')"
+    )
+  )
+
+  const expectedUrl =
+    'https://spontaan-website-git-acceptance-jimgroen2160s-projects.vercel.app/leden/login.html'
+
+  assert.ok(
+    paneSource.includes(expectedUrl),
+    'Exacte acceptance-ledenlogin ontbreekt'
+  )
+
+  assert.ok(
+    paneSource.includes('target="_blank"'),
+    'Ledenadministratie moet in een nieuw tabblad openen'
+  )
+
+  assert.ok(
+    paneSource.includes('rel="noopener noreferrer"'),
+    'Veilige externe linkrelatie ontbreekt'
+  )
+
+  assert.match(
+    paneSource,
+    /niet in Sanity beheerd/i
+  )
+
+  assert.match(
+    paneSource,
+    /TEST \/ FAT\/GAT/
+  )
+
+  assert.doesNotMatch(
+    paneSource,
+    /@supabase\/supabase-js|createClient\s*\(/i,
+    'De Studio-pane mag geen Supabase-client bevatten'
+  )
+
+  assert.doesNotMatch(
+    paneSource,
+    /\bfetch\s*\(/,
+    'De Studio-pane mag geen runtime API-call uitvoeren'
   )
 })
