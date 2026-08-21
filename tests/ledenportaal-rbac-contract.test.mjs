@@ -8,6 +8,8 @@ const DEMO = 'scripts/testdata/ledenportaal-demo.json';
 const SEEDER = 'scripts/testdata/seed-ledenportaal.mjs';
 const DEPLOY_WORKFLOW = '.github/workflows/supabase-test-deploy.yml';
 const TESTDATA_WORKFLOW = '.github/workflows/supabase-testdata.yml';
+const VERIFY_SCRIPT = 'scripts/testdata/verify-ledenportaal-backend.mjs';
+const VERIFY_WORKFLOW = '.github/workflows/supabase-test-verify.yml';
 
 async function source(path) {
   return readFile(path, 'utf8');
@@ -104,4 +106,74 @@ test('workflows valideren migratiecontract en houden remote writes handmatig', a
   assert.match(testdata, /APPLY_TESTDATA/);
   assert.match(testdata, /seed-ledenportaal\.mjs --apply/);
   assert.match(testdata, /seed-ledenportaal\.mjs --dry-run/);
+});
+
+
+test('live TEST-backendverifier is hard read-only en vastgepind op TEST', async () => {
+  const verifier = await source(VERIFY_SCRIPT);
+
+  assert.match(
+    verifier,
+    /EXPECTED_TEST_ORIGIN = 'https:\/\/lldmyfvhjypomxfpltlx\.supabase\.co'/,
+  );
+
+  for (const table of ['member_songs', 'member_song_links', 'member_directory']) {
+    assert.match(verifier, new RegExp(`verifyTable\\(serviceClient, '${table}'`));
+  }
+
+  assert.match(verifier, /storage\.getBucket\(/);
+  assert.match(verifier, /rpc\('get_member_directory'\)/);
+  assert.match(verifier, /auth\.signInWithPassword\(/);
+  assert.doesNotMatch(verifier, /\.from\('profiles'\)/);
+
+  const authCalls = [
+    ...verifier.matchAll(/auth\.([A-Za-z0-9_]+)\s*\(/g),
+  ].map((match) => match[1]);
+
+  assert.deepEqual(authCalls, ['signInWithPassword']);
+
+  const storageCalls = [
+    ...verifier.matchAll(/storage\.([A-Za-z0-9_]+)\s*\(/g),
+  ].map((match) => match[1]);
+
+  assert.deepEqual(storageCalls, ['getBucket']);
+
+  for (const mutation of [
+    /\.insert\s*\(/,
+    /\.update\s*\(/,
+    /\.upsert\s*\(/,
+    /\.delete\s*\(/,
+    /\.upload\s*\(/,
+    /\.remove\s*\(/,
+    /\.move\s*\(/,
+    /\.copy\s*\(/,
+    /\.createBucket\s*\(/,
+    /\.updateBucket\s*\(/,
+    /\.deleteBucket\s*\(/,
+    /auth\.admin/,
+    /auth\.signUp\s*\(/,
+  ]) {
+    assert.doesNotMatch(verifier, mutation);
+  }
+});
+
+test('read-only TEST-verificatieworkflow heeft een eigen niet-muterende route', async () => {
+  const workflow = await source(VERIFY_WORKFLOW);
+
+  assert.match(workflow, /^\s*workflow_dispatch:$/m);
+  assert.match(workflow, /VERIFY_SUPABASE_TEST_READONLY/);
+  assert.match(workflow, /^    environment: supabase-test$/m);
+  assert.match(
+    workflow,
+    /node scripts\/testdata\/verify-ledenportaal-backend\.mjs/,
+  );
+  assert.match(
+    workflow,
+    /node --test tests\/ledenportaal-rbac-contract\.test\.mjs/,
+  );
+
+  assert.doesNotMatch(workflow, /APPLY_TESTDATA/);
+  assert.doesNotMatch(workflow, /seed-ledenportaal\.mjs --apply/);
+  assert.doesNotMatch(workflow, /supabase db push/);
+  assert.doesNotMatch(workflow, /supabase functions deploy/);
 });
