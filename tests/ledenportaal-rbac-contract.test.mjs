@@ -211,3 +211,60 @@ test('bestaande TEST-deployworkflow bevat een afgescheiden read-only verify-rout
     (error) => error?.code === 'ENOENT',
   );
 });
+
+test('testdataworkflow scheidt ledenportaal-only writes van volledige testdata', async () => {
+  const workflow = await source(TESTDATA_WORKFLOW);
+  const ledenportaal = workflowJob(workflow, 'apply-ledenportaal-testdata');
+  const all = workflowJob(workflow, 'apply-testdata');
+
+  assert.match(workflow, /-\s*ledenportaal/);
+  assert.match(workflow, /-\s*all/);
+  assert.match(workflow, /APPLY_LEDENPORTAAL_TESTDATA/);
+  assert.match(workflow, /APPLY_TESTDATA/);
+
+  assert.match(ledenportaal, /inputs\.mode == 'ledenportaal'/);
+  assert.match(ledenportaal, /^    environment: supabase-test$/m);
+  assert.match(
+    ledenportaal,
+    /SUPABASE_URL: \$\{\{ secrets\.SUPABASE_URL \}\}/,
+  );
+  assert.match(
+    ledenportaal,
+    /SUPABASE_SERVICE_ROLE_KEY: \$\{\{ secrets\.SUPABASE_SERVICE_ROLE_KEY \}\}/,
+  );
+  assert.match(
+    ledenportaal,
+    /TEST_MEMBER_EMAIL: \$\{\{ secrets\.TEST_MEMBER_EMAIL \}\}/,
+  );
+  assert.match(
+    ledenportaal,
+    /TEST_STATUS_MEMBER_EMAIL: \$\{\{ secrets\.TEST_STATUS_MEMBER_EMAIL \}\}/,
+  );
+  assert.match(
+    ledenportaal,
+    /TEST_PROFILE_MEMBER_EMAIL: \$\{\{ secrets\.TEST_PROFILE_MEMBER_EMAIL \}\}/,
+  );
+  assert.match(ledenportaal, /seed-ledenportaal\.mjs --dry-run/);
+  assert.match(ledenportaal, /seed-ledenportaal\.mjs --apply/);
+
+  for (const forbidden of [
+    /seed-test-users\.mjs/,
+    /TEST_ADMIN_/,
+    /TEST_MEMBER_PASSWORD/,
+    /TEST_MEMBER_DISPLAY_NAME/,
+    /TEST_MEMBER_PENDING_/,
+    /TEST_MEMBER_INACTIVE_/,
+    /TEST_STATUS_MEMBER_PASSWORD/,
+    /TEST_STATUS_MEMBER_DISPLAY_NAME/,
+    /TEST_PROFILE_MEMBER_PASSWORD/,
+    /TEST_PROFILE_MEMBER_DISPLAY_NAME/,
+    /TEST_CONTENTMANAGER_/,
+  ]) {
+    assert.doesNotMatch(ledenportaal, forbidden);
+  }
+
+  assert.match(all, /inputs\.mode == 'all'/);
+  assert.match(all, /seed-test-users\.mjs --apply/);
+  assert.match(all, /seed-test-users\.mjs --profiles-apply/);
+  assert.doesNotMatch(all, /inputs\.mode == 'ledenportaal'/);
+});
