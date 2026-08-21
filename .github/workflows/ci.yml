@@ -105,6 +105,8 @@ jobs:
       - name: Validate production testdata guard contract
         run: node --test tests/production-testdata-guard.test.mjs
 
+      - name: Validate production maintenance gate
+        run: node --test tests/production-maintenance.test.mjs
       - name: Run media build and fallback data tests
         id: media-build-tests
         run: npm run test:media-build
