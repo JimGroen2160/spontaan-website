@@ -3,8 +3,15 @@ name: Supabase Test Deploy
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Kies preview voor alleen dry-run of deploy voor een echte TEST-deployment"
+        required: true
+        type: choice
+        options:
+          - preview
+          - deploy
       confirm:
-        description: "Typ DEPLOY_SUPABASE_TEST om uitsluitend het afgescheiden Supabase-testproject bij te werken"
+        description: "Typ PREVIEW_SUPABASE_TEST voor preview of DEPLOY_SUPABASE_TEST voor deploy"
         required: true
         type: string
 
@@ -33,11 +40,32 @@ jobs:
       - name: Verify manual confirmation
         if: github.event_name == 'workflow_dispatch'
         shell: bash
+        env:
+          REQUESTED_MODE: ${{ inputs.mode }}
+          REQUESTED_CONFIRMATION: ${{ inputs.confirm }}
         run: |
-          if [ "${{ inputs.confirm }}" != "DEPLOY_SUPABASE_TEST" ]; then
-            echo "Ongeldige bevestiging. Typ exact DEPLOY_SUPABASE_TEST."
+          set -euo pipefail
+
+          case "$REQUESTED_MODE" in
+            preview)
+              expected_confirmation="PREVIEW_SUPABASE_TEST"
+              ;;
+            deploy)
+              expected_confirmation="DEPLOY_SUPABASE_TEST"
+              ;;
+            *)
+              echo "Ongeldige mode: $REQUESTED_MODE"
+              exit 1
+              ;;
+          esac
+
+          if [ "$REQUESTED_CONFIRMATION" != "$expected_confirmation" ]; then
+            echo "Ongeldige bevestiging voor mode $REQUESTED_MODE."
+            echo "Verwacht exact: $expected_confirmation"
             exit 1
           fi
+
+          echo "Handmatige bevestiging voor mode $REQUESTED_MODE — OK"
 
       - name: Verify deployment scope
         shell: bash
@@ -113,7 +141,7 @@ jobs:
   preview-test:
     name: Preview Supabase test database migrations
     needs: validate
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'preview' || inputs.mode == 'deploy')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: supabase-test
@@ -169,7 +197,7 @@ jobs:
   deploy-test:
     name: Deploy to Supabase test
 
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy'
     needs: preview-test
     runs-on: ubuntu-latest
     timeout-minutes: 20

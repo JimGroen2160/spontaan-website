@@ -36,15 +36,33 @@ test(
   'workflow_dispatch blijft de permanente expliciete deploymentroute',
   async () => {
     const source = await workflowSource()
+    const preview = jobBlock(source, 'preview-test')
     const deploy = jobBlock(source, 'deploy-test')
 
     assert.match(source, /^\s*workflow_dispatch:$/m)
+    assert.match(source, /type:\s*choice/)
+    assert.match(source, /-\s*preview/)
+    assert.match(source, /-\s*deploy/)
+    assert.match(source, /PREVIEW_SUPABASE_TEST/)
     assert.match(source, /DEPLOY_SUPABASE_TEST/)
-    assert.match(deploy, /github\.event_name == 'workflow_dispatch'/)
+    assert.match(preview, /inputs\.mode == 'preview'/)
+    assert.match(preview, /inputs\.mode == 'deploy'/)
+    assert.match(deploy, /inputs\.mode == 'deploy'/)
     assert.match(deploy, /^    needs: preview-test$/m)
     assert.match(deploy, /^        run: supabase db push$/m)
     assert.match(deploy, /supabase functions deploy create-member/)
     assert.match(deploy, /supabase functions deploy resend-member-invite/)
+  },
+)
+
+test(
+  'preview-mode kan de muterende deploy-job niet activeren',
+  async () => {
+    const source = await workflowSource()
+    const deploy = jobBlock(source, 'deploy-test')
+
+    assert.match(deploy, /inputs\.mode == 'deploy'/)
+    assert.doesNotMatch(deploy, /inputs\.mode == 'preview'/)
   },
 )
 
