@@ -268,3 +268,91 @@ test('testdataworkflow scheidt ledenportaal-only writes van volledige testdata',
   assert.match(all, /seed-test-users\.mjs --profiles-apply/);
   assert.doesNotMatch(all, /inputs\.mode == 'ledenportaal'/);
 });
+test('ledenportaalfrontend leest live beveiligde backenddata zonder publieke demo of directe profiles-query', async () => {
+  const [
+    shared,
+    music,
+    directory,
+    musicHtml,
+    directoryHtml,
+  ] = await Promise.all([
+    source('js/leden-portaal.js'),
+    source('js/leden-muziek.js'),
+    source('js/leden-smoelenboek.js'),
+    source('leden/muziek.html'),
+    source('leden/smoelenboek.html'),
+  ]);
+
+  assert.match(
+    shared,
+    /\.from\('member_songs'\)/,
+  );
+
+  assert.match(
+    shared,
+    /\.eq\('is_visible', true\)/,
+  );
+
+  assert.match(
+    shared,
+    /\.from\('member_song_links'\)/,
+  );
+
+  assert.match(
+    shared,
+    /\.rpc\(\s*'get_member_directory'/,
+  );
+
+  assert.match(
+    shared,
+    /const PHOTO_URL_TTL_SECONDS = 300;/,
+  );
+
+  assert.match(
+    shared,
+    /\.from\(PHOTO_BUCKET\)[\s\S]*\.createSignedUrl\(\s*photoPath,\s*PHOTO_URL_TTL_SECONDS,/,
+  );
+
+  for (
+    const frontendSource of [
+      shared,
+      music,
+      directory,
+    ]
+  ) {
+    assert.doesNotMatch(
+      frontendSource,
+      /\.from\('profiles'\)/,
+    );
+
+    assert.doesNotMatch(
+      frontendSource,
+      /ledenportaal-demo\.json/,
+    );
+  }
+
+  for (
+    const publicSource of [
+      shared,
+      music,
+      directory,
+      musicHtml,
+      directoryHtml,
+    ]
+  ) {
+    assert.doesNotMatch(
+      publicSource,
+      /\[DEMO\]/,
+    );
+  }
+
+  await assert.rejects(
+    () =>
+      source(
+        'data/ledenportaal-demo.json',
+      ),
+
+    (error) =>
+      error?.code === 'ENOENT',
+  );
+});
