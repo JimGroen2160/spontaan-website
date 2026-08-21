@@ -105,6 +105,9 @@ jobs:
       - name: Validate production testdata guard contract
         run: node --test tests/production-testdata-guard.test.mjs
 
+      - name: Validate ledenportaal RBAC contract
+        run: node --test tests/ledenportaal-rbac-contract.test.mjs
+
       - name: Run media build and fallback data tests
         id: media-build-tests
         run: npm run test:media-build

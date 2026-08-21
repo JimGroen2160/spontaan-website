@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muziek | Ledenportaal | Zanggroep Spontaan</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/ledenportaal.css">
+</head>
+<body class="member-portal-page">
+
+<div id="nav-placeholder"></div>
+
+<header class="member-hero member-hero--music">
+  <div class="member-hero__overlay"></div>
+  <div class="member-hero__content">
+    <p class="member-hero__eyebrow">Ledenportaal / Muziek</p>
+    <h1>Muziek</h1>
+    <p>Hier vind je liedjes, teksten en oefenlinks voor ons mannenkoor.</p>
+    <a class="btn" href="#muziek-overzicht">Naar huidig repertoire</a>
+  </div>
+</header>
+
+<main class="member-page" id="muziek-overzicht">
+  <section class="member-auth-status" aria-live="polite">
+    <p data-auth-status>Toegang tot het ledenportaal wordt gecontroleerd...</p>
+  </section>
+
+  <div data-leden-protected hidden>
+    <div class="member-demo-banner" data-demo-notice></div>
+
+    <section class="music-toolbar" aria-label="Muziek filteren en zoeken">
+      <div class="music-tabs" role="group" aria-label="Categorie">
+        <button type="button" class="music-tab is-active" data-category="huidig" aria-pressed="true">Huidig</button>
+        <button type="button" class="music-tab" data-category="concept" aria-pressed="false">Concept</button>
+        <button type="button" class="music-tab" data-category="archief" aria-pressed="false">Archief</button>
+      </div>
+
+      <label class="member-search">
+        <span>Zoek een lied</span>
+        <input id="song-search" type="search" placeholder="Zoek op titel of omschrijving" autocomplete="off">
+      </label>
+    </section>
+
+    <div class="music-content-grid">
+      <section aria-labelledby="music-list-title">
+        <div class="member-section-heading">
+          <p class="member-section-heading__eyebrow">Liedjes voor leden</p>
+          <h2 id="music-list-title">Huidig repertoire</h2>
+          <p id="song-result-count" aria-live="polite"></p>
+        </div>
+        <div id="song-list" class="song-list"></div>
+      </section>
+
+      <aside class="member-info-card">
+        <p class="member-info-card__eyebrow">Goed om te weten</p>
+        <h2>Alles bij de hand</h2>
+        <p>Bekijk liedteksten en oefenlinks op één plek. Een liedtekst kan direct worden geprint.</p>
+        <p>De beveiligde PDF-download wordt in de volgende technische fase aangesloten.</p>
+        <p class="member-info-card__note">[DEMO] De voorbeeldliedjes worden later in TEST door de contentmanager aangepast.</p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<section id="song-print-sheet" class="song-print-sheet" hidden aria-hidden="true">
+  <h1 id="print-song-title"></h1>
+  <pre id="print-song-lyrics"></pre>
+</section>
+
+<div id="footer-placeholder"></div>
+
+<script src="../js/runtime-config.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="../js/auth.js" defer></script>
+<script src="../js/leden-portaal.js" defer></script>
+<script src="../js/leden-muziek.js" defer></script>
+<script src="../components/menu.js" defer></script>
+</body>
+</html>

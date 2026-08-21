@@ -76,6 +76,39 @@ jobs:
           }
           NODE
 
+          node --check scripts/testdata/seed-ledenportaal.mjs
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const portalDemo = JSON.parse(
+            fs.readFileSync("scripts/testdata/ledenportaal-demo.json", "utf8"),
+          );
+          const portalSeeder = fs.readFileSync(
+            "scripts/testdata/seed-ledenportaal.mjs",
+            "utf8",
+          );
+
+          if (!Array.isArray(portalDemo.songs) || portalDemo.songs.length !== 6) {
+            throw new Error("Ledenportaal-demo moet exact zes demoliedjes bevatten.");
+          }
+
+          if (!portalDemo.songs.every((song) => song.title.startsWith("[DEMO]"))) {
+            throw new Error("Alle demoliedjes moeten herkenbaar met [DEMO] beginnen.");
+          }
+
+          if (!Array.isArray(portalDemo.directory) || portalDemo.directory.length !== 3) {
+            throw new Error("Ledenportaal-demo moet exact drie smoelenboekmemo's bevatten.");
+          }
+
+          if (!portalSeeder.includes("--dry-run") || !portalSeeder.includes("--apply")) {
+            throw new Error("Ledenportaal-seeder mist dry-run/apply contract.");
+          }
+
+          if (/\.from\(["']profiles["']\)[\s\S]{0,300}\.(insert|upsert|update|delete)\s*\(/.test(portalSeeder)) {
+            throw new Error("Ledenportaal-seeder mag profiles niet muteren.");
+          }
+          NODE
+
       - name: Verify local environment file is not tracked
         shell: bash
         run: |
@@ -168,3 +201,27 @@ jobs:
           grep -Eq '^[[:space:]]*bijgewerkt: 0[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*ongewijzigd: 7[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*mislukt: 0[[:space:]]*$' <<<"$output"
+
+      - name: Apply ledenportaal demo
+        run: node scripts/testdata/seed-ledenportaal.mjs --apply
+
+      - name: Verify ledenportaal demo
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-ledenportaal.mjs --dry-run)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*songs-missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*links-missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*directory-missing: 0[[:space:]]*$' <<<"$output"
+
+      - name: Verify ledenportaal demo idempotence
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-ledenportaal.mjs --apply)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*created: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*existing: 13[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*updated: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*failed: 0[[:space:]]*$' <<<"$output"

@@ -18,6 +18,7 @@ concurrency:
 env:
   SUPABASE_TEST_PROJECT_REF: lldmyfvhjypomxfpltlx
   EXPECTED_MIGRATION: supabase/migrations/20260810181000_contentmanager_rbac.sql
+  LEDENPORTAAL_MIGRATION: supabase/migrations/20260821141500_ledenportaal_content.sql
 
 jobs:
   validate:
@@ -45,6 +46,7 @@ jobs:
 
           test "$SUPABASE_TEST_PROJECT_REF" = "lldmyfvhjypomxfpltlx"
           test -f "$EXPECTED_MIGRATION"
+          test -f "$LEDENPORTAAL_MIGRATION"
 
           mapfile -t function_files < <(
             find supabase/functions -type f -name index.ts | sort
@@ -93,6 +95,9 @@ jobs:
 
       - name: Validate Supabase workflow contract
         run: node --test tests/supabase-workflow-contract.test.mjs
+
+      - name: Validate ledenportaal RBAC contract
+        run: node --test tests/ledenportaal-rbac-contract.test.mjs
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smoelenboek | Ledenportaal | Zanggroep Spontaan</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/ledenportaal.css">
+</head>
+<body class="member-portal-page">
+
+<div id="nav-placeholder"></div>
+
+<header class="member-hero member-hero--directory">
+  <div class="member-hero__overlay"></div>
+  <div class="member-hero__content">
+    <p class="member-hero__eyebrow">Ledenportaal / Smoelenboek</p>
+    <h1>Smoelenboek</h1>
+    <p>Hier vind je een overzicht van de actieve leden van ons mannenkoor.</p>
+    <a class="btn" href="#smoelenboek-overzicht">Samen zijn wij Spontaan</a>
+  </div>
+</header>
+
+<main class="member-page" id="smoelenboek-overzicht">
+  <section class="member-auth-status" aria-live="polite">
+    <p data-auth-status>Toegang tot het ledenportaal wordt gecontroleerd...</p>
+  </section>
+
+  <div data-leden-protected hidden>
+    <div class="member-demo-banner" data-demo-notice></div>
+
+    <section class="directory-toolbar" aria-label="Smoelenboek zoeken en toelichting">
+      <label class="member-search">
+        <span>Zoek een lid</span>
+        <input id="member-search" type="search" placeholder="Zoek op naam..." autocomplete="off">
+      </label>
+
+      <div class="member-info-strip">
+        <strong>Automatisch vanuit de ledenlijst</strong>
+        <span>In FASE B wordt dit overzicht gekoppeld aan actieve leden. Foto's en memo's worden dan door de contentmanager beheerd.</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="directory-title">
+      <div class="member-section-heading">
+        <p class="member-section-heading__eyebrow">Onze leden</p>
+        <h2 id="directory-title">Smoelenboek</h2>
+        <p id="member-result-count" aria-live="polite"></p>
+      </div>
+      <div id="member-grid" class="member-directory-grid"></div>
+    </section>
+  </div>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script src="../js/runtime-config.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="../js/auth.js" defer></script>
+<script src="../js/leden-portaal.js" defer></script>
+<script src="../js/leden-smoelenboek.js" defer></script>
+<script src="../components/menu.js" defer></script>
+</body>
+</html>
