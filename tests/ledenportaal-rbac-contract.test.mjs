@@ -9,10 +9,28 @@ const SEEDER = 'scripts/testdata/seed-ledenportaal.mjs';
 const DEPLOY_WORKFLOW = '.github/workflows/supabase-test-deploy.yml';
 const TESTDATA_WORKFLOW = '.github/workflows/supabase-testdata.yml';
 const VERIFY_SCRIPT = 'scripts/testdata/verify-ledenportaal-backend.mjs';
-const VERIFY_WORKFLOW = '.github/workflows/supabase-test-verify.yml';
+const LEGACY_VERIFY_WORKFLOW = '.github/workflows/supabase-test-verify.yml';
 
 async function source(path) {
   return readFile(path, 'utf8');
+}
+
+function workflowJob(workflow, jobName) {
+  const lines = workflow.replace(/\r\n/g, '\n').split('\n');
+  const start = lines.findIndex((line) => line === `  ${jobName}:`);
+
+  assert.notEqual(start, -1, `Workflowjob ontbreekt: ${jobName}`);
+
+  let end = lines.length;
+
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (/^  [A-Za-z0-9_-]+:$/.test(lines[index])) {
+      end = index;
+      break;
+    }
+  }
+
+  return lines.slice(start, end).join('\n');
 }
 
 test('ledenportaalmigratie maakt drie RLS-tabellen zonder profiles uit te breiden', async () => {
@@ -157,23 +175,39 @@ test('live TEST-backendverifier is hard read-only en vastgepind op TEST', async 
   }
 });
 
-test('read-only TEST-verificatieworkflow heeft een eigen niet-muterende route', async () => {
-  const workflow = await source(VERIFY_WORKFLOW);
+test('bestaande TEST-deployworkflow bevat een afgescheiden read-only verify-route', async () => {
+  const workflow = await source(DEPLOY_WORKFLOW);
+  const verify = workflowJob(workflow, 'verify-test');
+  const preview = workflowJob(workflow, 'preview-test');
+  const deployDb = workflowJob(workflow, 'deploy-db-test');
+  const deploy = workflowJob(workflow, 'deploy-test');
 
   assert.match(workflow, /^\s*workflow_dispatch:$/m);
+  assert.match(workflow, /-\s*verify/);
   assert.match(workflow, /VERIFY_SUPABASE_TEST_READONLY/);
-  assert.match(workflow, /^    environment: supabase-test$/m);
+  assert.match(verify, /inputs\.mode == 'verify'/);
+  assert.match(verify, /^    needs: validate$/m);
+  assert.match(verify, /^    environment: supabase-test$/m);
   assert.match(
-    workflow,
+    verify,
     /node scripts\/testdata\/verify-ledenportaal-backend\.mjs/,
   );
-  assert.match(
-    workflow,
-    /node --test tests\/ledenportaal-rbac-contract\.test\.mjs/,
-  );
 
-  assert.doesNotMatch(workflow, /APPLY_TESTDATA/);
-  assert.doesNotMatch(workflow, /seed-ledenportaal\.mjs --apply/);
-  assert.doesNotMatch(workflow, /supabase db push/);
-  assert.doesNotMatch(workflow, /supabase functions deploy/);
+  for (const mutation of [
+    /APPLY_TESTDATA/,
+    /seed-ledenportaal\.mjs --apply/,
+    /supabase db push/,
+    /supabase functions deploy/,
+  ]) {
+    assert.doesNotMatch(verify, mutation);
+  }
+
+  assert.doesNotMatch(preview, /inputs\.mode == 'verify'/);
+  assert.doesNotMatch(deployDb, /inputs\.mode == 'verify'/);
+  assert.doesNotMatch(deploy, /inputs\.mode == 'verify'/);
+
+  await assert.rejects(
+    () => source(LEGACY_VERIFY_WORKFLOW),
+    (error) => error?.code === 'ENOENT',
+  );
 });
