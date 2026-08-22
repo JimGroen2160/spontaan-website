@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Ledenportaal beheren | Zanggroep Spontaan</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/ledenportaal-beheer.css">
+</head>
+<body class="portal-beheer-page">
+  <div id="nav-placeholder"></div>
+
+  <header class="portal-beheer-hero">
+    <div class="portal-beheer-hero__overlay"></div>
+    <div class="portal-beheer-hero__content">
+      <p class="portal-beheer-hero__eyebrow">Beheeromgeving / Ledenportaal</p>
+      <h1>Muziek en smoelenboek beheren</h1>
+      <p>Beheer de inhoud die leden terugzien in Muziek en het Smoelenboek.</p>
+      <a class="portal-beheer-hero__button" href="../leden/dashboard.html">Naar ledenportaal</a>
+    </div>
+  </header>
+
+  <main id="portal-beheer-content" class="portal-beheer-main" hidden>
+    <section class="portal-beheer-status" aria-live="polite">
+      <p id="portal-beheer-auth-status">Beheerrechten worden gecontroleerd...</p>
+    </section>
+
+    <div id="portal-beheer-toast" class="portal-beheer-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+      <span id="portal-beheer-toast-message"></span>
+      <button type="button" id="portal-beheer-toast-close" aria-label="Melding sluiten">&times;</button>
+    </div>
+
+    <nav class="portal-beheer-tabs" aria-label="Ledenportaalbeheer">
+      <button type="button" class="portal-beheer-tab is-active" data-beheer-tab="music" aria-pressed="true">
+        <span aria-hidden="true">&#9835;</span>
+        Muziek
+      </button>
+      <button type="button" class="portal-beheer-tab" data-beheer-tab="directory" aria-pressed="false">
+        <span aria-hidden="true">&#128101;</span>
+        Smoelenboek
+      </button>
+    </nav>
+
+    <section id="beheer-music" class="portal-beheer-panel" data-beheer-panel="music">
+      <div class="portal-beheer-heading">
+        <div>
+          <p class="portal-beheer-heading__eyebrow">Muziek</p>
+          <h2>Liedjes en oefenlinks</h2>
+          <p>Beheer huidig repertoire, concepten en archief. Verborgen liedjes blijven onzichtbaar voor gewone leden.</p>
+        </div>
+        <button type="button" id="song-new" class="portal-beheer-primary">Nieuw lied</button>
+      </div>
+
+      <div class="portal-beheer-music-controls" aria-label="Muziekbeheer filters">
+        <div class="portal-beheer-category-tabs" role="group" aria-label="Categorie">
+          <button type="button" class="portal-beheer-category-tab is-active" data-song-category="current" aria-pressed="true">
+            <span aria-hidden="true">&#9835;</span>
+            Huidig
+          </button>
+          <button type="button" class="portal-beheer-category-tab" data-song-category="concept" aria-pressed="false">
+            <span aria-hidden="true">&#9998;</span>
+            Concept
+          </button>
+          <button type="button" class="portal-beheer-category-tab" data-song-category="archive" aria-pressed="false">
+            <span aria-hidden="true">&#9635;</span>
+            Archief
+          </button>
+        </div>
+
+        <label class="portal-beheer-music-search">
+          <span>Zoeken</span>
+          <input id="song-admin-search" type="search" placeholder="Zoek lied, tekst of trefwoord..." autocomplete="off">
+        </label>
+      </div>
+
+      <div class="portal-beheer-music-layout">
+        <div class="portal-beheer-music-list-column">
+          <p id="song-admin-count" class="portal-beheer-result" aria-live="polite"></p>
+          <div id="song-admin-list" class="portal-beheer-song-list"></div>
+        </div>
+
+        <section class="portal-beheer-info-card">
+          <h3>Goed om te weten</h3>
+          <p>Deze indeling volgt dezelfde Huidig / Concept / Archief-structuur als het ledenwireframe.</p>
+          <ul>
+            <li><strong>Huidig:</strong> liederen die nu worden gezongen.</li>
+            <li><strong>Concept:</strong> nieuw repertoire in voorbereiding.</li>
+            <li><strong>Archief:</strong> bewaarde liederen die niet meer actueel zijn.</li>
+          </ul>
+          <p class="portal-beheer-info-card__note">Bewerken en verwijderen zijn beheeracties en worden daarom alleen hier getoond.</p>
+        </section>
+      </div>
+    </section>
+
+    <section id="beheer-directory" class="portal-beheer-panel" data-beheer-panel="directory" hidden>
+      <div class="portal-beheer-heading">
+        <div>
+          <p class="portal-beheer-heading__eyebrow">Smoelenboek</p>
+          <h2>Foto en memo per actief lid</h2>
+          <p>Alleen actieve leden worden getoond. Persoonsgegevens buiten naam, foto en memo horen niet in het smoelenboek.</p>
+        </div>
+      </div>
+
+      <div class="portal-beheer-toolbar portal-beheer-toolbar--directory">
+        <label>
+          <span>Zoek een lid</span>
+          <input id="directory-admin-search" type="search" placeholder="Zoek op naam..." autocomplete="off">
+        </label>
+        <div class="portal-beheer-inline-info">
+          <strong>Automatisch vanuit de ledenlijst</strong>
+          <span>Foto's staan in private Storage en worden alleen via een tijdelijke signed URL getoond.</span>
+        </div>
+      </div>
+
+      <p id="directory-admin-count" class="portal-beheer-result" aria-live="polite"></p>
+      <div id="directory-admin-grid" class="portal-beheer-directory-grid"></div>
+    </section>
+  </main>
+
+  <div id="song-modal" class="portal-beheer-modal" aria-hidden="true">
+    <div class="portal-beheer-modal__panel" role="dialog" aria-modal="true" aria-labelledby="song-modal-title">
+      <div class="portal-beheer-modal__header">
+        <div>
+          <p class="portal-beheer-heading__eyebrow">Muziekbeheer</p>
+          <h2 id="song-modal-title">Lied toevoegen</h2>
+        </div>
+        <button type="button" id="song-modal-close" class="portal-beheer-icon-button" aria-label="Venster sluiten">&times;</button>
+      </div>
+
+      <form id="song-form" class="portal-beheer-form" novalidate>
+        <input id="song-id" type="hidden">
+
+        <label class="portal-beheer-field portal-beheer-field--wide">
+          <span>Titel</span>
+          <input id="song-title" type="text" maxlength="96" required>
+        </label>
+
+        <label class="portal-beheer-field">
+          <span>Categorie</span>
+          <select id="song-category" required>
+            <option value="current">Huidig</option>
+            <option value="concept">Concept</option>
+            <option value="archive">Archief</option>
+          </select>
+        </label>
+
+        <label class="portal-beheer-field">
+          <span>Sortering</span>
+          <input id="song-sort-order" type="number" min="0" step="1" value="0" required>
+        </label>
+
+        <label class="portal-beheer-field portal-beheer-field--wide">
+          <span>Omschrijving</span>
+          <textarea id="song-description" rows="3" maxlength="500"></textarea>
+        </label>
+
+        <label class="portal-beheer-field portal-beheer-field--wide">
+          <span>Liedtekst</span>
+          <textarea id="song-lyrics" rows="10"></textarea>
+        </label>
+
+        <label class="portal-beheer-check portal-beheer-field--wide">
+          <input id="song-visible" type="checkbox" checked>
+          <span>Zichtbaar voor actieve leden</span>
+        </label>
+
+        <fieldset class="portal-beheer-links portal-beheer-field--wide">
+          <legend>Liedblad (PDF)</legend>
+
+          <p id="song-pdf-status">
+            Geen PDF-liedblad gekoppeld.
+          </p>
+
+          <label class="portal-beheer-field portal-beheer-field--wide">
+            <span>PDF-bestand</span>
+            <input
+              id="song-pdf-file"
+              type="file"
+              accept="application/pdf,.pdf"
+            >
+          </label>
+
+          <div class="portal-beheer-modal__actions">
+            <button
+              type="button"
+              id="song-pdf-upload"
+              class="portal-beheer-secondary"
+            >
+              PDF uploaden
+            </button>
+
+            <button
+              type="button"
+              id="song-pdf-remove"
+              class="portal-beheer-danger"
+              hidden
+            >
+              PDF verwijderen
+            </button>
+          </div>
+        </fieldset>
+        <fieldset class="portal-beheer-links portal-beheer-field--wide">
+          <legend>Oefen- en referentielinks</legend>
+          <div class="portal-beheer-links__heading">
+            <p>Alleen HTTPS-links worden geaccepteerd.</p>
+            <button type="button" id="song-link-add" class="portal-beheer-secondary">Link toevoegen</button>
+          </div>
+          <div id="song-link-list"></div>
+        </fieldset>
+
+        <p id="song-form-error" class="portal-beheer-form-error" role="alert"></p>
+
+        <div class="portal-beheer-modal__actions portal-beheer-field--wide">
+          <button type="submit" id="song-save" class="portal-beheer-primary">Opslaan</button>
+          <button type="button" id="song-cancel" class="portal-beheer-secondary">Annuleren</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../js/runtime-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../components/menu.js"></script>
+  <script src="./ledenportaal.js"></script>
+</body>
+</html>

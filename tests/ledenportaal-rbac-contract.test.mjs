@@ -4,6 +4,8 @@ import test from 'node:test';
 
 const MIGRATION =
   'supabase/migrations/20260821141500_ledenportaal_content.sql';
+const PDF_MIGRATION =
+  'supabase/migrations/20260822204500_ledenportaal_song_pdfs.sql';
 const DEMO = 'scripts/testdata/ledenportaal-demo.json';
 const SEEDER = 'scripts/testdata/seed-ledenportaal.mjs';
 const DEPLOY_WORKFLOW = '.github/workflows/supabase-test-deploy.yml';
@@ -91,6 +93,95 @@ test('member-photos bucket is private, begrensd en manager-only voor writes', as
   assert.match(sql, /lower\(storage\.extension\(name\)\)/);
 });
 
+test('liedblad-PDF bucket is private, begrensd en alleen managers schrijven', async () => {
+  const sql = await source(PDF_MIGRATION);
+
+  assert.match(
+    sql,
+    /alter table public\.member_songs\s+add column pdf_path text null;/s,
+  );
+
+  assert.match(
+    sql,
+    /member_songs_pdf_path_check/,
+  );
+
+  assert.match(
+    sql,
+    /lower\(pdf_path\) ~ '\\\.pdf\$'/,
+  );
+
+  assert.match(
+    sql,
+    /'member-song-sheets'/,
+  );
+
+  assert.match(
+    sql,
+    /5242880/,
+  );
+
+  assert.match(
+    sql,
+    /array\['application\/pdf'\]::text\[\]/,
+  );
+
+  assert.match(
+    sql,
+    /'member-song-sheets'\s*,\s*'member-song-sheets'\s*,\s*false\s*,/s,
+  );
+
+  assert.match(
+    sql,
+    /Active portal users can read visible song sheets/,
+  );
+
+  assert.match(
+    sql,
+    /public\.is_current_user_active_portal_user\(\)/,
+  );
+
+  assert.match(
+    sql,
+    /song\.pdf_path = storage\.objects\.name/,
+  );
+
+  assert.match(
+    sql,
+    /song\.is_visible/,
+  );
+
+  assert.match(
+    sql,
+    /Managers can read song sheets/,
+  );
+
+  assert.match(
+    sql,
+    /Managers can upload song sheets/,
+  );
+
+  assert.match(
+    sql,
+    /Managers can update song sheets/,
+  );
+
+  assert.match(
+    sql,
+    /Managers can delete song sheets/,
+  );
+
+  assert.doesNotMatch(
+    sql,
+    /grant\s+[^;]+\s+to\s+anon\s*;/is,
+  );
+
+  assert.doesNotMatch(
+    sql,
+    /service_role/,
+  );
+});
+
 test('TEST-demo is herkenbaar en de seeder overschrijft contentmanagerwijzigingen niet', async () => {
   const demo = JSON.parse(await source(DEMO));
   const seeder = await source(SEEDER);
@@ -119,6 +210,7 @@ test('workflows valideren migratiecontract en houden remote writes handmatig', a
   const testdata = await source(TESTDATA_WORKFLOW);
 
   assert.match(deploy, /LEDENPORTAAL_MIGRATION: supabase\/migrations\/20260821141500_ledenportaal_content\.sql/);
+  assert.match(deploy, /LEDENPORTAAL_PDF_MIGRATION: supabase\/migrations\/20260822204500_ledenportaal_song_pdfs\.sql/);
   assert.match(deploy, /node --test tests\/ledenportaal-rbac-contract\.test\.mjs/);
   assert.match(deploy, /DEPLOY_SUPABASE_TEST/);
   assert.match(testdata, /APPLY_TESTDATA/);
@@ -355,4 +447,37 @@ test('ledenportaalfrontend leest live beveiligde backenddata zonder publieke dem
     (error) =>
       error?.code === 'ENOENT',
   );
+});
+test('ledenportaalbeheer gebruikt bestaande manager-RBAC en private Storage zonder service-role in de browser', async () => {
+  const [html, script, style, adminIndex] = await Promise.all([
+    source('admin/ledenportaal.html'),
+    source('admin/ledenportaal.js'),
+    source('css/ledenportaal-beheer.css'),
+    source('admin/index.html'),
+  ]);
+
+  assert.match(adminIndex, /href="\.\/ledenportaal\.html"/);
+  assert.match(html, /Muziek en smoelenboek beheren/);
+  assert.match(html, /meta name="robots" content="noindex,nofollow"/);
+  assert.match(style, /over-hero-mannenkoor\.jpg/);
+
+  assert.match(script, /\['admin', 'contentmanager'\]\.includes\(profile\.role\)/);
+  assert.match(script, /\.from\('member_songs'\)/);
+  assert.match(script, /\.from\('member_song_links'\)/);
+  assert.match(script, /\.from\('member_directory'\)/);
+  assert.match(script, /\.from\('profiles'\)[\s\S]*\.select\('id,full_name,role,status'\)[\s\S]*\.eq\('status', 'active'\)/);
+  assert.match(script, /const PHOTO_BUCKET = 'member-photos';/);
+  assert.match(script, /const PHOTO_MAX_BYTES = 5 \* 1024 \* 1024;/);
+  assert.match(script, /'image\/jpeg': 'jpg'/);
+  assert.match(script, /'image\/png': 'png'/);
+  assert.match(script, /'image\/webp': 'webp'/);
+  assert.match(script, /\.createSignedUrl\(safePath, PHOTO_SIGNED_TTL_SECONDS\)/);
+  assert.match(script, /\.upload\(newPath, file,/);
+  assert.match(script, /\.remove\(\[oldPath\]\)/);
+
+  for (const sourceText of [html, script]) {
+    assert.doesNotMatch(sourceText, /SUPABASE_SERVICE_ROLE_KEY/);
+    assert.doesNotMatch(sourceText, /service_role/);
+    assert.doesNotMatch(sourceText, /auth\.admin/);
+  }
 });

@@ -93,7 +93,74 @@
     },
   );
 
-  function renderSong(song) {
+  async function downloadSongPdf(
+    song,
+    client,
+    button,
+  ) {
+    if (
+      !song.pdf_path ||
+      !client
+    ) {
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const signedUrl =
+        await window.LedenPortaal
+          .signedSongSheetUrl(
+            client,
+            song.pdf_path,
+          );
+
+      if (!signedUrl) {
+        throw new Error(
+          'Geen beveiligde PDF-URL beschikbaar.',
+        );
+      }
+
+      const link =
+        document.createElement('a');
+
+      link.href = signedUrl;
+      link.download = '';
+      link.rel = 'noopener';
+
+      document.body.append(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error(
+        'Liedblad downloaden mislukt:',
+        error,
+      );
+
+      const status =
+        document.querySelector(
+          '[data-auth-status]',
+        );
+
+      if (status) {
+        status.textContent =
+          'Het liedblad kon niet worden gedownload.';
+
+        const container =
+          status.closest(
+            '.member-auth-status',
+          );
+
+        if (container) {
+          container.hidden = false;
+        }
+      }
+    } finally {
+      button.disabled =
+        !song.pdf_path;
+    }
+  }
+  function renderSong(song, client) {
     const article =
       createElement(
         'article',
@@ -134,58 +201,31 @@
       ),
     );
 
-    if (
-      Array.isArray(song.links) &&
-      song.links.length > 0
-    ) {
-      const links =
-        createElement(
-          'div',
-          'song-card__links',
-        );
-
-      song.links.forEach((item) => {
-        const href =
-          window.LedenPortaal.safeHttpsUrl(
-            item.url,
-          );
-
-        if (!href) {
-          return;
-        }
-
-        const link =
-          createElement(
-            'a',
-            'song-card__link',
-            item.label || 'Link',
-          );
-
-        link.href = href;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-
-        links.append(link);
-      });
-
-      if (links.childElementCount > 0) {
-        body.append(links);
-      }
-    }
+    const resources =
+      createElement(
+        'div',
+        'song-card__resources',
+      );
 
     const details =
       createElement(
         'details',
-        'song-card__lyrics',
+        'song-card__lyrics song-card__resource',
       );
 
-    details.append(
+    const summary =
       createElement(
         'summary',
         '',
         'Tekst bekijken',
-      ),
+      );
+
+    summary.setAttribute(
+      'data-visible-label',
+      'Tekst',
     );
+
+    details.append(summary);
 
     details.append(
       createElement(
@@ -196,7 +236,45 @@
       ),
     );
 
-    body.append(details);
+    resources.append(details);
+
+    if (
+      Array.isArray(song.links) &&
+      song.links.length > 0
+    ) {
+      song.links.forEach((item) => {
+        const href =
+          window.LedenPortaal.safeHttpsUrl(
+            item.url,
+          );
+
+        if (!href) {
+          return;
+        }
+
+        const typeLabel =
+          item.type === 'audio'
+            ? 'Audio'
+            : item.type === 'video'
+              ? 'Video'
+              : 'Link';
+
+        const link =
+          createElement(
+            'a',
+            'song-card__resource song-card__link',
+            `${typeLabel}: ${item.label || 'Openen'}`,
+          );
+
+        link.href = href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+
+        resources.append(link);
+      });
+    }
+
+    body.append(resources);
 
     const actions =
       createElement(
@@ -204,42 +282,65 @@
         'song-card__actions',
       );
 
+    const pdfButton =
+      createElement(
+        'button',
+        'song-action-button song-action-button--pdf',
+        'PDF',
+      );
+
+    pdfButton.type = 'button';
+
+    pdfButton.disabled =
+      !song.pdf_path;
+
+    pdfButton.title =
+      song.pdf_path
+        ? 'Liedblad downloaden'
+        : 'Geen PDF-liedblad beschikbaar';
+
+    pdfButton.setAttribute(
+      'aria-label',
+      'Download liedblad (PDF)',
+    );
+
+    pdfButton.addEventListener(
+      'click',
+      () =>
+        downloadSongPdf(
+          song,
+          client,
+          pdfButton,
+        ),
+    );
+
     const printButton =
       createElement(
         'button',
-        'song-action-button',
-        'Print liedblad',
+        'song-action-button song-action-button--print',
+        'Print',
       );
 
     printButton.type = 'button';
+    printButton.setAttribute(
+      'aria-label',
+      'Print liedblad',
+    );
 
     printButton.addEventListener(
       'click',
       () => printSong(song),
     );
 
-    const pdfButton =
-      createElement(
-        'button',
-        'song-action-button song-action-button--secondary',
-        'Download liedblad (PDF)',
-      );
-
-    pdfButton.type = 'button';
-    pdfButton.disabled = true;
-    pdfButton.title =
-      'PDF-download is nog niet beschikbaar';
-
     actions.append(
-      printButton,
       pdfButton,
+      printButton,
     );
-
-    body.append(actions);
 
     article.append(
       icon,
       body,
+      actions,
     );
 
     return article;
@@ -331,7 +432,13 @@
             } gevonden.`;
 
           list.replaceChildren(
-            ...filtered.map(renderSong),
+            ...filtered.map(
+              (song) =>
+                renderSong(
+                  song,
+                  access.client,
+                ),
+            ),
           );
 
           if (filtered.length === 0) {
@@ -392,3 +499,4 @@
     },
   );
 })();
+// B4.1e APPROVED WIREFRAME FIDELITY

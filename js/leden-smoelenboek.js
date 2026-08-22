@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  const PAGE_SIZE = 10;
+
   function createElement(
     tag,
     className,
@@ -125,10 +127,16 @@
           'member-result-count',
         );
 
+      const loadMore =
+        document.getElementById(
+          'member-load-more',
+        );
+
       if (
         !grid ||
         !search ||
-        !resultCount
+        !resultCount ||
+        !loadMore
       ) {
         return;
       }
@@ -139,6 +147,8 @@
             .loadMemberDirectory(
               access.client,
             );
+
+        let visibleLimit = PAGE_SIZE;
 
         function render() {
           const query =
@@ -165,9 +175,21 @@
                 : 'leden'
             } gevonden.`;
 
+          const visibleMembers =
+            filtered.slice(
+              0,
+              visibleLimit,
+            );
+
           grid.replaceChildren(
-            ...filtered.map(renderMember),
+            ...visibleMembers.map(
+              renderMember,
+            ),
           );
+
+          loadMore.hidden =
+            filtered.length <=
+            visibleLimit;
 
           if (filtered.length === 0) {
             grid.append(
@@ -180,9 +202,24 @@
           }
         }
 
+        loadMore.addEventListener(
+          'click',
+          () => {
+            visibleLimit +=
+              PAGE_SIZE;
+
+            render();
+          },
+        );
+
         search.addEventListener(
           'input',
-          render,
+          () => {
+            visibleLimit =
+              PAGE_SIZE;
+
+            render();
+          },
         );
 
         render();
@@ -198,3 +235,4 @@
     },
   );
 })();
+// B4.1e APPROVED WIREFRAME FIDELITY

@@ -15,10 +15,10 @@
 <header class="member-hero member-hero--directory">
   <div class="member-hero__overlay"></div>
   <div class="member-hero__content">
-    <p class="member-hero__eyebrow">Ledenportaal / Smoelenboek</p>
+    <p class="member-hero__eyebrow">LEDENPORTAAL</p>
     <h1>Smoelenboek</h1>
     <p>Hier vind je een overzicht van de actieve leden van ons mannenkoor.</p>
-    <a class="btn" href="#smoelenboek-overzicht">Samen zijn wij Spontaan</a>
+    <a class="btn member-hero__cta" href="#smoelenboek-overzicht"><span aria-hidden="true">&#9679;</span><span>Samen zijn wij Spontaan</span></a>
   </div>
 </header>
 
@@ -30,23 +30,29 @@
   <div data-leden-protected hidden>
     <section class="directory-toolbar" aria-label="Smoelenboek zoeken en toelichting">
       <label class="member-search">
-        <span>Zoek een lid</span>
+        <span class="member-visually-hidden">Zoek een lid</span>
         <input id="member-search" type="search" placeholder="Zoek op naam..." autocomplete="off">
       </label>
 
       <div class="member-info-strip">
-        <strong>Automatisch vanuit de ledenlijst</strong>
-        <span>Alleen actieve leden worden getoond. Foto's en memo's worden door de contentmanager beheerd.</span>
+        <span class="member-info-strip__icon" aria-hidden="true">i</span>
+        <span class="member-info-strip__content">
+          <strong>Automatisch vanuit de ledenlijst</strong>
+          <span>Alleen actieve leden worden getoond. Foto's en memo's worden door de contentmanager beheerd.</span>
+        </span>
       </div>
     </section>
 
     <section aria-labelledby="directory-title">
-      <div class="member-section-heading">
+      <div class="member-section-heading member-section-heading--visually-hidden">
         <p class="member-section-heading__eyebrow">Onze leden</p>
         <h2 id="directory-title">Smoelenboek</h2>
         <p id="member-result-count" aria-live="polite"></p>
       </div>
       <div id="member-grid" class="member-directory-grid"></div>
+      <div class="member-directory-actions">
+        <button id="member-load-more" type="button" class="member-directory-load-more" hidden>Meer leden laden</button>
+      </div>
     </section>
   </div>
 </main>
@@ -61,3 +67,4 @@
 <script src="../components/menu.js" defer></script>
 </body>
 </html>
+<!-- B4.1e APPROVED WIREFRAME FIDELITY -->

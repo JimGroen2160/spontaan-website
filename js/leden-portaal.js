@@ -23,7 +23,18 @@
 
   function setAuthStatus(message) {
     const status = document.querySelector('[data-auth-status]');
-    if (status) status.textContent = message;
+    if (!status) {
+      return;
+    }
+
+    status.textContent = message;
+
+    const container =
+      status.closest('.member-auth-status');
+
+    if (container) {
+      container.hidden = message === '';
+    }
   }
 
   function activateLedenNavigation() {
@@ -126,9 +137,7 @@
           element.hidden = false;
         });
 
-      setAuthStatus(
-        `Ingelogd als ${profile.full_name || 'lid'}.`,
-      );
+      setAuthStatus('');
 
       return {
         session,
@@ -197,7 +206,7 @@
     } = await client
       .from('member_songs')
       .select(
-        'id,title,category,description,lyrics,is_visible,sort_order',
+        'id,title,category,description,lyrics,pdf_path,is_visible,sort_order',
       )
       .eq('is_visible', true)
       .order(
@@ -283,10 +292,62 @@
       category: song.category || 'current',
       description: song.description || '',
       lyrics: song.lyrics || '',
+      pdf_path: song.pdf_path || '',
       links: linksBySong.get(song.id) || [],
     }));
   }
 
+  const SONG_SHEET_BUCKET =
+    'member-song-sheets';
+
+  const SONG_SHEET_URL_TTL_SECONDS =
+    300;
+
+  async function signedSongSheetUrl(
+    client,
+    pathValue,
+  ) {
+    const pdfPath =
+      safeStoragePath(pathValue);
+
+    if (
+      !pdfPath ||
+      !pdfPath.toLowerCase().endsWith('.pdf')
+    ) {
+      return '';
+    }
+
+    try {
+      const {
+        data,
+        error,
+      } = await client
+        .storage
+        .from(SONG_SHEET_BUCKET)
+        .createSignedUrl(
+          pdfPath,
+          SONG_SHEET_URL_TTL_SECONDS,
+          {
+            download: true,
+          },
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      return safeHttpsUrl(
+        data?.signedUrl,
+      );
+    } catch (error) {
+      console.warn(
+        'Beveiligd liedblad kon niet worden geladen.',
+        error,
+      );
+
+      return '';
+    }
+  }
   async function signedMemberPhotoUrl(
     client,
     photoPathValue,
@@ -362,6 +423,7 @@
   window.LedenPortaal = Object.freeze({
     requireActiveMember,
     loadSongs,
+    signedSongSheetUrl,
     loadMemberDirectory,
     safeHttpsUrl,
   });

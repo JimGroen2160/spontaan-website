@@ -28,6 +28,7 @@ env:
   SUPABASE_TEST_PROJECT_REF: lldmyfvhjypomxfpltlx
   EXPECTED_MIGRATION: supabase/migrations/20260810181000_contentmanager_rbac.sql
   LEDENPORTAAL_MIGRATION: supabase/migrations/20260821141500_ledenportaal_content.sql
+  LEDENPORTAAL_PDF_MIGRATION: supabase/migrations/20260822204500_ledenportaal_song_pdfs.sql
 
 jobs:
   validate:
@@ -83,6 +84,7 @@ jobs:
           test "$SUPABASE_TEST_PROJECT_REF" = "lldmyfvhjypomxfpltlx"
           test -f "$EXPECTED_MIGRATION"
           test -f "$LEDENPORTAAL_MIGRATION"
+          test -f "$LEDENPORTAAL_PDF_MIGRATION"
 
           mapfile -t function_files < <(
             find supabase/functions -type f -name index.ts | sort

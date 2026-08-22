@@ -5,6 +5,20 @@ import {
 } from '@playwright/test';
 
 import AxeBuilder from '@axe-core/playwright';
+import { readFileSync } from 'node:fs';
+
+// B4.1f VISUAL FIXTURE
+const visualDemo = JSON.parse(
+  readFileSync(
+    `${process.cwd()}/tests/fixtures/ledenportaal-visual-demo.json`,
+    'utf8',
+  ),
+) as {
+  songs: PortalSong[];
+  links: PortalLink[];
+  directory: DirectoryRow[];
+};
+
 
 type AccessProfile = {
   full_name: string;
@@ -18,6 +32,7 @@ type PortalSong = {
   category: 'current' | 'concept' | 'archive';
   description: string;
   lyrics: string;
+  pdf_path?: string | null;
   is_visible: boolean;
   sort_order: number;
 };
@@ -848,6 +863,194 @@ test(
 );
 
 test(
+  'PDF-download vraagt pas op klik een private signed URL aan',
+  async ({ page }) => {
+    await stubSupabase(
+      page,
+      {
+        songs: [
+          {
+            id: 'song-pdf-1',
+            title: 'Lied met PDF',
+            category: 'current',
+            description: 'Beveiligd liedblad.',
+            lyrics: 'Testtekst.',
+            pdf_path: 'songs/song-pdf-1.pdf',
+            is_visible: true,
+            sort_order: 1,
+          },
+        ],
+        links: [],
+      },
+    );
+
+    await page.addInitScript(() => {
+      (
+        window as any
+      ).__PDF_ANCHOR_CLICKS__ = [];
+
+      HTMLAnchorElement.prototype.click =
+        function () {
+          (
+            window as any
+          ).__PDF_ANCHOR_CLICKS__.push(
+            this.href,
+          );
+        };
+    });
+
+    await page.goto(
+      '/leden/muziek.html',
+    );
+
+    const pdfButton =
+      page.getByRole(
+        'button',
+        {
+          name:
+            'Download liedblad (PDF)',
+        },
+      );
+
+    await expect(
+      pdfButton,
+    ).toBeEnabled();
+
+    const before =
+      await page.evaluate(
+        () =>
+          (
+            window as any
+          ).__LEDENPORTAAL_TEST__
+            .calls.signed.length,
+      );
+
+    expect(before).toBe(0);
+
+    await pdfButton.click();
+
+    const state =
+      await page.evaluate(
+        () => ({
+          signed:
+            (
+              window as any
+            ).__LEDENPORTAAL_TEST__
+              .calls.signed,
+
+          clicks:
+            (
+              window as any
+            ).__PDF_ANCHOR_CLICKS__,
+        }),
+      );
+
+    expect(
+      state.signed,
+    ).toContainEqual({
+      bucket:
+        'member-song-sheets',
+      path:
+        'songs/song-pdf-1.pdf',
+      expiresIn: 300,
+    });
+
+    expect(
+      state.clicks,
+    ).toHaveLength(1);
+
+    expect(
+      state.clicks[0],
+    ).toContain(
+      'https://signed.example/member-song-sheets/songs/song-pdf-1.pdf',
+    );
+  },
+);
+
+test(
+  'PDF signingfout toont veilige fout en start geen download',
+  async ({ page }) => {
+    await stubSupabase(
+      page,
+      {
+        songs: [
+          {
+            id: 'song-pdf-error',
+            title: 'PDF signingfout',
+            category: 'current',
+            description: 'Test signingfout.',
+            lyrics: 'Testtekst.',
+            pdf_path: 'songs/fout.pdf',
+            is_visible: true,
+            sort_order: 1,
+          },
+        ],
+        links: [],
+        signingErrorPaths: [
+          'songs/fout.pdf',
+        ],
+      },
+    );
+
+    await page.addInitScript(() => {
+      (
+        window as any
+      ).__PDF_ANCHOR_CLICKS__ = [];
+
+      HTMLAnchorElement.prototype.click =
+        function () {
+          (
+            window as any
+          ).__PDF_ANCHOR_CLICKS__.push(
+            this.href,
+          );
+        };
+    });
+
+    await page.goto(
+      '/leden/muziek.html',
+    );
+
+    const pdfButton =
+      page.getByRole(
+        'button',
+        {
+          name:
+            'Download liedblad (PDF)',
+        },
+      );
+
+    await expect(
+      pdfButton,
+    ).toBeEnabled();
+
+    await pdfButton.click();
+
+    await expect(
+      page.locator(
+        '[data-auth-status]',
+      ),
+    ).toContainText(
+      'Het liedblad kon niet worden gedownload.',
+    );
+
+    const clicks =
+      await page.evaluate(
+        () =>
+          (
+            window as any
+          ).__PDF_ANCHOR_CLICKS__,
+      );
+
+    expect(clicks).toEqual([]);
+
+    await expect(
+      pdfButton,
+    ).toBeEnabled();
+  },
+);
+
+test(
   'printactie roept window.print aan en ruimt het printblad op',
   async ({ page }) => {
     await stubSupabase(page);
@@ -1352,3 +1555,708 @@ for (
     },
   );
 }
+
+test(
+  'B4.1d Ledenportaal-navigatie en footer-wave volgen goedgekeurd wireframe',
+  async ({ page }) => {
+    await stubSupabase(
+      page,
+      {
+        profile: activeMember,
+      },
+    );
+
+    for (const path of [
+      '/leden/muziek.html',
+      '/leden/smoelenboek.html',
+    ]) {
+      await page.goto(path);
+      await waitForSharedLayout(page);
+
+      const nav =
+        page.locator('#nav-placeholder');
+
+      const portalLink =
+        nav.getByRole(
+          'link',
+          {
+            name: 'Ledenportaal',
+            exact: true,
+          },
+        );
+
+      const ledenLink =
+        nav.getByRole(
+          'link',
+          {
+            name: 'Leden',
+            exact: true,
+          },
+        );
+
+      await expect(portalLink)
+        .toHaveClass(/active/);
+
+      await expect(portalLink)
+        .toHaveAttribute(
+          'aria-current',
+          'page',
+        );
+
+      await expect(ledenLink)
+        .not.toHaveClass(/active/);
+
+      const wave =
+        await page
+          .locator('#footer-placeholder')
+          .evaluate((element) => {
+            const style =
+              getComputedStyle(
+                element,
+                '::before',
+              );
+
+            return {
+              content: style.content,
+              height:
+                Number.parseFloat(
+                  style.height,
+                ),
+              clipPath:
+                style.clipPath,
+            };
+          });
+
+      expect(wave.content)
+        .not.toBe('none');
+
+      expect(wave.height)
+        .toBeGreaterThanOrEqual(50);
+
+      expect(wave.clipPath)
+        .toContain('polygon');
+    }
+  },
+);
+
+test(
+  'B4.1d portal footer-wave veroorzaakt mobiel geen horizontale overflow',
+  async ({ page }) => {
+    await page.setViewportSize({
+      width: 390,
+      height: 844,
+    });
+
+    await stubSupabase(
+      page,
+      {
+        profile: activeMember,
+      },
+    );
+
+    await page.goto(
+      '/leden/muziek.html',
+    );
+
+    await waitForSharedLayout(page);
+
+    const dimensions =
+      await page.evaluate(
+        () => ({
+          viewport:
+            window.innerWidth,
+          document:
+            document.documentElement
+              .scrollWidth,
+        }),
+      );
+
+    expect(dimensions.document)
+      .toBeLessThanOrEqual(
+        dimensions.viewport + 1,
+      );
+  },
+);
+
+// B4.1d APPROVED WIREFRAME NAV + FOOTER
+
+
+test(
+  'B4.1e Muziek volgt het goedgekeurde wireframe-detailcontract',
+  async ({ page }) => {
+    await stubSupabase(
+      page,
+      {
+        profile: activeMember,
+      },
+    );
+
+    await page.goto(
+      '/leden/muziek.html',
+    );
+
+    await waitForSharedLayout(page);
+
+    await expect(
+      page.locator('.member-hero__eyebrow'),
+    ).toHaveText('LEDENPORTAAL');
+
+    await expect(
+      page.locator('.music-tab'),
+    ).toHaveCount(3);
+
+    const tabColumns =
+      await page
+        .locator('.music-tabs')
+        .evaluate(
+          (element) =>
+            getComputedStyle(element)
+              .gridTemplateColumns
+              .trim()
+              .split(/\s+/)
+              .length,
+        );
+
+    expect(tabColumns)
+      .toBe(3);
+
+    const infoCard =
+      page.locator('.member-info-card');
+
+    await expect(infoCard)
+      .toContainText(
+        'Huidig:',
+      );
+
+    await expect(infoCard)
+      .toContainText(
+        'Concept:',
+      );
+
+    await expect(infoCard)
+      .toContainText(
+        'Archief:',
+      );
+
+    await expect(infoCard)
+      .toContainText(
+        'PDF-download',
+      );
+
+    await expect(
+      infoCard.getByRole(
+        'link',
+        {
+          name:
+            'Contact muziekcommissie',
+        },
+      ),
+    ).toHaveAttribute(
+      'href',
+      '../pages/contact.html',
+    );
+
+    const infoBackground =
+      await infoCard.evaluate(
+        (element) =>
+          getComputedStyle(element)
+            .backgroundColor,
+      );
+
+    expect(infoBackground)
+      .not.toBe(
+        'rgba(255, 255, 255, 0.98)',
+      );
+
+    const firstCard =
+      page.locator('.song-card')
+        .first();
+
+    await expect(
+      firstCard.locator(
+        '.song-card__resources',
+      ),
+    ).toBeVisible();
+
+    await expect(
+      firstCard.getByRole(
+        'button',
+        {
+          name:
+            'Download liedblad (PDF)',
+        },
+      ),
+    ).toBeDisabled();
+
+    await expect(
+      firstCard.getByRole(
+        'button',
+        {
+          name: 'Print liedblad',
+        },
+      ),
+    ).toBeVisible();
+
+    const footer =
+      page.locator(
+        '#footer-placeholder .site-footer',
+      );
+
+    await footer.scrollIntoViewIfNeeded();
+    await expect(footer).toBeVisible();
+  },
+);
+
+test(
+  'B4.1e Smoelenboek toont vijf kolommen en functioneel Meer leden laden',
+  async ({ page }) => {
+    await page.setViewportSize({
+      width: 1440,
+      height: 1000,
+    });
+
+    const manyMembers: DirectoryRow[] =
+      visualDemo.directory;
+
+
+    await stubSupabase(
+      page,
+      {
+        profile: activeMember,
+        directory: manyMembers,
+      },
+    );
+
+    // B4.1f VISUAL PORTRAIT ROUTE
+    await page.route(
+      'https://signed.example/member-photos/**',
+      async (route) => {
+        const url =
+          new URL(
+            route.request().url(),
+          );
+
+        const fileName =
+          decodeURIComponent(
+            url.pathname
+              .split('/')
+              .pop() || '',
+          );
+
+        if (
+          !/^member-\d{2}\.png$/
+            .test(fileName)
+        ) {
+          await route.abort();
+          return;
+        }
+
+        const body =
+          readFileSync(
+            `${process.cwd()}/tests/fixtures/ledenportaal-portraits/${fileName}`,
+          );
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'image/png',
+          body,
+        });
+      },
+    );
+
+    await page.goto(
+      '/leden/smoelenboek.html',
+    );
+
+    await waitForSharedLayout(page);
+
+    await expect(
+      page.locator('.member-hero__eyebrow'),
+    ).toHaveText('LEDENPORTAAL');
+
+    await expect(
+      page.locator(
+        '.member-directory-card',
+      ),
+    ).toHaveCount(10);
+
+
+    const gridColumns =
+      await page
+        .locator('.member-directory-grid')
+        .evaluate(
+          (element) =>
+            getComputedStyle(element)
+              .gridTemplateColumns
+              .trim()
+              .split(/\s+/)
+              .length,
+        );
+
+    expect(gridColumns)
+      .toBe(5);
+
+    const firstName =
+      page.locator(
+        '.member-directory-card h3',
+      ).first();
+
+    const accent =
+      await firstName.evaluate(
+        (element) => {
+          const style =
+            getComputedStyle(
+              element,
+              '::after',
+            );
+
+          return {
+            content:
+              style.content,
+            width:
+              Number.parseFloat(
+                style.width,
+              ),
+          };
+        },
+      );
+
+    expect(accent.content)
+      .not.toBe('none');
+
+    expect(accent.width)
+      .toBeGreaterThan(20);
+
+    const initialImages =
+      page.locator(
+        '.member-directory-card img',
+      );
+
+    await expect(initialImages)
+      .toHaveCount(10);
+
+    await expect(
+      initialImages.first(),
+    ).toBeVisible();
+
+    expect(
+      await initialImages.first()
+        .evaluate(
+          (image) =>
+            image.complete &&
+            image.naturalWidth > 0,
+        ),
+    ).toBe(true);
+    await page.screenshot({
+      path: 'test-output/b4.1f-visual-review/smoelenboek-10-leden.png',
+      fullPage: true,
+    });
+    const loadMore =
+      page.getByRole(
+        'button',
+        {
+          name: 'Meer leden laden',
+        },
+      );
+
+    await expect(loadMore)
+      .toBeVisible();
+
+    await loadMore.click();
+
+    await expect(
+      page.locator(
+        '.member-directory-card',
+      ),
+    ).toHaveCount(15);
+
+    const allImages =
+      page.locator(
+        '.member-directory-card img',
+      );
+
+    await expect(allImages)
+      .toHaveCount(15);
+
+    await expect
+      .poll(
+        async () =>
+          allImages.evaluateAll(
+            (images) =>
+              images.every(
+                (image) =>
+                  image.complete &&
+                  image.naturalWidth > 0,
+              ),
+          ),
+        {
+          message:
+            "Alle 15 ledenfoto's moeten volledig geladen zijn.",
+        },
+      )
+      .toBe(true);
+
+    await page.screenshot({
+      path: 'test-output/b4.1f-visual-review/smoelenboek-15-leden.png',
+      fullPage: true,
+    });
+
+    await expect(loadMore)
+      .toBeHidden();
+
+    const footer =
+      page.locator(
+        '#footer-placeholder .site-footer',
+      );
+
+    await footer.scrollIntoViewIfNeeded();
+    await expect(footer).toBeVisible();
+  },
+);
+
+test(
+  'B4.1e Smoelenboek zoeken reset de laadlimiet veilig',
+  async ({ page }) => {
+    const manyMembers: DirectoryRow[] =
+      Array.from(
+        {
+          length: 12,
+        },
+        (_, index) => ({
+          profile_id:
+            `40000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+          full_name:
+            index === 11
+              ? 'Unieke Zoeknaam'
+              : `Gewoon Lid ${index + 1}`,
+          memo: '',
+          photo_path: null,
+        }),
+      );
+
+    await stubSupabase(
+      page,
+      {
+        directory: manyMembers,
+      },
+    );
+
+    await page.goto(
+      '/leden/smoelenboek.html',
+    );
+
+    await page
+      .getByLabel('Zoek een lid')
+      .fill('Unieke Zoeknaam');
+
+    await expect(
+      page.locator(
+        '.member-directory-card',
+      ),
+    ).toHaveCount(1);
+
+    await expect(
+      page.getByRole(
+        'button',
+        {
+          name: 'Meer leden laden',
+        },
+      ),
+    ).toBeHidden();
+  },
+);
+
+test(
+  'B4.1f visual fixture rendert 15 liedjes per categorie',
+  async ({ page }) => {
+    expect(visualDemo.songs).toHaveLength(45);
+    expect(visualDemo.directory).toHaveLength(15);
+
+    for (const category of [
+      'current',
+      'concept',
+      'archive',
+    ] as const) {
+      expect(
+        visualDemo.songs.filter(
+          (song) =>
+            song.category === category,
+        ),
+      ).toHaveLength(15);
+    }
+
+    await stubSupabase(
+      page,
+      {
+        profile: activeMember,
+        songs: visualDemo.songs,
+        links: visualDemo.links,
+      },
+    );
+
+    await page.goto(
+      '/leden/muziek.html',
+    );
+
+    await waitForSharedLayout(page);
+
+    await expect(
+      page.locator('.song-card'),
+    ).toHaveCount(15);
+    // B4.1f VISUAL REVIEW SCREENSHOTS
+    await page.screenshot({
+      path: 'test-output/b4.1f-visual-review/muziek-huidig.png',
+      fullPage: true,
+    });
+
+    await page
+      .getByRole(
+        'button',
+        {
+          name: 'Concept',
+        },
+      )
+      .click();
+
+    await expect(
+      page.locator('.song-card'),
+    ).toHaveCount(15);
+    await page.screenshot({
+      path: 'test-output/b4.1f-visual-review/muziek-concept.png',
+      fullPage: true,
+    });
+
+    await page
+      .getByRole(
+        'button',
+        {
+          name: 'Archief',
+        },
+      )
+      .click();
+
+    await expect(
+      page.locator('.song-card'),
+    ).toHaveCount(15);
+    await page.screenshot({
+      path: 'test-output/b4.1f-visual-review/muziek-archief.png',
+      fullPage: true,
+    });
+  },
+);
+// B4.1e APPROVED WIREFRAME FIDELITY
+
+test('keyboard: Muziek en Smoelenboek zijn zonder muis bedienbaar', async ({ page }) => {
+  await stubSupabase(page);
+
+  await page.goto(
+    '/leden/muziek.html',
+  );
+
+  const currentTab =
+    page.getByRole(
+      'button',
+      { name: 'Huidig' },
+    );
+
+  const conceptTab =
+    page.getByRole(
+      'button',
+      { name: 'Concept' },
+    );
+
+  await currentTab.focus();
+
+  await expect(
+    currentTab,
+  ).toBeFocused();
+
+  await page.keyboard.press(
+    'Tab',
+  );
+
+  await expect(
+    conceptTab,
+  ).toBeFocused();
+
+  await page.keyboard.press(
+    'Enter',
+  );
+
+  await expect(
+    conceptTab,
+  ).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  const search =
+    page.getByLabel(
+      'Zoek een lied',
+    );
+
+  await search.focus();
+
+  await expect(
+    search,
+  ).toBeFocused();
+
+  await page.keyboard.type(
+    'ontwikkeling',
+  );
+
+  await expect(
+    page.locator(
+      '.song-card',
+    ),
+  ).toHaveCount(1);
+
+  const songText =
+    page.locator(
+      '.song-card details summary',
+    ).first();
+
+  await songText.focus();
+
+  await expect(
+    songText,
+  ).toBeFocused();
+
+  await page.keyboard.press(
+    'Enter',
+  );
+
+  await expect(
+    page.locator(
+      '.song-card details',
+    ).first(),
+  ).toHaveAttribute(
+    'open',
+    '',
+  );
+
+  await page.goto(
+    '/leden/smoelenboek.html',
+  );
+
+  const memberSearch =
+    page.getByLabel(
+      'Zoek een lid',
+    );
+
+  await memberSearch.focus();
+
+  await expect(
+    memberSearch,
+  ).toBeFocused();
+
+  await page.keyboard.type(
+    'Jan',
+  );
+
+  await expect(
+    page.locator(
+      '.member-directory-card',
+    ),
+  ).toHaveCount(1);
+});
