@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { createClient } from '@supabase/supabase-js';
 
 const VALID_EMAIL = process.env.TEST_ADMIN_EMAIL;
@@ -1861,3 +1862,22 @@ test('Inactief lid krijgt geen toegang tot dashboard', async ({ page, browserNam
   // Controleer dat gebruiker teruggaat naar login.html
   await page.waitForURL(/login\.html/, { timeout: 3000 });
 });
+
+// AXE COVERAGE — ADMIN INDEX
+test(
+  'accessibility: beheeromgeving admin-index is Axe-schoon',
+  async ({ page }) => {
+    await loginAsAdmin(page);
+    await openAdminAndWaitUntilReady(page);
+
+    const results =
+      await new AxeBuilder({
+        page,
+      }).analyze();
+
+    expect(
+      results.violations,
+      'Toegankelijkheidsproblemen op /admin/index.html',
+    ).toEqual([]);
+  },
+);
