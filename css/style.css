@@ -1602,6 +1602,11 @@ li + li {
   font-size: 0.96rem;
 }
 
+#rapportage-content[hidden] {
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
 .rapportage-main {
   width: min(calc(100% - 1.5rem), 92rem);
   max-width: none;
@@ -1719,7 +1724,7 @@ li + li {
 
 .rapportage-status-regel h2 {
   margin: 0;
-  color: #d95b08;
+  color: #c44700;
   font-family: "Segoe UI", Arial, sans-serif;
   font-size: 1.45rem;
 }
@@ -1757,7 +1762,7 @@ li + li {
 
 .rapportage-aandachtspunten h3 {
   margin: 0 0 0.45rem;
-  color: #d95b08;
+  color: #c44700;
   font-family: "Segoe UI", Arial, sans-serif;
   font-size: 0.83rem;
 }
@@ -1869,7 +1874,7 @@ li + li {
   line-height: 1.35;
 }
 
-.rapportage-kpi-status { color: #d44c00; }
+.rapportage-kpi-status { color: #c44700; }
 .rapportage-kpi-card[data-status="good"] .rapportage-kpi-status { color: #18782b; }
 .rapportage-kpi-card[data-status="action"] .rapportage-kpi-status { color: #a51f1f; }
 .rapportage-kpi-card[data-status="no-data"] .rapportage-kpi-status { color: #666; }
@@ -2022,6 +2027,11 @@ li + li {
   overflow: auto;
   border: 1px solid #e2dce8;
   border-radius: 0.4rem;
+}
+
+.rapportage-historie-scroll:focus-visible {
+  outline: 3px solid #4f177f;
+  outline-offset: 3px;
 }
 
 .rapportage-historietabel {

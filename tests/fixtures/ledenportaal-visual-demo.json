@@ -1,0 +1,985 @@
+{
+  "version": 1,
+  "description": "Uitsluitend lokale/Playwright visuele demodata voor B4.1f; geen Production- of echte Auth-data.",
+  "songs": [
+    {
+      "id": "visual-current-01",
+      "title": "Aan de Amsterdamse grachten",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 1 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 10
+    },
+    {
+      "id": "visual-current-02",
+      "title": "Bridge Over Troubled Water",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 2 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 20
+    },
+    {
+      "id": "visual-current-03",
+      "title": "You Raise Me Up",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 3 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 30
+    },
+    {
+      "id": "visual-current-04",
+      "title": "Hallelujah",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 4 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 40
+    },
+    {
+      "id": "visual-current-05",
+      "title": "Nessun Dorma",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 5 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 50
+    },
+    {
+      "id": "visual-current-06",
+      "title": "The Rose",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 6 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 60
+    },
+    {
+      "id": "visual-current-07",
+      "title": "Samen op weg",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 7 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 70
+    },
+    {
+      "id": "visual-current-08",
+      "title": "Stemmen in de nacht",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 8 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 80
+    },
+    {
+      "id": "visual-current-09",
+      "title": "Ritme van vandaag",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 9 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 90
+    },
+    {
+      "id": "visual-current-10",
+      "title": "Morgen klinkt het",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 10 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 100
+    },
+    {
+      "id": "visual-current-11",
+      "title": "Sterk in harmonie",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 11 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 110
+    },
+    {
+      "id": "visual-current-12",
+      "title": "Zingen in Angerlo",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 12 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 120
+    },
+    {
+      "id": "visual-current-13",
+      "title": "Een nieuwe dag",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 13 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 130
+    },
+    {
+      "id": "visual-current-14",
+      "title": "Vrienden in muziek",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 14 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 140
+    },
+    {
+      "id": "visual-current-15",
+      "title": "Avondlicht",
+      "category": "current",
+      "description": "[DEMO] Visueel beoordelingslied 15 voor categorie current.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 150
+    },
+    {
+      "id": "visual-concept-01",
+      "title": "Nieuwe horizon",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 1 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 10
+    },
+    {
+      "id": "visual-concept-02",
+      "title": "Eerste versie",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 2 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 20
+    },
+    {
+      "id": "visual-concept-03",
+      "title": "Vrije stemmen",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 3 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 30
+    },
+    {
+      "id": "visual-concept-04",
+      "title": "Onderweg naar morgen",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 4 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 40
+    },
+    {
+      "id": "visual-concept-05",
+      "title": "Samen sterker",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 5 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 50
+    },
+    {
+      "id": "visual-concept-06",
+      "title": "Kleur in klank",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 6 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 60
+    },
+    {
+      "id": "visual-concept-07",
+      "title": "Dicht bij elkaar",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 7 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 70
+    },
+    {
+      "id": "visual-concept-08",
+      "title": "Nieuwe melodie",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 8 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 80
+    },
+    {
+      "id": "visual-concept-09",
+      "title": "Voorjaarslied",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 9 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 90
+    },
+    {
+      "id": "visual-concept-10",
+      "title": "Licht aan de horizon",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 10 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 100
+    },
+    {
+      "id": "visual-concept-11",
+      "title": "Stem voor stem",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 11 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 110
+    },
+    {
+      "id": "visual-concept-12",
+      "title": "Open akkoorden",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 12 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 120
+    },
+    {
+      "id": "visual-concept-13",
+      "title": "Muziek verbindt",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 13 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 130
+    },
+    {
+      "id": "visual-concept-14",
+      "title": "Een ander ritme",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 14 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 140
+    },
+    {
+      "id": "visual-concept-15",
+      "title": "Proefrepertoire",
+      "category": "concept",
+      "description": "[DEMO] Visueel beoordelingslied 15 voor categorie concept.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 150
+    },
+    {
+      "id": "visual-archive-01",
+      "title": "Oude favoriet",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 1 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 10
+    },
+    {
+      "id": "visual-archive-02",
+      "title": "Herinnering",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 2 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 20
+    },
+    {
+      "id": "visual-archive-03",
+      "title": "Toen en nu",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 3 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 30
+    },
+    {
+      "id": "visual-archive-04",
+      "title": "Klassieke avond",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 4 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 40
+    },
+    {
+      "id": "visual-archive-05",
+      "title": "Zomerconcert",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 5 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 50
+    },
+    {
+      "id": "visual-archive-06",
+      "title": "Winterklanken",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 6 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 60
+    },
+    {
+      "id": "visual-archive-07",
+      "title": "Lang geleden",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 7 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 70
+    },
+    {
+      "id": "visual-archive-08",
+      "title": "Ons eerste optreden",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 8 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 80
+    },
+    {
+      "id": "visual-archive-09",
+      "title": "Feestelijk slot",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 9 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 90
+    },
+    {
+      "id": "visual-archive-10",
+      "title": "Dorpsconcert",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 10 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 100
+    },
+    {
+      "id": "visual-archive-11",
+      "title": "Jubileumlied",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 11 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 110
+    },
+    {
+      "id": "visual-archive-12",
+      "title": "Avondconcert",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 12 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 120
+    },
+    {
+      "id": "visual-archive-13",
+      "title": "Terugblik",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 13 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 130
+    },
+    {
+      "id": "visual-archive-14",
+      "title": "Bekende melodie",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 14 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 140
+    },
+    {
+      "id": "visual-archive-15",
+      "title": "Archiefstuk",
+      "category": "archive",
+      "description": "[DEMO] Visueel beoordelingslied 15 voor categorie archive.",
+      "lyrics": "[DEMO] Liedtekst voor visuele beoordeling. Geen productie-inhoud.",
+      "is_visible": true,
+      "sort_order": 150
+    }
+  ],
+  "links": [
+    {
+      "id": "visual-link-001",
+      "song_id": "visual-current-01",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/1",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-002",
+      "song_id": "visual-current-02",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/2",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-003",
+      "song_id": "visual-current-03",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/3",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-004",
+      "song_id": "visual-current-03",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/current/3",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-005",
+      "song_id": "visual-current-04",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/4",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-006",
+      "song_id": "visual-current-05",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/5",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-007",
+      "song_id": "visual-current-06",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/6",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-008",
+      "song_id": "visual-current-06",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/current/6",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-009",
+      "song_id": "visual-current-07",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/7",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-010",
+      "song_id": "visual-current-08",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/8",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-011",
+      "song_id": "visual-current-09",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/9",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-012",
+      "song_id": "visual-current-09",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/current/9",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-013",
+      "song_id": "visual-current-10",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/10",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-014",
+      "song_id": "visual-current-11",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/11",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-015",
+      "song_id": "visual-current-12",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/12",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-016",
+      "song_id": "visual-current-12",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/current/12",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-017",
+      "song_id": "visual-current-13",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/13",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-018",
+      "song_id": "visual-current-14",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/14",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-019",
+      "song_id": "visual-current-15",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/current/15",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-020",
+      "song_id": "visual-current-15",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/current/15",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-021",
+      "song_id": "visual-concept-01",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/1",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-022",
+      "song_id": "visual-concept-02",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/2",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-023",
+      "song_id": "visual-concept-03",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/3",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-024",
+      "song_id": "visual-concept-03",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/concept/3",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-025",
+      "song_id": "visual-concept-04",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/4",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-026",
+      "song_id": "visual-concept-05",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/5",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-027",
+      "song_id": "visual-concept-06",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/6",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-028",
+      "song_id": "visual-concept-06",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/concept/6",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-029",
+      "song_id": "visual-concept-07",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/7",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-030",
+      "song_id": "visual-concept-08",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/8",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-031",
+      "song_id": "visual-concept-09",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/9",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-032",
+      "song_id": "visual-concept-09",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/concept/9",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-033",
+      "song_id": "visual-concept-10",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/10",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-034",
+      "song_id": "visual-concept-11",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/11",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-035",
+      "song_id": "visual-concept-12",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/12",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-036",
+      "song_id": "visual-concept-12",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/concept/12",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-037",
+      "song_id": "visual-concept-13",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/13",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-038",
+      "song_id": "visual-concept-14",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/14",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-039",
+      "song_id": "visual-concept-15",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/concept/15",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-040",
+      "song_id": "visual-concept-15",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/concept/15",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-041",
+      "song_id": "visual-archive-01",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/1",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-042",
+      "song_id": "visual-archive-02",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/2",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-043",
+      "song_id": "visual-archive-03",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/3",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-044",
+      "song_id": "visual-archive-03",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/archive/3",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-045",
+      "song_id": "visual-archive-04",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/4",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-046",
+      "song_id": "visual-archive-05",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/5",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-047",
+      "song_id": "visual-archive-06",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/6",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-048",
+      "song_id": "visual-archive-06",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/archive/6",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-049",
+      "song_id": "visual-archive-07",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/7",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-050",
+      "song_id": "visual-archive-08",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/8",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-051",
+      "song_id": "visual-archive-09",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/9",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-052",
+      "song_id": "visual-archive-09",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/archive/9",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-053",
+      "song_id": "visual-archive-10",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/10",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-054",
+      "song_id": "visual-archive-11",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/11",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-055",
+      "song_id": "visual-archive-12",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/12",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-056",
+      "song_id": "visual-archive-12",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/archive/12",
+      "sort_order": 20
+    },
+    {
+      "id": "visual-link-057",
+      "song_id": "visual-archive-13",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/13",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-058",
+      "song_id": "visual-archive-14",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/14",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-059",
+      "song_id": "visual-archive-15",
+      "label": "Oefenopname",
+      "link_type": "audio",
+      "url": "https://example.com/demo-audio/archive/15",
+      "sort_order": 10
+    },
+    {
+      "id": "visual-link-060",
+      "song_id": "visual-archive-15",
+      "label": "Oefenvideo",
+      "link_type": "video",
+      "url": "https://example.com/demo-video/archive/15",
+      "sort_order": 20
+    }
+  ],
+  "directory": [
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000001",
+      "full_name": "Jan de Vries",
+      "memo": "[DEMO] Altijd in voor een grap en zorgt voor sfeer in de groep.",
+      "photo_path": "member-01.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000002",
+      "full_name": "Bert Jansen",
+      "memo": "[DEMO] Bas met een warm hart en een goed gevoel voor humor.",
+      "photo_path": "member-02.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000003",
+      "full_name": "Peter van Dijk",
+      "memo": "[DEMO] Zingt met plezier en houdt alles goed georganiseerd.",
+      "photo_path": "member-03.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000004",
+      "full_name": "Gerard de Boer",
+      "memo": "[DEMO] Onze techniekman en echte probleemoplosser.",
+      "photo_path": "member-04.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000005",
+      "full_name": "Kees Brouwer",
+      "memo": "[DEMO] Een betrokken zanger met een warme stem.",
+      "photo_path": "member-05.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000006",
+      "full_name": "Henk Mulder",
+      "memo": "[DEMO] Een zanger met een luisterend oor en een groot hart.",
+      "photo_path": "member-06.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000007",
+      "full_name": "Mark Smit",
+      "memo": "[DEMO] Zingt tenor en helpt waar hij kan.",
+      "photo_path": "member-07.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000008",
+      "full_name": "Wim Post",
+      "memo": "[DEMO] Notenester en bewaakt onze planning.",
+      "photo_path": "member-08.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000009",
+      "full_name": "Arjan van der Meer",
+      "memo": "[DEMO] Altijd aanwezig en altijd positief.",
+      "photo_path": "member-09.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000010",
+      "full_name": "Paul Visser",
+      "memo": "[DEMO] Creatief, enthousiast en houdt van harmonie.",
+      "photo_path": "member-10.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000011",
+      "full_name": "Ruben Jacobs",
+      "memo": "[DEMO] Zingt bas en houdt van gezelligheid.",
+      "photo_path": "member-11.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000012",
+      "full_name": "Theo Willems",
+      "memo": "[DEMO] Een stille kracht met een scherpe blik.",
+      "photo_path": "member-12.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000013",
+      "full_name": "Dirk van Leeuwen",
+      "memo": "[DEMO] Altijd paraat en betrouwbaar.",
+      "photo_path": "member-13.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000014",
+      "full_name": "Sjoerd Bakker",
+      "memo": "[DEMO] Tenor met passie voor muziek en mensen.",
+      "photo_path": "member-14.png"
+    },
+    {
+      "profile_id": "31000000-0000-4000-8000-000000000015",
+      "full_name": "Erik de Graaf",
+      "memo": "[DEMO] Zorgt voor energie en heeft altijd een lach.",
+      "photo_path": "member-15.png"
+    }
+  ]
+}

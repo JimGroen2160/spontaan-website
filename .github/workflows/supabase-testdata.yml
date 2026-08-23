@@ -8,8 +8,15 @@ on:
       - "scripts/testdata/**"
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Kies ledenportaal of all voor de afgescheiden TEST-testdata"
+        required: true
+        type: choice
+        options:
+          - ledenportaal
+          - all
       confirm:
-        description: "Typ APPLY_TESTDATA om uitsluitend de Supabase-testomgeving bij te werken"
+        description: "Typ APPLY_LEDENPORTAAL_TESTDATA of APPLY_TESTDATA passend bij de gekozen mode"
         required: true
         type: string
 
@@ -76,6 +83,39 @@ jobs:
           }
           NODE
 
+          node --check scripts/testdata/seed-ledenportaal.mjs
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const portalDemo = JSON.parse(
+            fs.readFileSync("scripts/testdata/ledenportaal-demo.json", "utf8"),
+          );
+          const portalSeeder = fs.readFileSync(
+            "scripts/testdata/seed-ledenportaal.mjs",
+            "utf8",
+          );
+
+          if (!Array.isArray(portalDemo.songs) || portalDemo.songs.length !== 6) {
+            throw new Error("Ledenportaal-demo moet exact zes demoliedjes bevatten.");
+          }
+
+          if (!portalDemo.songs.every((song) => song.title.startsWith("[DEMO]"))) {
+            throw new Error("Alle demoliedjes moeten herkenbaar met [DEMO] beginnen.");
+          }
+
+          if (!Array.isArray(portalDemo.directory) || portalDemo.directory.length !== 3) {
+            throw new Error("Ledenportaal-demo moet exact drie smoelenboekmemo's bevatten.");
+          }
+
+          if (!portalSeeder.includes("--dry-run") || !portalSeeder.includes("--apply")) {
+            throw new Error("Ledenportaal-seeder mist dry-run/apply contract.");
+          }
+
+          if (/\.from\(["']profiles["']\)[\s\S]{0,300}\.(insert|upsert|update|delete)\s*\(/.test(portalSeeder)) {
+            throw new Error("Ledenportaal-seeder mag profiles niet muteren.");
+          }
+          NODE
+
       - name: Verify local environment file is not tracked
         shell: bash
         run: |
@@ -87,15 +127,91 @@ jobs:
       - name: Verify manual confirmation
         if: github.event_name == 'workflow_dispatch'
         shell: bash
+        env:
+          REQUESTED_MODE: ${{ inputs.mode }}
+          REQUESTED_CONFIRMATION: ${{ inputs.confirm }}
         run: |
-          if [ "${{ inputs.confirm }}" != "APPLY_TESTDATA" ]; then
-            echo "Ongeldige bevestiging. Typ exact APPLY_TESTDATA."
+          set -euo pipefail
+
+          case "$REQUESTED_MODE" in
+            ledenportaal)
+              expected_confirmation="APPLY_LEDENPORTAAL_TESTDATA"
+              ;;
+            all)
+              expected_confirmation="APPLY_TESTDATA"
+              ;;
+            *)
+              echo "Ongeldige mode: $REQUESTED_MODE"
+              exit 1
+              ;;
+          esac
+
+          if [ "$REQUESTED_CONFIRMATION" != "$expected_confirmation" ]; then
+            echo "Ongeldige bevestiging voor mode $REQUESTED_MODE."
+            echo "Verwacht exact: $expected_confirmation"
             exit 1
           fi
 
+          echo "Handmatige bevestiging voor mode $REQUESTED_MODE — OK"
+
+  apply-ledenportaal-testdata:
+    name: Apply ledenportaal testdata
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'ledenportaal'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-test
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEST_STATUS_MEMBER_EMAIL: ${{ secrets.TEST_STATUS_MEMBER_EMAIL }}
+      TEST_PROFILE_MEMBER_EMAIL: ${{ secrets.TEST_PROFILE_MEMBER_EMAIL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Preview ledenportaal demo
+        run: node scripts/testdata/seed-ledenportaal.mjs --dry-run
+
+      - name: Apply ledenportaal demo
+        run: node scripts/testdata/seed-ledenportaal.mjs --apply
+
+      - name: Verify ledenportaal demo
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-ledenportaal.mjs --dry-run)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*songs-missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*links-missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*directory-missing: 0[[:space:]]*$' <<<"$output"
+
+      - name: Verify ledenportaal demo idempotence
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-ledenportaal.mjs --apply)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*created: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*existing: 13[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*updated: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*failed: 0[[:space:]]*$' <<<"$output"
+
   apply-testdata:
     name: Apply Supabase testdata
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'all'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -168,3 +284,27 @@ jobs:
           grep -Eq '^[[:space:]]*bijgewerkt: 0[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*ongewijzigd: 7[[:space:]]*$' <<<"$output"
           grep -Eq '^[[:space:]]*mislukt: 0[[:space:]]*$' <<<"$output"
+
+      - name: Apply ledenportaal demo
+        run: node scripts/testdata/seed-ledenportaal.mjs --apply
+
+      - name: Verify ledenportaal demo
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-ledenportaal.mjs --dry-run)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*songs-missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*links-missing: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*directory-missing: 0[[:space:]]*$' <<<"$output"
+
+      - name: Verify ledenportaal demo idempotence
+        shell: bash
+        run: |
+          output="$(node scripts/testdata/seed-ledenportaal.mjs --apply)"
+          printf '%s\n' "$output"
+
+          grep -Eq '^[[:space:]]*created: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*existing: 13[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*updated: 0[[:space:]]*$' <<<"$output"
+          grep -Eq '^[[:space:]]*failed: 0[[:space:]]*$' <<<"$output"

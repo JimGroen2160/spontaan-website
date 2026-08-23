@@ -36,11 +36,26 @@ test(
   'workflow_dispatch blijft de permanente expliciete deploymentroute',
   async () => {
     const source = await workflowSource()
+    const preview = jobBlock(source, 'preview-test')
+    const deployDb = jobBlock(source, 'deploy-db-test')
     const deploy = jobBlock(source, 'deploy-test')
 
     assert.match(source, /^\s*workflow_dispatch:$/m)
+    assert.match(source, /type:\s*choice/)
+    assert.match(source, /-\s*preview/)
+    assert.match(source, /-\s*db-deploy/)
+    assert.match(source, /-\s*deploy/)
+    assert.match(source, /PREVIEW_SUPABASE_TEST/)
+    assert.match(source, /DEPLOY_SUPABASE_TEST_DB/)
     assert.match(source, /DEPLOY_SUPABASE_TEST/)
-    assert.match(deploy, /github\.event_name == 'workflow_dispatch'/)
+    assert.match(preview, /inputs\.mode == 'preview'/)
+    assert.match(preview, /inputs\.mode == 'db-deploy'/)
+    assert.match(preview, /inputs\.mode == 'deploy'/)
+    assert.match(deployDb, /inputs\.mode == 'db-deploy'/)
+    assert.match(deployDb, /^    needs: preview-test$/m)
+    assert.match(deployDb, /^        run: supabase db push$/m)
+    assert.doesNotMatch(deployDb, /supabase functions deploy/)
+    assert.match(deploy, /inputs\.mode == 'deploy'/)
     assert.match(deploy, /^    needs: preview-test$/m)
     assert.match(deploy, /^        run: supabase db push$/m)
     assert.match(deploy, /supabase functions deploy create-member/)
@@ -49,10 +64,38 @@ test(
 )
 
 test(
+  'preview-mode kan de muterende deploy-job niet activeren',
+  async () => {
+    const source = await workflowSource()
+    const deployDb = jobBlock(source, 'deploy-db-test')
+    const deploy = jobBlock(source, 'deploy-test')
+
+    assert.match(deployDb, /inputs\.mode == 'db-deploy'/)
+    assert.doesNotMatch(deployDb, /inputs\.mode == 'preview'/)
+    assert.match(deploy, /inputs\.mode == 'deploy'/)
+    assert.doesNotMatch(deploy, /inputs\.mode == 'preview'/)
+  },
+)
+
+test(
+  'db-deploy-mode voert alleen databasewrite uit',
+  async () => {
+    const source = await workflowSource()
+    const deployDb = jobBlock(source, 'deploy-db-test')
+
+    assert.match(deployDb, /inputs\.mode == 'db-deploy'/)
+    assert.match(deployDb, /^    needs: preview-test$/m)
+    assert.match(deployDb, /^        run: supabase db push$/m)
+    assert.doesNotMatch(deployDb, /supabase functions deploy/)
+  },
+)
+
+test(
   'tijdelijke PR72-deploymentroute is volledig verwijderd',
   async () => {
     const source = await workflowSource()
     const preview = jobBlock(source, 'preview-test')
+    const deployDb = jobBlock(source, 'deploy-db-test')
     const deploy = jobBlock(source, 'deploy-test')
 
     assert.doesNotMatch(source, /^\s*pull_request:$/m)
@@ -62,6 +105,11 @@ test(
 
     assert.match(
       preview,
+      /github\.event_name == 'workflow_dispatch'/,
+    )
+
+    assert.match(
+      deployDb,
       /github\.event_name == 'workflow_dispatch'/,
     )
 

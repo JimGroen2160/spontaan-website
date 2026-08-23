@@ -1,0 +1,642 @@
+.portal-beheer-page {
+  background: linear-gradient(180deg, #ffffff 0, #fbf7fd 42rem, #f8f1fb 100%);
+}
+
+.portal-beheer-hero {
+  position: relative;
+  min-height: clamp(320px, 34vw, 430px);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(115deg, rgba(79, 23, 127, 0.94), rgba(111, 37, 174, 0.78) 54%, rgba(217, 13, 135, 0.62)),
+    url("../images/about/over-hero-mannenkoor.jpg") center 38% / cover no-repeat;
+  color: #fff;
+}
+
+.portal-beheer-hero::after {
+  content: "";
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: -42px;
+  height: 76px;
+  border-radius: 50%;
+  background: #fbf7fd;
+}
+
+.portal-beheer-hero__content {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 2rem, 1280px);
+  margin: 0 auto;
+  padding: clamp(2.75rem, 5vw, 4rem) 1.25rem 5rem;
+}
+
+.portal-beheer-hero__eyebrow,
+.portal-beheer-heading__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.portal-beheer-hero__eyebrow { color: #fff; }
+.portal-beheer-heading__eyebrow { color: var(--color-primary); }
+
+.portal-beheer-hero h1 {
+  max-width: 920px;
+  margin: 0 0 0.75rem;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 4.4vw, 4.3rem);
+}
+
+.portal-beheer-hero p:not(.portal-beheer-hero__eyebrow) {
+  max-width: 650px;
+  color: #fff;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+}
+
+.portal-beheer-hero__button,
+.portal-beheer-primary,
+.portal-beheer-secondary,
+.portal-beheer-danger,
+.portal-beheer-icon-button,
+.portal-beheer-link-remove {
+  min-height: 42px;
+  border-radius: 13px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.portal-beheer-hero__button,
+.portal-beheer-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.68rem 1.05rem;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--color-secondary), #9c2ac9);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(111, 37, 174, 0.18);
+}
+
+.portal-beheer-hero__button:hover,
+.portal-beheer-primary:hover { color: #fff; transform: translateY(-1px); }
+
+.portal-beheer-main {
+  width: min(100% - 2rem, 1280px);
+  max-width: none;
+  margin: 1rem auto 5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.portal-beheer-status {
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--color-text-muted);
+}
+
+.portal-beheer-status p { margin: 0; }
+
+.portal-beheer-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0 0 1.25rem;
+  padding: 0.45rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-soft);
+}
+
+.portal-beheer-tab {
+  min-height: 52px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.portal-beheer-tab.is-active {
+  background: linear-gradient(135deg, rgba(111, 37, 174, 0.12), rgba(217, 13, 135, 0.10));
+  box-shadow: inset 0 -3px 0 var(--color-secondary);
+}
+
+.portal-beheer-panel {
+  position: relative;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: var(--shadow-card);
+}
+
+.portal-beheer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.portal-beheer-heading h2 { margin-bottom: 0.35rem; }
+.portal-beheer-heading p:last-child { margin-bottom: 0; color: var(--color-text-muted); }
+
+.portal-beheer-music-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+
+.portal-beheer-category-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.portal-beheer-category-tab {
+  min-width: 0;
+  min-height: 54px;
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.portal-beheer-category-tab:last-child { border-right: 0; }
+
+.portal-beheer-category-tab.is-active {
+  background: linear-gradient(180deg, #fff, #f7eefb);
+  box-shadow: inset 0 -3px 0 var(--color-primary);
+}
+
+.portal-beheer-category-tab span {
+  margin-right: 0.35rem;
+  color: var(--color-primary);
+}
+
+.portal-beheer-music-search {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #fcf9fd);
+  color: var(--color-primary-dark);
+  font-weight: 750;
+}
+
+.portal-beheer-music-search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.78rem;
+  border: 1px solid #d9cce2;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--color-text);
+}
+
+.portal-beheer-music-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.portal-beheer-music-list-column { min-width: 0; }
+
+.portal-beheer-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 280px);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #fcf9fd);
+}
+
+.portal-beheer-toolbar--directory { grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1.2fr); }
+
+.portal-beheer-toolbar label,
+.portal-beheer-field,
+.portal-beheer-member-card__memo,
+.portal-beheer-member-card__upload {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-primary-dark);
+  font-weight: 750;
+}
+
+.portal-beheer-toolbar input,
+.portal-beheer-toolbar select,
+.portal-beheer-field input,
+.portal-beheer-field select,
+.portal-beheer-field textarea,
+.portal-beheer-link-row input,
+.portal-beheer-link-row select,
+.portal-beheer-member-card textarea,
+.portal-beheer-member-card input[type="file"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.78rem;
+  border: 1px solid #d9cce2;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--color-text);
+}
+
+.portal-beheer-field textarea,
+.portal-beheer-member-card textarea { resize: vertical; }
+
+.portal-beheer-inline-info,
+.portal-beheer-info-card {
+  padding: 1rem;
+  border: 1px solid #eadff0;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #fbf5fd);
+}
+
+.portal-beheer-inline-info { display: grid; gap: 0.2rem; color: var(--color-text-muted); }
+.portal-beheer-inline-info strong { color: var(--color-primary-dark); }
+
+.portal-beheer-result { color: var(--color-text-muted); font-size: 0.93rem; }
+
+.portal-beheer-song-list { display: grid; gap: 0.65rem; }
+
+.portal-beheer-song-card {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+.portal-beheer-song-card__icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  aspect-ratio: 1;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #f5edf9, #fff);
+  color: var(--color-primary);
+  font-size: 1.7rem;
+}
+
+.portal-beheer-song-card h3 { margin: 0.3rem 0; font-family: Georgia, "Times New Roman", serif; }
+.portal-beheer-song-card__description { margin: 0 0 0.25rem; color: var(--color-text-muted); }
+.portal-beheer-song-card__resources,
+.portal-beheer-song-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.portal-beheer-song-card__resources { margin-top: 0.45rem; }
+
+.portal-beheer-resource-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: #f7f0fa;
+  color: var(--color-primary-dark);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.portal-beheer-resource-chip--empty {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.portal-beheer-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #f3ebf8;
+  color: var(--color-primary-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.portal-beheer-chip--visible { background: #eaf7ed; color: var(--color-success); }
+.portal-beheer-chip--hidden { background: #fbefef; color: var(--color-danger); }
+.portal-beheer-song-card__actions,
+.portal-beheer-member-card__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
+
+.portal-beheer-secondary,
+.portal-beheer-danger,
+.portal-beheer-link-remove {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--color-primary);
+  background: #fff;
+  color: var(--color-primary-dark);
+}
+
+.portal-beheer-danger,
+.portal-beheer-link-remove { border-color: #d8aab2; color: var(--color-danger); }
+.portal-beheer-secondary:hover { background: var(--color-accent-soft); }
+.portal-beheer-danger:hover,
+.portal-beheer-link-remove:hover { background: #fff3f5; }
+
+.portal-beheer-info-card {
+  position: sticky;
+  top: 1rem;
+  margin-top: 0;
+}
+
+.portal-beheer-info-card h3 { margin-top: 0; }
+.portal-beheer-info-card__note {
+  margin-bottom: 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.portal-beheer-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.portal-beheer-member-card {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+}
+
+.portal-beheer-member-card__media {
+  display: grid;
+  place-items: center;
+  min-height: 154px;
+}
+
+.portal-beheer-member-card__media img,
+.portal-beheer-member-card__placeholder {
+  width: 144px;
+  height: 144px;
+  border: 4px solid #f5edf9;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(79, 23, 127, 0.12);
+}
+
+.portal-beheer-member-card__placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #f0e3f7, #fff);
+  color: var(--color-primary-dark);
+  font-size: 2rem;
+  font-weight: 850;
+}
+
+.portal-beheer-member-card h3 { margin: 0; font-family: Georgia, "Times New Roman", serif; }
+.portal-beheer-member-card__role { margin: 0; color: var(--color-text-muted); }
+
+.portal-beheer-member-card__memo-preview {
+  min-height: 3.4em;
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.portal-beheer-member-card__manage {
+  margin-top: 0.25rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.portal-beheer-member-card__manage summary {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.portal-beheer-member-card__manage[open] summary { margin-bottom: 0.8rem; }
+
+.portal-beheer-member-card__manage .portal-beheer-secondary {
+  width: 100%;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.portal-beheer-member-card__manage .portal-beheer-member-card__actions {
+  justify-content: center;
+  margin-top: 0.55rem;
+}
+
+.portal-beheer-member-card__memo,
+.portal-beheer-member-card__upload { text-align: left; font-size: 0.9rem; }
+
+.portal-beheer-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(47, 18, 70, 0.68);
+  backdrop-filter: blur(4px);
+}
+
+.portal-beheer-modal.open { display: flex; }
+
+.portal-beheer-modal__panel {
+  width: min(900px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  padding: clamp(1rem, 3vw, 1.7rem);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(47, 18, 70, 0.38);
+}
+
+.portal-beheer-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.portal-beheer-icon-button {
+  width: 44px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-primary-dark);
+  font-size: 1.5rem;
+}
+
+.portal-beheer-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.portal-beheer-field--wide { grid-column: 1 / -1; }
+
+.portal-beheer-check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 750;
+}
+
+.portal-beheer-check input { width: 1.2rem; height: 1.2rem; accent-color: var(--color-primary); }
+
+.portal-beheer-links {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.portal-beheer-links__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.portal-beheer-links legend { color: var(--color-primary-dark); font-weight: 850; }
+.portal-beheer-links p { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
+
+.portal-beheer-link-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.8fr) 130px minmax(220px, 1.3fr) auto;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.portal-beheer-form-error { min-height: 1.4rem; margin: 0; color: var(--color-danger); font-weight: 700; }
+.portal-beheer-modal__actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
+
+.portal-beheer-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1500;
+  max-width: min(420px, calc(100vw - 2rem));
+  padding: 0.9rem 3rem 0.9rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 45px rgba(47, 18, 70, 0.22);
+}
+
+.portal-beheer-toast.success { border-left: 5px solid var(--color-success); }
+.portal-beheer-toast.error { border-left: 5px solid var(--color-danger); }
+.portal-beheer-toast button { position: absolute; top: 0.35rem; right: 0.45rem; border: 0; background: transparent; font-size: 1.35rem; cursor: pointer; }
+.portal-beheer-empty { padding: 1.2rem; border: 1px dashed var(--color-border); border-radius: 14px; color: var(--color-text-muted); text-align: center; }
+
+@media (max-width: 980px) {
+  .portal-beheer-music-controls,
+  .portal-beheer-music-layout { grid-template-columns: 1fr; }
+  .portal-beheer-info-card { position: static; }
+  .portal-beheer-directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .portal-beheer-song-card { grid-template-columns: 52px minmax(0, 1fr); }
+  .portal-beheer-song-card__actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .portal-beheer-link-row { grid-template-columns: 1fr 130px; }
+  .portal-beheer-link-row input[data-link-field="url"] { grid-column: 1 / -1; }
+}
+
+@media (max-width: 700px) {
+  .portal-beheer-hero { min-height: 320px; }
+  .portal-beheer-toolbar,
+  .portal-beheer-toolbar--directory,
+  .portal-beheer-form,
+  .portal-beheer-directory-grid { grid-template-columns: 1fr; }
+  .portal-beheer-heading { display: grid; }
+  .portal-beheer-tabs { grid-template-columns: 1fr; }
+  .portal-beheer-category-tab {
+    min-height: 48px;
+    padding-inline: 0.35rem;
+    font-size: 0.9rem;
+  }
+  .portal-beheer-field--wide { grid-column: auto; }
+  .portal-beheer-link-row { grid-template-columns: 1fr; }
+  .portal-beheer-link-row input[data-link-field="url"] { grid-column: auto; }
+  .portal-beheer-modal__actions { flex-direction: column; }
+  .portal-beheer-modal__actions button { width: 100%; }
+}
+
+/* B4.1d APPROVED WIREFRAME NAV + FOOTER */
+.portal-beheer-page #footer-placeholder {
+  position: relative;
+  margin-top: 0;
+  padding-top: clamp(52px, 6vw, 72px);
+  overflow: hidden;
+}
+
+.portal-beheer-page #footer-placeholder::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(52px, 6vw, 72px);
+  background:
+    linear-gradient(
+      135deg,
+      var(--color-primary-dark),
+      #34104f
+    );
+  content: "";
+  clip-path:
+    polygon(
+      0 62%,
+      14% 40%,
+      31% 47%,
+      49% 66%,
+      68% 51%,
+      84% 34%,
+      100% 49%,
+      100% 100%,
+      0 100%
+    );
+}
+
+.portal-beheer-page #footer-placeholder .site-footer {
+  margin-top: 0;
+}

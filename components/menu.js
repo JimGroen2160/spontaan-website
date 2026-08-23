@@ -70,6 +70,17 @@ function navigationPath(pathname) {
     return '/pages/nieuws.html';
   }
 
+  const memberPortalPaths = new Set([
+    '/leden/dashboard.html',
+    '/leden/muziek.html',
+    '/leden/smoelenboek.html',
+    '/admin/ledenportaal.html',
+  ]);
+
+  if (memberPortalPaths.has(normalizedPath)) {
+    return '/leden/dashboard.html';
+  }
+
   return normalizedPath;
 }
 

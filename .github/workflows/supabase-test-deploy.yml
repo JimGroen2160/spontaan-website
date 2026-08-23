@@ -3,8 +3,18 @@ name: Supabase Test Deploy
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Kies preview, verify, crud-verify, db-deploy of deploy voor het afgescheiden TEST-project"
+        required: true
+        type: choice
+        options:
+          - preview
+          - verify
+          - crud-verify
+          - db-deploy
+          - deploy
       confirm:
-        description: "Typ DEPLOY_SUPABASE_TEST om uitsluitend het afgescheiden Supabase-testproject bij te werken"
+        description: "Typ PREVIEW_SUPABASE_TEST, VERIFY_SUPABASE_TEST_READONLY, VERIFY_LEDENPORTAAL_PDF_CRUD_TEST, DEPLOY_SUPABASE_TEST_DB of DEPLOY_SUPABASE_TEST passend bij de gekozen mode"
         required: true
         type: string
 
@@ -18,6 +28,8 @@ concurrency:
 env:
   SUPABASE_TEST_PROJECT_REF: lldmyfvhjypomxfpltlx
   EXPECTED_MIGRATION: supabase/migrations/20260810181000_contentmanager_rbac.sql
+  LEDENPORTAAL_MIGRATION: supabase/migrations/20260821141500_ledenportaal_content.sql
+  LEDENPORTAAL_PDF_MIGRATION: supabase/migrations/20260822204500_ledenportaal_song_pdfs.sql
 
 jobs:
   validate:
@@ -32,11 +44,41 @@ jobs:
       - name: Verify manual confirmation
         if: github.event_name == 'workflow_dispatch'
         shell: bash
+        env:
+          REQUESTED_MODE: ${{ inputs.mode }}
+          REQUESTED_CONFIRMATION: ${{ inputs.confirm }}
         run: |
-          if [ "${{ inputs.confirm }}" != "DEPLOY_SUPABASE_TEST" ]; then
-            echo "Ongeldige bevestiging. Typ exact DEPLOY_SUPABASE_TEST."
+          set -euo pipefail
+
+          case "$REQUESTED_MODE" in
+            preview)
+              expected_confirmation="PREVIEW_SUPABASE_TEST"
+              ;;
+            verify)
+              expected_confirmation="VERIFY_SUPABASE_TEST_READONLY"
+              ;;
+            crud-verify)
+              expected_confirmation="VERIFY_LEDENPORTAAL_PDF_CRUD_TEST"
+              ;;
+            db-deploy)
+              expected_confirmation="DEPLOY_SUPABASE_TEST_DB"
+              ;;
+            deploy)
+              expected_confirmation="DEPLOY_SUPABASE_TEST"
+              ;;
+            *)
+              echo "Ongeldige mode: $REQUESTED_MODE"
+              exit 1
+              ;;
+          esac
+
+          if [ "$REQUESTED_CONFIRMATION" != "$expected_confirmation" ]; then
+            echo "Ongeldige bevestiging voor mode $REQUESTED_MODE."
+            echo "Verwacht exact: $expected_confirmation"
             exit 1
           fi
+
+          echo "Handmatige bevestiging voor mode $REQUESTED_MODE — OK"
 
       - name: Verify deployment scope
         shell: bash
@@ -45,6 +87,8 @@ jobs:
 
           test "$SUPABASE_TEST_PROJECT_REF" = "lldmyfvhjypomxfpltlx"
           test -f "$EXPECTED_MIGRATION"
+          test -f "$LEDENPORTAAL_MIGRATION"
+          test -f "$LEDENPORTAAL_PDF_MIGRATION"
 
           mapfile -t function_files < <(
             find supabase/functions -type f -name index.ts | sort
@@ -94,6 +138,9 @@ jobs:
       - name: Validate Supabase workflow contract
         run: node --test tests/supabase-workflow-contract.test.mjs
 
+      - name: Validate ledenportaal RBAC contract
+        run: node --test tests/ledenportaal-rbac-contract.test.mjs
+
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
@@ -105,10 +152,113 @@ jobs:
           deno check --node-modules-dir=auto supabase/functions/create-member/index.ts
           deno check --node-modules-dir=auto supabase/functions/resend-member-invite/index.ts
 
+  verify-test:
+    name: Verify Supabase test backend read-only
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'verify'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-test
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TEST_SUPABASE_PUBLISHABLE_KEY }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            SUPABASE_URL
+            SUPABASE_SERVICE_ROLE_KEY
+            SUPABASE_PUBLISHABLE_KEY
+            TEST_MEMBER_EMAIL
+            TEST_MEMBER_PASSWORD
+          )
+
+          for variable_name in "${required[@]}"; do
+            if [ -z "${!variable_name:-}" ]; then
+              echo "Ontbrekende secret/environmentwaarde: $variable_name"
+              exit 1
+            fi
+          done
+
+      - name: Run live read-only backend verification
+        run: node scripts/testdata/verify-ledenportaal-backend.mjs
+
+  crud-verify-test:
+    name: Verify ledenportaal PDF CRUD on Supabase test
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'crud-verify'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-test
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TEST_SUPABASE_PUBLISHABLE_KEY }}
+      TEST_CONTENTMANAGER_EMAIL: ${{ secrets.TEST_CONTENTMANAGER_EMAIL }}
+      TEST_CONTENTMANAGER_PASSWORD: ${{ secrets.TEST_CONTENTMANAGER_PASSWORD }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            SUPABASE_URL
+            SUPABASE_PUBLISHABLE_KEY
+            TEST_CONTENTMANAGER_EMAIL
+            TEST_CONTENTMANAGER_PASSWORD
+            TEST_MEMBER_EMAIL
+            TEST_MEMBER_PASSWORD
+          )
+
+          for variable_name in "${required[@]}"; do
+            if [ -z "${!variable_name:-}" ]; then
+              echo "Ontbrekende secret/environmentwaarde: $variable_name"
+              exit 1
+            fi
+          done
+
+      - name: Run live PDF CRUD verification
+        run: node scripts/testdata/verify-ledenportaal-pdf-crud.mjs
   preview-test:
     name: Preview Supabase test database migrations
     needs: validate
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'preview' || inputs.mode == 'db-deploy' || inputs.mode == 'deploy')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: supabase-test
@@ -161,10 +311,67 @@ jobs:
       - name: Preview database migrations
         run: supabase db push --dry-run
 
+  deploy-db-test:
+    name: Deploy database migrations to Supabase test
+
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'db-deploy'
+    needs: preview-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: supabase-test
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v2
+        with:
+          version: 2.101.0
+
+      - name: Verify Supabase credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "SUPABASE_ACCESS_TOKEN ontbreekt."
+            exit 1
+          fi
+
+          if [ -z "${SUPABASE_DB_PASSWORD:-}" ]; then
+            echo "SUPABASE_DB_PASSWORD ontbreekt."
+            exit 1
+          fi
+
+      - name: Verify CLI and fixed test target
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          supabase --version
+
+          if [ "$SUPABASE_TEST_PROJECT_REF" != "lldmyfvhjypomxfpltlx" ]; then
+            echo "STOP: onverwachte Supabase project-ref."
+            exit 1
+          fi
+
+          echo "Doelproject bevestigd: $SUPABASE_TEST_PROJECT_REF"
+
+      - name: Link Supabase test project
+        run: supabase link --project-ref "$SUPABASE_TEST_PROJECT_REF"
+
+      - name: Apply database migrations
+        run: supabase db push
+
   deploy-test:
     name: Deploy to Supabase test
 
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy'
     needs: preview-test
     runs-on: ubuntu-latest
     timeout-minutes: 20

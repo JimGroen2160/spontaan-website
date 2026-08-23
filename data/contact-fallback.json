@@ -14,28 +14,28 @@
       "text": "Voor algemene vragen over Zanggroep Spontaan helpen we je graag rechtstreeks verder.",
       "icon": "question",
       "linkLabel": "Stuur een e-mail",
-      "linkTarget": "mailto:info@spontaan.nl"
+      "linkTarget": "mailto:spontaaninfo@gmail.com"
     },
     {
       "title": "Boekingen",
       "text": "Wil je Spontaan uitnodigen voor een optreden of evenement? Neem contact op om de mogelijkheden te bespreken.",
       "icon": "calendar",
       "linkLabel": "Bespreek een boeking",
-      "linkTarget": "mailto:info@spontaan.nl"
+      "linkTarget": "mailto:spontaaninfo@gmail.com"
     },
     {
       "title": "Lid worden",
       "text": "Ben je benieuwd of zingen bij Spontaan iets voor jou is? Laat het ons weten en maak kennis met de zanggroep.",
       "icon": "people",
       "linkLabel": "Maak kennis",
-      "linkTarget": "mailto:info@spontaan.nl"
+      "linkTarget": "mailto:spontaaninfo@gmail.com"
     },
     {
       "title": "Repetitie bezoeken",
       "text": "Je bent van harte welkom om de sfeer te proeven tijdens een repetitieavond.",
       "icon": "music",
       "linkLabel": "Plan een bezoek",
-      "linkTarget": "mailto:info@spontaan.nl"
+      "linkTarget": "mailto:spontaaninfo@gmail.com"
     }
   ],
   "welcomeTitle": "Je bent van harte welkom",
@@ -49,7 +49,7 @@
   ],
   "directContactTitle": "Neem rechtstreeks contact op",
   "directContactText": "We beantwoorden je vraag graag persoonlijk. Gebruik het e-mailadres hieronder of bekijk de actuele telefonische bereikbaarheid.",
-  "emailAddress": "info@spontaan.nl",
+  "emailAddress": "spontaaninfo@gmail.com",
   "phoneNumber": "[DEMO] +31 6 0000 0000",
   "availabilityText": "[DEMO] Telefonisch bereikbaar op werkdagen tussen 19.00 en 21.00 uur.",
   "rehearsalInvitation": "Wil je een repetitie bezoeken? Stuur vooraf een e-mail, zodat we je persoonlijk kunnen ontvangen.",

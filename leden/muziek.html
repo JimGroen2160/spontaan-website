@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muziek | Ledenportaal | Zanggroep Spontaan</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/ledenportaal.css">
+</head>
+<body class="member-portal-page">
+
+<div id="nav-placeholder"></div>
+
+<header class="member-hero member-hero--music">
+  <div class="member-hero__overlay"></div>
+  <div class="member-hero__content">
+    <p class="member-hero__eyebrow">LEDENPORTAAL</p>
+    <h1>Muziek</h1>
+    <p>Hier vind je liedjes, teksten en oefenlinks voor ons mannenkoor.</p>
+    <a class="btn member-hero__cta" href="#muziek-overzicht"><span aria-hidden="true">&#9835;</span><span>Naar huidig repertoire</span></a>
+  </div>
+</header>
+
+<main class="member-page" id="muziek-overzicht">
+  <section class="member-auth-status" aria-live="polite">
+    <p data-auth-status>Toegang tot het ledenportaal wordt gecontroleerd...</p>
+  </section>
+
+  <div data-leden-protected hidden>
+    <section class="music-toolbar" aria-label="Muziek filteren en zoeken">
+      <div class="music-tabs" role="group" aria-label="Categorie">
+        <button type="button" class="music-tab is-active" data-category="current" aria-pressed="true"><span aria-hidden="true">&#9835;</span><span>Huidig</span></button>
+        <button type="button" class="music-tab" data-category="concept" aria-pressed="false"><span aria-hidden="true">&#9998;</span><span>Concept</span></button>
+        <button type="button" class="music-tab" data-category="archive" aria-pressed="false"><span aria-hidden="true">&#9635;</span><span>Archief</span></button>
+      </div>
+
+      <label class="member-search">
+        <span class="member-visually-hidden">Zoek een lied</span>
+        <input id="song-search" type="search" placeholder="Zoek op titel of omschrijving" autocomplete="off">
+      </label>
+    </section>
+
+    <div class="music-content-grid">
+      <section aria-labelledby="music-list-title">
+        <div class="member-section-heading member-section-heading--visually-hidden">
+          <p class="member-section-heading__eyebrow">Liedjes voor leden</p>
+          <h2 id="music-list-title">Huidig repertoire</h2>
+          <p id="song-result-count" aria-live="polite"></p>
+        </div>
+        <div id="song-list" class="song-list"></div>
+      </section>
+
+      <aside class="member-info-card" aria-labelledby="music-info-title">
+        <div class="member-info-card__icon" aria-hidden="true">i</div>
+        <p class="member-info-card__eyebrow">Goed om te weten</p>
+        <h2 id="music-info-title">Goed om te weten</h2>
+        <p>Op deze pagina vind je de liederen die we als mannenkoor zingen, met teksten, oefenlinks en liedbladen.</p>
+
+        <ul class="member-info-card__list">
+          <li><strong>Huidig:</strong> liederen die we op dit moment zingen.</li>
+          <li><strong>Concept:</strong> nieuw repertoire in voorbereiding.</li>
+          <li><strong>Archief:</strong> bewaarde liederen die niet meer actueel zijn.</li>
+        </ul>
+
+        <div class="member-info-card__divider" aria-hidden="true"><span>&#9835;</span></div>
+
+        <p>Een liedtekst kan direct worden bekeken en afgedrukt. De beveiligde PDF-download wordt als aparte vervolgstap aangesloten.</p>
+        <p class="member-info-card__note">Iets niet kunnen vinden? Neem contact op zodat we je verder kunnen helpen.</p>
+        <a class="member-info-card__action" href="../pages/contact.html">Contact muziekcommissie</a>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<section id="song-print-sheet" class="song-print-sheet" hidden aria-hidden="true">
+  <h1 id="print-song-title"></h1>
+  <pre id="print-song-lyrics"></pre>
+</section>
+
+<div id="footer-placeholder"></div>
+
+<script src="../js/runtime-config.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="../js/auth.js" defer></script>
+<script src="../js/leden-portaal.js" defer></script>
+<script src="../js/leden-muziek.js" defer></script>
+<script src="../components/menu.js" defer></script>
+</body>
+</html>
+<!-- B4.1e APPROVED WIREFRAME FIDELITY -->

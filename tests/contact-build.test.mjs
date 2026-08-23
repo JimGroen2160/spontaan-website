@@ -53,7 +53,7 @@ test('productiefallback normaliseert en valideert alle definitieve content', () 
     content.contactTopics.map(({title}) => title),
     ['Algemene vragen', 'Boekingen', 'Lid worden', 'Repetitie bezoeken'],
   )
-  assert.equal(content.emailAddress, 'info@spontaan.nl')
+  assert.equal(content.emailAddress, 'spontaaninfo@gmail.com')
   assert.equal(content.phoneNumber, '[DEMO] +31 6 0000 0000')
   assert.match(content.rehearsalLocation, /^\[DEMO\]/)
 })
@@ -119,7 +119,7 @@ test('renderer maakt toegankelijke mail- en telefoonlinks wanneer gegevens besta
     phoneNumber: '+31 12 345 67 89',
   })
   const html = renderContactPage(template, content, 'cms')
-  assert.match(html, /href="mailto:info@spontaan\.nl"/)
+  assert.match(html, /href="mailto:spontaaninfo@gmail\.com"/)
   assert.match(html, /href="tel:\+31123456789"/)
   assert.doesNotMatch(html, /data-contact-phone-unavailable/)
 })
