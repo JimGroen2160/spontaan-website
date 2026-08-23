@@ -26,7 +26,7 @@ test.describe('Contactpagina zonder formulier', () => {
   });
 
   test('biedt geldige directe e-mail- en telefoonacties', async ({page}) => {
-    const emailLinks = page.locator('.contact-hero a[href="mailto:info@spontaan.nl"], .contact-page a[href="mailto:info@spontaan.nl"]');
+    const emailLinks = page.locator('.contact-hero a[href="mailto:spontaaninfo@gmail.com"], .contact-page a[href="mailto:spontaaninfo@gmail.com"]');
     const phoneLinks = page.locator('.contact-hero a[href="tel:+31600000000"], .contact-page a[href="tel:+31600000000"]');
     await expect(emailLinks.first()).toHaveText('Stuur een e-mail');
     await expect(emailLinks).toHaveCount(6);
