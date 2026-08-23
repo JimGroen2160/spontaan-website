@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
@@ -281,3 +282,21 @@ test.describe('Rapportagepagina voor contentmanagers', () => {
     await expect(page.locator('body')).not.toContainText('Ã');
   });
 });
+
+// AXE COVERAGE — RAPPORTAGE
+test(
+  'accessibility: rapportagepagina is Axe-schoon voor admin',
+  async ({ page }) => {
+    await openReportAsAdmin(page);
+
+    const results =
+      await new AxeBuilder({
+        page,
+      }).analyze();
+
+    expect(
+      results.violations,
+      'Toegankelijkheidsproblemen op /admin/rapportage.html',
+    ).toEqual([]);
+  },
+);
