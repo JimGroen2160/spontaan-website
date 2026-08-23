@@ -2260,3 +2260,37 @@ test('keyboard: Muziek en Smoelenboek zijn zonder muis bedienbaar', async ({ pag
     ),
   ).toHaveCount(1);
 });
+
+
+// AXE COVERAGE â€” LEDENDASHBOARD
+test(
+  'accessibility: actief lid ziet een Axe-schoon ledendashboard',
+  async ({ page }) => {
+    await stubSupabase(
+      page,
+      {
+        profile: activeMember,
+      },
+    );
+
+    await page.goto(
+      '/leden/dashboard.html',
+    );
+
+    await expect(
+      page.locator(
+        '#portal-destinations',
+      ),
+    ).toBeVisible();
+
+    const results =
+      await new AxeBuilder({
+        page,
+      }).analyze();
+
+    expect(
+      results.violations,
+      'Toegankelijkheidsproblemen op /leden/dashboard.html',
+    ).toEqual([]);
+  },
+);
