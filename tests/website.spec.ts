@@ -139,7 +139,7 @@ test.describe('Website basis en huisstijl', () => {
 
     await expect(hamburger).toBeHidden();
     await expect(navMenu).toBeVisible();
-    await expect(navLinks).toHaveCount(9);
+    await expect(navLinks).toHaveCount(10);
 
     for (const link of await navLinks.all()) {
       await expect(link).toBeVisible();
