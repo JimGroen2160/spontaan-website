@@ -2262,7 +2262,7 @@ test('keyboard: Muziek en Smoelenboek zijn zonder muis bedienbaar', async ({ pag
 });
 
 
-// AXE COVERAGE â€” LEDENDASHBOARD
+// AXE COVERAGE - LEDENDASHBOARD
 test(
   'accessibility: actief lid ziet een Axe-schoon ledendashboard',
   async ({ page }) => {

@@ -283,7 +283,7 @@ test.describe('Rapportagepagina voor contentmanagers', () => {
   });
 });
 
-// AXE COVERAGE — RAPPORTAGE
+// AXE COVERAGE - RAPPORTAGE
 test(
   'accessibility: rapportagepagina is Axe-schoon voor admin',
   async ({ page }) => {

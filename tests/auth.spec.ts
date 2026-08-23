@@ -1863,7 +1863,7 @@ test('Inactief lid krijgt geen toegang tot dashboard', async ({ page, browserNam
   await page.waitForURL(/login\.html/, { timeout: 3000 });
 });
 
-// AXE COVERAGE — ADMIN INDEX
+// AXE COVERAGE - ADMIN INDEX
 test(
   'accessibility: beheeromgeving admin-index is Axe-schoon',
   async ({ page }) => {
