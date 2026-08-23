@@ -219,6 +219,141 @@ test('workflows valideren migratiecontract en houden remote writes handmatig', a
 });
 
 
+test('live PDF CRUD-verifier gebruikt alleen TEST en normale manager/member-sessies', async () => {
+  const verifier = await source(
+    'scripts/testdata/verify-ledenportaal-pdf-crud.mjs',
+  );
+
+  assert.match(
+    verifier,
+    /EXPECTED_TEST_ORIGIN =\s*'https:\/\/lldmyfvhjypomxfpltlx\.supabase\.co'/,
+  );
+
+  assert.match(
+    verifier,
+    /TEST_CONTENTMANAGER_EMAIL/,
+  );
+
+  assert.match(
+    verifier,
+    /TEST_MEMBER_EMAIL/,
+  );
+
+  assert.match(
+    verifier,
+    /signInWithPassword/,
+  );
+
+  assert.match(
+    verifier,
+    /member-song-sheets/,
+  );
+
+  assert.match(
+    verifier,
+    /createSignedUrl/,
+  );
+
+  assert.match(
+    verifier,
+    /contentType:\s*'application\/pdf'/,
+  );
+
+  assert.match(
+    verifier,
+    /contentType:\s*'text\/plain'/,
+  );
+
+  assert.match(
+    verifier,
+    /\.update\(\{\s*pdf_path:/s,
+  );
+
+  assert.match(
+    verifier,
+    /\.remove\(/,
+  );
+
+  assert.match(
+    verifier,
+    /finally\s*\{/,
+  );
+
+  assert.doesNotMatch(
+    verifier,
+    /SERVICE_ROLE/i,
+  );
+
+  assert.doesNotMatch(
+    verifier,
+    /service_role/i,
+  );
+});
+
+test('TEST-deployworkflow houdt PDF CRUD in een aparte handmatige mode', async () => {
+  const workflow = await source(DEPLOY_WORKFLOW);
+  const crud = workflowJob(
+    workflow,
+    'crud-verify-test',
+  );
+
+  assert.match(
+    workflow,
+    /-\s*crud-verify/,
+  );
+
+  assert.match(
+    workflow,
+    /VERIFY_LEDENPORTAAL_PDF_CRUD_TEST/,
+  );
+
+  assert.match(
+    crud,
+    /inputs\.mode == 'crud-verify'/,
+  );
+
+  assert.match(
+    crud,
+    /^    needs: validate$/m,
+  );
+
+  assert.match(
+    crud,
+    /^    environment: supabase-test$/m,
+  );
+
+  assert.match(
+    crud,
+    /TEST_CONTENTMANAGER_EMAIL/,
+  );
+
+  assert.match(
+    crud,
+    /TEST_MEMBER_EMAIL/,
+  );
+
+  assert.match(
+    crud,
+    /verify-ledenportaal-pdf-crud\.mjs/,
+  );
+
+  assert.doesNotMatch(
+    crud,
+    /SUPABASE_SERVICE_ROLE_KEY/,
+  );
+
+  assert.doesNotMatch(
+    crud,
+    /supabase db push/,
+  );
+
+  assert.doesNotMatch(
+    crud,
+    /supabase functions deploy/,
+  );
+});
+
+
 test('live TEST-backendverifier is hard read-only en vastgepind op TEST', async () => {
   const verifier = await source(VERIFY_SCRIPT);
 
