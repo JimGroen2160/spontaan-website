@@ -8,9 +8,12 @@
   <title>Ledenadministratie | Zanggroep Spontaan</title>
 
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/ledenportaal.css">
 </head>
-<body>
-  <div id="nav-placeholder"></div>
+<body data-leden-page="ledenadministratie">
+  <div class="leden-shell">
+    <div id="leden-sidebar-placeholder"></div>
+    <div class="leden-shell__content">
 
   <header class="admin-masthead">
     <div class="admin-masthead__inner">
@@ -278,11 +281,14 @@
   </main>
 
   <div id="footer-placeholder"></div>
+    </div>
+  </div>
 
   <script src="../js/runtime-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/auth.js"></script>
   <script src="../components/menu.js"></script>
+  <script src="../components/leden-sidebar.js"></script>
   <script src="../admin/ledenbeheer.js"></script>
   <script>
     window.addEventListener("load", async () => {

@@ -6,37 +6,13 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Websiteprestaties | Zanggroep Spontaan</title>
   <link rel="stylesheet" href="../css/style.css?v=20260629-dashboard4">
+  <link rel="stylesheet" href="../css/ledenportaal.css">
 </head>
-<body class="rapportage-pagina">
-  <div class="rapportage-dashboard-shell">
-    <aside class="rapportage-beheerzijbalk" aria-label="Beheernavigatie">
-      <a class="rapportage-beheerlogo" href="../index.html" aria-label="Naar de website van Zanggroep Spontaan">
-        <img src="../images/spontaan-logo.png" alt="Zanggroep Spontaan">
-      </a>
+<body class="rapportage-pagina" data-leden-page="rapportage">
+  <div class="rapportage-dashboard-shell leden-shell">
+    <div id="leden-sidebar-placeholder"></div>
 
-      <p class="rapportage-beheerzijbalk__label">Beheeromgeving</p>
-      <nav class="rapportage-beheermenu" aria-label="Beheermenu">
-        <a href="./index.html">
-          <span class="rapportage-menu-icoon" aria-hidden="true">▤</span>
-          <span>Ledenadministratie</span>
-        </a>
-        <a href="./rapportage.html" class="is-active" aria-current="page">
-          <span class="rapportage-menu-icoon" aria-hidden="true">▥</span>
-          <span>Websiteprestaties</span>
-        </a>
-        <a href="../leden/dashboard.html">
-          <span class="rapportage-menu-icoon" aria-hidden="true">⌂</span>
-          <span>Naar ledenomgeving</span>
-        </a>
-      </nav>
-
-      <div class="rapportage-demo-indicator" role="note">
-        <strong>Demo-modus</strong>
-        <span>Deze rapportage toont demonstratiegegevens. Er worden geen productiegegevens gewijzigd.</span>
-      </div>
-    </aside>
-
-    <div class="rapportage-dashboard-content">
+<div class="rapportage-dashboard-content">
       <header class="rapportage-hero">
         <div class="rapportage-hero__inner">
           <p class="rapportage-hero__eyebrow">Beheeromgeving</p>
@@ -217,6 +193,7 @@
   <script src="../js/runtime-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/auth.js"></script>
+  <script src="../components/leden-sidebar.js"></script>
   <script src="./rapportage.js?v=20260629-dashboard4"></script>
   <script>
     window.addEventListener("load", async () => {

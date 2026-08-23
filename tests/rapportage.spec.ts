@@ -39,7 +39,58 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   expect(overflow).toBe(false);
 }
 
+async function stubReportAdminAuth(page: Page): Promise<void> {
+  await page.route('**/js/auth.js', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: `
+        window.authHelpers = {
+          getCurrentSession: async () => ({
+            user: { id: 'stub-admin' },
+          }),
+          getCurrentProfile: async () => ({
+            role: 'admin',
+            status: 'active',
+          }),
+          logout: async () => {},
+        };
+      `,
+    });
+  });
+}
 test.describe('Rapportagepagina voor contentmanagers', () => {
+  test('gedeelde beheersidebar en mobiele rapportagelayout werken zonder echte login', async ({ page }) => {
+    await page.setViewportSize({
+      width: 390,
+      height: 844,
+    });
+
+    await stubReportAdminAuth(page);
+    await page.goto('/admin/rapportage.html');
+
+    await expect(
+      page.locator('#rapportage-content'),
+    ).toBeVisible();
+
+    const sidebar = page.locator('.leden-sidebar');
+    await expect(sidebar).toBeVisible();
+
+    await expect(
+      sidebar.locator('a[aria-current="page"]'),
+    ).toHaveText('Websiteprestaties');
+
+    await expect(
+      page.locator('.rapportage-beheerzijbalk'),
+    ).toHaveCount(0);
+
+    await expect(
+      page.locator('#nav-placeholder'),
+    ).toHaveCount(0);
+
+    await expectNoHorizontalOverflow(page);
+  });
+
   test('bezoeker zonder login wordt naar de loginpagina gestuurd', async ({ page }) => {
     await page.goto('/admin/rapportage.html');
     await expect(page).toHaveURL(/leden\/login\.html/, { timeout: 15000 });
@@ -54,9 +105,9 @@ test.describe('Rapportagepagina voor contentmanagers', () => {
   test('admin opent de rapportage vanuit de beheeromgeving', async ({ page }) => {
     await openReportAsAdmin(page);
     await expect(page.getByRole('heading', { level: 1, name: 'Websiteprestaties' })).toBeVisible();
-    await expect(page.locator('.rapportage-beheerzijbalk')).toBeVisible();
-    await expect(page.locator('.rapportage-beheermenu a[aria-current="page"]')).toHaveText(/Websiteprestaties/);
-    await expect(page.locator('.rapportage-demo-indicator')).toContainText('Demo-modus');
+    await expect(page.locator('.leden-sidebar')).toBeVisible();
+    await expect(page.locator('.leden-sidebar a[aria-current="page"]')).toHaveText(/Websiteprestaties/);
+    await expect(page.locator('.rapportage-demo-banner')).toContainText('Demo-modus');
     await expect(page.locator('#nav-placeholder')).toHaveCount(0);
     await expect(page.locator('#footer-placeholder')).toHaveCount(0);
   });
