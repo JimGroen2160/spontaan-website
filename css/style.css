@@ -1602,6 +1602,11 @@ li + li {
   font-size: 0.96rem;
 }
 
+#rapportage-content[hidden] {
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
 .rapportage-main {
   width: min(calc(100% - 1.5rem), 92rem);
   max-width: none;
