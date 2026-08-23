@@ -355,9 +355,52 @@ try {
         'id,pdf_path',
       );
 
-  if (!memberWrite.error) {
+  if (
+    memberWrite.error &&
+    !/row level security|permission denied/i.test(
+      memberWrite.error.message ?? '',
+    )
+  ) {
     throw new Error(
-      'RBAC-fout: gewoon lid kon member_songs wijzigen.',
+      `Onverwachte member-writefout: ${memberWrite.error.message}`,
+    );
+  }
+
+  const returnedRows =
+    Array.isArray(memberWrite.data)
+      ? memberWrite.data
+      : [];
+
+  if (returnedRows.length !== 0) {
+    throw new Error(
+      `RBAC-fout: gewone member-write retourneerde ${returnedRows.length} gewijzigde rij(en).`,
+    );
+  }
+
+  const managerVerification =
+    await manager
+      .from('member_songs')
+      .select(
+        'id,pdf_path',
+      )
+      .eq(
+        'id',
+        song.id,
+      )
+      .single();
+
+  const verifiedAfterMemberWrite =
+    await requireNoError(
+      managerVerification,
+      'manager verifieert member-writeblokkade',
+    );
+
+  if (
+    verifiedAfterMemberWrite.pdf_path !==
+    firstPath
+  ) {
+    throw new Error(
+      'RBAC-fout: gewone member heeft pdf_path daadwerkelijk gewijzigd.',
     );
   }
 

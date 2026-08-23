@@ -271,6 +271,26 @@ test('live PDF CRUD-verifier gebruikt alleen TEST en normale manager/member-sess
 
   assert.match(
     verifier,
+    /returnedRows\.length !== 0/,
+  );
+
+  assert.match(
+    verifier,
+    /managerVerification/,
+  );
+
+  assert.match(
+    verifier,
+    /verifiedAfterMemberWrite\.pdf_path !==\s*firstPath/s,
+  );
+
+  assert.match(
+    verifier,
+    /member-write-denied: PASS/,
+  );
+
+  assert.match(
+    verifier,
     /\.remove\(/,
   );
 
