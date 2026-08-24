@@ -668,7 +668,7 @@ for (
 }
 
 test(
-  'dashboardlinks worden daadwerkelijk gevolgd naar Muziek en Smoelenboek',
+  'dashboard gebruikt uitsluitend de sidebar voor Muziek en Smoelenboek',
   async ({ page }) => {
     await stubSupabase(
       page,
@@ -681,19 +681,19 @@ test(
       '/leden/dashboard.html',
     );
 
-    const destinations =
-      page.locator(
-        '#portal-destinations',
-      );
-
     await expect(
-      destinations,
-    ).toBeVisible();
+      page.locator('#portal-destinations'),
+    ).toHaveCount(0);
 
-    await destinations
+    const sidebar =
+      page.locator('.leden-sidebar');
+
+    await expect(sidebar).toBeVisible();
+
+    await sidebar
       .getByRole(
         'link',
-        { name: /Muziek/ },
+        { name: 'Muziek' },
       )
       .click();
 
@@ -706,23 +706,23 @@ test(
       page.locator('.song-card'),
     ).toHaveCount(3);
 
-    await page.goto(
-      '/leden/dashboard.html',
-    );
-
-    await expect(
-      page.locator(
-        '#portal-destinations',
-      ),
-    ).toBeVisible();
-
-    await page
-      .locator(
-        '#portal-destinations',
-      )
+    await sidebar
       .getByRole(
         'link',
-        { name: /Smoelenboek/ },
+        { name: 'Overzicht' },
+      )
+      .click();
+
+    await expect(page)
+      .toHaveURL(
+        /leden\/dashboard\.html/,
+      );
+
+    await page
+      .locator('.leden-sidebar')
+      .getByRole(
+        'link',
+        { name: 'Smoelenboek' },
       )
       .click();
 
@@ -738,7 +738,6 @@ test(
     ).toHaveCount(3);
   },
 );
-
 test(
   'Muziek leest live Supabase-data, filtert verborgen items en ondersteunt categorieen en zoeken',
   async ({ page }) => {
@@ -2232,9 +2231,13 @@ test(
     );
 
     await expect(
-      page.locator(
-        '#portal-destinations',
-      ),
+      page.locator('#status'),
+    ).toContainText(
+      'Je bent succesvol ingelogd',
+    );
+
+    await expect(
+      page.locator('.leden-sidebar'),
     ).toBeVisible();
 
     const results =
@@ -2249,7 +2252,7 @@ test(
   },
 );
 
-test('ledenomgeving toont gedeelde sidebar met actieve pagina', async ({ page }) => {
+test('ledenomgeving toont paarse gedeelde sidebar met alleen Naar website', async ({ page }) => {
   await stubSupabase(page, { profile: activeMember });
 
   for (const [path, activeName] of [
@@ -2266,14 +2269,21 @@ test('ledenomgeving toont gedeelde sidebar met actieve pagina', async ({ page })
     await expect(sidebar.getByRole('link', { name: 'Muziek' })).toBeVisible();
     await expect(sidebar.getByRole('link', { name: 'Smoelenboek' })).toBeVisible();
     await expect(sidebar.getByRole('link', { name: 'Naar website' })).toBeVisible();
-    await expect(sidebar.getByRole('button', { name: 'Uitloggen' })).toBeVisible();
+
+    await expect(
+      sidebar.getByRole('button', { name: 'Uitloggen' }),
+    ).toHaveCount(0);
+
+    await expect(sidebar).toHaveCSS(
+      'background-color',
+      'rgb(111, 37, 174)',
+    );
 
     await expect(
       sidebar.locator('a[aria-current="page"]'),
     ).toHaveText(activeName);
   }
 });
-
 test(
   'mobiele ledennavigatie werkt als toegankelijke hamburger',
   async ({ page }) => {

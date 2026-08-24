@@ -1239,7 +1239,12 @@
 
     try {
       await laadLedenlijst();
-      setMelding("Ledenbeheer is geladen.", "success");
+
+      if (window.matchMedia("(max-width: 820px)").matches) {
+        closeMelding();
+      } else {
+        setMelding("Ledenbeheer is geladen.", "success");
+      }
     } catch (error) {
       console.error("Fout bij initialiseren ledenbeheer:", error);
       setMelding("Ledenbeheer kon niet volledig worden geladen.", "error");

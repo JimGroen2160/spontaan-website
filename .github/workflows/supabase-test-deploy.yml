@@ -4,17 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Kies preview, verify, crud-verify, db-deploy of deploy voor het afgescheiden TEST-project"
+        description: "Kies preview, verify, crud-verify, auth-e2e-verify, db-deploy of deploy voor het afgescheiden TEST-project"
         required: true
         type: choice
         options:
           - preview
           - verify
           - crud-verify
+          - auth-e2e-verify
           - db-deploy
           - deploy
       confirm:
-        description: "Typ PREVIEW_SUPABASE_TEST, VERIFY_SUPABASE_TEST_READONLY, VERIFY_LEDENPORTAAL_PDF_CRUD_TEST, DEPLOY_SUPABASE_TEST_DB of DEPLOY_SUPABASE_TEST passend bij de gekozen mode"
+        description: "Typ PREVIEW_SUPABASE_TEST, VERIFY_SUPABASE_TEST_READONLY, VERIFY_LEDENPORTAAL_PDF_CRUD_TEST, VERIFY_AUTH_E2E_TEST, DEPLOY_SUPABASE_TEST_DB of DEPLOY_SUPABASE_TEST passend bij de gekozen mode"
         required: true
         type: string
 
@@ -59,6 +60,9 @@ jobs:
               ;;
             crud-verify)
               expected_confirmation="VERIFY_LEDENPORTAAL_PDF_CRUD_TEST"
+              ;;
+            auth-e2e-verify)
+              expected_confirmation="VERIFY_AUTH_E2E_TEST"
               ;;
             db-deploy)
               expected_confirmation="DEPLOY_SUPABASE_TEST_DB"
@@ -151,6 +155,125 @@ jobs:
         run: |
           deno check --node-modules-dir=auto supabase/functions/create-member/index.ts
           deno check --node-modules-dir=auto supabase/functions/resend-member-invite/index.ts
+
+  auth-e2e-verify-test:
+    name: Verify muterende auth E2E on Supabase test
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'auth-e2e-verify'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: supabase-test
+
+    env:
+      TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+      TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+      TEST_ADMIN_DISPLAY_NAME: ${{ secrets.TEST_ADMIN_DISPLAY_NAME }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEST_MEMBER_PASSWORD: ${{ secrets.TEST_MEMBER_PASSWORD }}
+      TEST_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_DISPLAY_NAME }}
+      TEST_CONTENTMANAGER_EMAIL: ${{ secrets.TEST_CONTENTMANAGER_EMAIL }}
+      TEST_CONTENTMANAGER_PASSWORD: ${{ secrets.TEST_CONTENTMANAGER_PASSWORD }}
+      TEST_CONTENTMANAGER_DISPLAY_NAME: ${{ secrets.TEST_CONTENTMANAGER_DISPLAY_NAME }}
+      TEST_STATUS_MEMBER_EMAIL: ${{ secrets.TEST_STATUS_MEMBER_EMAIL }}
+      TEST_STATUS_MEMBER_PASSWORD: ${{ secrets.TEST_STATUS_MEMBER_PASSWORD }}
+      TEST_STATUS_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_STATUS_MEMBER_DISPLAY_NAME }}
+      TEST_PROFILE_MEMBER_EMAIL: ${{ secrets.TEST_PROFILE_MEMBER_EMAIL }}
+      TEST_PROFILE_MEMBER_PASSWORD: ${{ secrets.TEST_PROFILE_MEMBER_PASSWORD }}
+      TEST_PROFILE_MEMBER_DISPLAY_NAME: ${{ secrets.TEST_PROFILE_MEMBER_DISPLAY_NAME }}
+      TEST_MEMBER_PENDING_EMAIL: ${{ secrets.TEST_MEMBER_PENDING_EMAIL }}
+      TEST_MEMBER_PENDING_PASSWORD: ${{ secrets.TEST_MEMBER_PENDING_PASSWORD }}
+      TEST_MEMBER_PENDING_DISPLAY_NAME: ${{ secrets.TEST_MEMBER_PENDING_DISPLAY_NAME }}
+      TEST_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      TEST_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TEST_SUPABASE_PUBLISHABLE_KEY }}
+      TEST_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify required TEST configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            TEST_ADMIN_EMAIL
+            TEST_ADMIN_PASSWORD
+            TEST_ADMIN_DISPLAY_NAME
+            TEST_MEMBER_EMAIL
+            TEST_MEMBER_PASSWORD
+            TEST_MEMBER_DISPLAY_NAME
+            TEST_CONTENTMANAGER_EMAIL
+            TEST_CONTENTMANAGER_PASSWORD
+            TEST_CONTENTMANAGER_DISPLAY_NAME
+            TEST_STATUS_MEMBER_EMAIL
+            TEST_STATUS_MEMBER_DISPLAY_NAME
+            TEST_PROFILE_MEMBER_EMAIL
+            TEST_PROFILE_MEMBER_PASSWORD
+            TEST_PROFILE_MEMBER_DISPLAY_NAME
+            TEST_MEMBER_PENDING_EMAIL
+            TEST_MEMBER_PENDING_PASSWORD
+            TEST_MEMBER_PENDING_DISPLAY_NAME
+            TEST_SUPABASE_URL
+            TEST_SUPABASE_PUBLISHABLE_KEY
+            TEST_SUPABASE_SERVICE_ROLE_KEY
+          )
+
+          for variable_name in "${required[@]}"; do
+            if [ -z "${!variable_name:-}" ]; then
+              echo "Ontbrekende TEST-secret/environmentwaarde: $variable_name"
+              exit 1
+            fi
+          done
+
+          test "$SUPABASE_TEST_PROJECT_REF" = "lldmyfvhjypomxfpltlx"
+
+      - name: Verify exact auth E2E selection
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pattern='Ingelogde admin kan lid deactiveren en heractiveren|Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstellen|Pending lid wordt automatisch geactiveerd bij dashboard-login'
+
+          output="$(npx playwright test tests/auth.spec.ts --project=chromium --workers=1 --grep "$pattern" --list)"
+          printf "%s\n" "$output"
+
+          count="$(grep -cE "^[[:space:]]*\[chromium\].*auth\.spec\.ts:" <<<"$output")"
+
+          if [ "$count" -ne 3 ]; then
+            echo "STOP: verwacht exact 3 geselecteerde auth E2E-tests, gevonden: $count"
+            exit 1
+          fi
+
+          grep -Fq "Ingelogde admin kan lid deactiveren en heractiveren" <<<"$output"
+          grep -Fq "Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstellen" <<<"$output"
+          grep -Fq "Pending lid wordt automatisch geactiveerd bij dashboard-login" <<<"$output"
+
+          if grep -Eq "opnieuw uitnodigen|nieuw lid uitnodigen" <<<"$output"; then
+            echo "STOP: e-mailtest is onverwacht geselecteerd."
+            exit 1
+          fi
+
+      - name: Run exactly three mutating auth E2E tests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pattern='Ingelogde admin kan lid deactiveren en heractiveren|Ingelogde admin kan profielgegevens van apart testlid wijzigen en herstellen|Pending lid wordt automatisch geactiveerd bij dashboard-login'
+
+          npx playwright test tests/auth.spec.ts --project=chromium --workers=1 --grep "$pattern"
 
   verify-test:
     name: Verify Supabase test backend read-only

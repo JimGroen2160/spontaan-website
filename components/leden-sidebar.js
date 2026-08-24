@@ -69,9 +69,27 @@
     }
   } catch {}
 
-  const logout = placeholder.querySelector('[data-leden-logout]');
-  logout?.addEventListener('click', async () => {
-    await window.authHelpers?.logout();
-    window.location.href = '/leden/login.html';
+  const exitToWebsite = placeholder.querySelector('[data-leden-exit]');
+
+  exitToWebsite?.addEventListener('click', async (event) => {
+    event.preventDefault();
+
+    if (!window.authHelpers?.logout) {
+      console.error('Uitloggen is niet beschikbaar.');
+      return;
+    }
+
+    try {
+      const { error } = await window.authHelpers.logout();
+
+      if (error) {
+        console.error('Uitloggen mislukt:', error);
+        return;
+      }
+
+      window.location.href = exitToWebsite.getAttribute('href') || '/index.html';
+    } catch (error) {
+      console.error('Uitloggen mislukt:', error);
+    }
   });
 })();

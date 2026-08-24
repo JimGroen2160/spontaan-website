@@ -21,29 +21,10 @@
   <section class="portal-card" aria-label="Ledenportaal acties">
     <p id="status">Controleren...</p>
 
-    <div class="portal-actions">
-      <a id="admin-link" class="portal-action-link" href="../admin/index.html" style="display: none;">Naar beheeromgeving</a>
-      <button id="logout" class="portal-action-button" style="display: none;">Uitloggen</button>
-    </div>
+
   </section>
 
-  <section id="portal-destinations" class="member-dashboard-grid" aria-label="Onderdelen ledenportaal" hidden>
-    <a class="member-dashboard-card" href="muziek.html">
-      <span class="member-dashboard-card__icon" aria-hidden="true">♫</span>
-      <span>
-        <strong>Muziek</strong>
-        <small>Liedteksten, oefenlinks en printbare liedbladen.</small>
-      </span>
-    </a>
 
-    <a class="member-dashboard-card" href="smoelenboek.html">
-      <span class="member-dashboard-card__icon" aria-hidden="true">👥</span>
-      <span>
-        <strong>Smoelenboek</strong>
-        <small>Overzicht van actieve leden met foto en memo.</small>
-      </span>
-    </a>
-  </section>
 </main>
 
 <div id="footer-placeholder"></div>
@@ -60,11 +41,7 @@ window.addEventListener("load", async () => {
   console.log("Dashboard gestart");
 
   const statusEl = document.getElementById("status");
-  const logoutBtn = document.getElementById("logout");
-  const adminLink = document.getElementById("admin-link");
-  const destinations = document.getElementById("portal-destinations");
-
-  if (!statusEl || !logoutBtn || !adminLink || !destinations) {
+  if (!statusEl) {
     console.error("Dashboard elementen niet gevonden");
     return;
   }
@@ -130,18 +107,7 @@ window.addEventListener("load", async () => {
 
     console.log("Session en profiel OK");
     statusEl.innerText = "Je bent succesvol ingelogd.";
-    destinations.hidden = false;
 
-    if (["admin", "contentmanager"].includes(profile.role)) {
-      adminLink.style.display = "inline-block";
-    }
-
-    logoutBtn.style.display = "inline-block";
-
-    logoutBtn.addEventListener("click", async () => {
-      await window.authHelpers.logout();
-      window.location.href = "login.html";
-    });
   } catch (error) {
     console.error("Dashboardfout:", error);
     statusEl.innerText = "Het ledenportaal kon niet worden geladen. Probeer opnieuw in te loggen.";

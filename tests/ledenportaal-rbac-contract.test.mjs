@@ -604,14 +604,22 @@ test('ledenportaalfrontend leest live beveiligde backenddata zonder publieke dem
   );
 });
 test('ledenportaalbeheer gebruikt bestaande manager-RBAC en private Storage zonder service-role in de browser', async () => {
-  const [html, script, style, adminIndex] = await Promise.all([
+  const [html, script, style, adminIndex, sidebarHtml] = await Promise.all([
     source('admin/ledenportaal.html'),
     source('admin/ledenportaal.js'),
     source('css/ledenportaal-beheer.css'),
     source('admin/index.html'),
+    source('components/leden-sidebar.html'),
   ]);
 
-  assert.match(adminIndex, /href="\.\/ledenportaal\.html"/);
+  assert.match(
+    sidebarHtml,
+    /href="\/admin\/ledenportaal\.html"[^>]*>Muziek en smoelenboek beheren</,
+  );
+  assert.doesNotMatch(adminIndex, /id="ledenportaal-beheer-link"/);
+  assert.doesNotMatch(adminIndex, /id="rapportage-link"/);
+  assert.doesNotMatch(adminIndex, /id="ledenomgeving-link"/);
+  assert.doesNotMatch(html, /portal-beheer-hero__button/);
   assert.match(html, /Muziek en smoelenboek beheren/);
   assert.match(html, /meta name="robots" content="noindex,nofollow"/);
   assert.match(style, /over-hero-mannenkoor\.jpg/);

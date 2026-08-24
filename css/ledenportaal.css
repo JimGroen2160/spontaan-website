@@ -1117,7 +1117,7 @@
 
 .leden-sidebar {
   padding: 1.5rem 1rem;
-  background: #181632;
+  background: var(--color-primary);
   color: #fff;
 }
 
