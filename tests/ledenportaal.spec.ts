@@ -2273,3 +2273,42 @@ test('ledenomgeving toont gedeelde sidebar met actieve pagina', async ({ page })
     ).toHaveText(activeName);
   }
 });
+
+test(
+  'mobiele ledennavigatie werkt als toegankelijke hamburger',
+  async ({ page }) => {
+    await page.setViewportSize({
+      width: 390,
+      height: 844,
+    });
+
+    await stubSupabase(page, {
+      profile: activeMember,
+    });
+
+    await page.goto('/leden/muziek.html');
+    await waitForSharedLayout(page);
+
+    const toggle = page.locator('[data-leden-menu-toggle]');
+    const menu = page.locator('#leden-sidebar-menu');
+    const logo = page.locator('.leden-sidebar__logo img');
+
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(menu).toBeHidden();
+
+    await expect(logo).toHaveAttribute('width', '366');
+    await expect(logo).toHaveAttribute('height', '194');
+
+    await toggle.click();
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(menu).toBeVisible();
+
+    await page.keyboard.press('Escape');
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(menu).toBeHidden();
+    await expect(toggle).toBeFocused();
+  },
+);

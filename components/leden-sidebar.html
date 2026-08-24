@@ -1,9 +1,30 @@
 <aside class="leden-sidebar" aria-label="Ledennavigatie">
-  <a class="leden-sidebar__logo" href="/index.html">
-    <img src="/images/spontaan-logo.png" alt="Zanggroep Spontaan">
-  </a>
+  <div class="leden-sidebar__header">
+    <a class="leden-sidebar__logo" href="/index.html">
+      <img
+        src="/images/spontaan-logo.png"
+        alt="Zanggroep Spontaan"
+        width="366"
+        height="194"
+      >
+    </a>
 
-  <p class="leden-sidebar__label">Ledenomgeving</p>
+    <button
+      type="button"
+      class="leden-sidebar__toggle"
+      data-leden-menu-toggle
+      aria-label="Menu openen"
+      aria-controls="leden-sidebar-menu"
+      aria-expanded="false"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <div class="leden-sidebar__collapsible" id="leden-sidebar-menu">
+    <p class="leden-sidebar__label">Ledenomgeving</p>
 
   <nav class="leden-sidebar__menu" aria-label="Ledenomgeving">
     <a href="/leden/dashboard.html" data-leden-nav="dashboard">Overzicht</a>
@@ -20,8 +41,9 @@
     </nav>
   </div>
 
-  <div class="leden-sidebar__actions">
-    <a href="/index.html">Naar website</a>
-    <button type="button" data-leden-logout>Uitloggen</button>
+    <div class="leden-sidebar__actions">
+      <a href="/index.html">Naar website</a>
+      <button type="button" data-leden-logout>Uitloggen</button>
+    </div>
   </div>
 </aside>
