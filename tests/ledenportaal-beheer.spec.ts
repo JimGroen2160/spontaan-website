@@ -1079,83 +1079,34 @@ test('wireframe-huisstijl, Axe en mobiele overflow blijven correct', async ({ pa
 });
 
 test(
-  'B4.1d beheer markeert Ledenportaal actief en toont footer-wave',
+  'B4.1d beheer markeert beheeritem actief en toont footer-wave',
   async ({ page }) => {
     await openManager(page);
 
-    await page
-      .locator('#nav-placeholder .main-nav')
-      .waitFor();
+    const sidebar = page.locator('.leden-sidebar');
+    await expect(sidebar).toBeVisible();
 
-    await page
-      .locator('#footer-placeholder .site-footer')
-      .waitFor();
+    await expect(
+      sidebar.locator('a[aria-current="page"]'),
+    ).toHaveText('Muziek en smoelenboek beheren');
 
-    const nav =
-      page.locator('#nav-placeholder');
+    const wave = await page
+      .locator('#footer-placeholder')
+      .evaluate((element) => {
+        const style = getComputedStyle(element, '::before');
 
-    const portalLink =
-      nav.getByRole(
-        'link',
-        {
-          name: 'Ledenportaal',
-          exact: true,
-        },
-      );
+        return {
+          content: style.content,
+          height: Number.parseFloat(style.height),
+          clipPath: style.clipPath,
+        };
+      });
 
-    const ledenLink =
-      nav.getByRole(
-        'link',
-        {
-          name: 'Leden',
-          exact: true,
-        },
-      );
-
-    await expect(portalLink)
-      .toHaveClass(/active/);
-
-    await expect(portalLink)
-      .toHaveAttribute(
-        'aria-current',
-        'page',
-      );
-
-    await expect(ledenLink)
-      .not.toHaveClass(/active/);
-
-    const wave =
-      await page
-        .locator('#footer-placeholder')
-        .evaluate((element) => {
-          const style =
-            getComputedStyle(
-              element,
-              '::before',
-            );
-
-          return {
-            content: style.content,
-            height:
-              Number.parseFloat(
-                style.height,
-              ),
-            clipPath:
-              style.clipPath,
-          };
-        });
-
-    expect(wave.content)
-      .not.toBe('none');
-
-    expect(wave.height)
-      .toBeGreaterThanOrEqual(50);
-
-    expect(wave.clipPath)
-      .toContain('polygon');
+    expect(wave.content).not.toBe('none');
+    expect(wave.height).toBeGreaterThanOrEqual(50);
+    expect(wave.clipPath).toContain('polygon');
   },
 );
-
 // B4.1d APPROVED WIREFRAME NAV + FOOTER
 
 test('keyboard: beheer opent het liedformulier en verplaatst focus correct', async ({ page }) => {

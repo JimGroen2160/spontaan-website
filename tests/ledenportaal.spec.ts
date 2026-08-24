@@ -534,7 +534,7 @@ async function waitForSharedLayout(
   page: Page,
 ) {
   await page
-    .locator('#nav-placeholder .main-nav')
+    .locator('.leden-sidebar')
     .waitFor({
       state: 'attached',
       timeout: 15_000,
@@ -1557,84 +1557,38 @@ for (
 }
 
 test(
-  'B4.1d Ledenportaal-navigatie en footer-wave volgen goedgekeurd wireframe',
+  'B4.1d ledennavigatie en footer-wave volgen goedgekeurd wireframe',
   async ({ page }) => {
-    await stubSupabase(
-      page,
-      {
-        profile: activeMember,
-      },
-    );
+    await stubSupabase(page, { profile: activeMember });
 
-    for (const path of [
-      '/leden/muziek.html',
-      '/leden/smoelenboek.html',
+    for (const [path, activeName] of [
+      ['/leden/muziek.html', 'Muziek'],
+      ['/leden/smoelenboek.html', 'Smoelenboek'],
     ]) {
       await page.goto(path);
       await waitForSharedLayout(page);
 
-      const nav =
-        page.locator('#nav-placeholder');
+      const sidebar = page.locator('.leden-sidebar');
 
-      const portalLink =
-        nav.getByRole(
-          'link',
-          {
-            name: 'Ledenportaal',
-            exact: true,
-          },
-        );
+      await expect(
+        sidebar.locator('a[aria-current="page"]'),
+      ).toHaveText(activeName);
 
-      const ledenLink =
-        nav.getByRole(
-          'link',
-          {
-            name: 'Leden',
-            exact: true,
-          },
-        );
+      const wave = await page
+        .locator('#footer-placeholder')
+        .evaluate((element) => {
+          const style = getComputedStyle(element, '::before');
 
-      await expect(portalLink)
-        .toHaveClass(/active/);
+          return {
+            content: style.content,
+            height: Number.parseFloat(style.height),
+            clipPath: style.clipPath,
+          };
+        });
 
-      await expect(portalLink)
-        .toHaveAttribute(
-          'aria-current',
-          'page',
-        );
-
-      await expect(ledenLink)
-        .not.toHaveClass(/active/);
-
-      const wave =
-        await page
-          .locator('#footer-placeholder')
-          .evaluate((element) => {
-            const style =
-              getComputedStyle(
-                element,
-                '::before',
-              );
-
-            return {
-              content: style.content,
-              height:
-                Number.parseFloat(
-                  style.height,
-                ),
-              clipPath:
-                style.clipPath,
-            };
-          });
-
-      expect(wave.content)
-        .not.toBe('none');
-
-      expect(wave.height)
-        .toBeGreaterThanOrEqual(50);
-
-      expect(wave.clipPath)
-        .toContain('polygon');
+      expect(wave.content).not.toBe('none');
+      expect(wave.height).toBeGreaterThanOrEqual(50);
+      expect(wave.clipPath).toContain('polygon');
     }
   },
 );
@@ -2292,5 +2246,69 @@ test(
       results.violations,
       'Toegankelijkheidsproblemen op /leden/dashboard.html',
     ).toEqual([]);
+  },
+);
+
+test('ledenomgeving toont gedeelde sidebar met actieve pagina', async ({ page }) => {
+  await stubSupabase(page, { profile: activeMember });
+
+  for (const [path, activeName] of [
+    ['/leden/dashboard.html', 'Overzicht'],
+    ['/leden/muziek.html', 'Muziek'],
+    ['/leden/smoelenboek.html', 'Smoelenboek'],
+  ]) {
+    await page.goto(path);
+
+    const sidebar = page.locator('.leden-sidebar');
+    await expect(sidebar).toBeVisible();
+
+    await expect(sidebar.getByRole('link', { name: 'Overzicht' })).toBeVisible();
+    await expect(sidebar.getByRole('link', { name: 'Muziek' })).toBeVisible();
+    await expect(sidebar.getByRole('link', { name: 'Smoelenboek' })).toBeVisible();
+    await expect(sidebar.getByRole('link', { name: 'Naar website' })).toBeVisible();
+    await expect(sidebar.getByRole('button', { name: 'Uitloggen' })).toBeVisible();
+
+    await expect(
+      sidebar.locator('a[aria-current="page"]'),
+    ).toHaveText(activeName);
+  }
+});
+
+test(
+  'mobiele ledennavigatie werkt als toegankelijke hamburger',
+  async ({ page }) => {
+    await page.setViewportSize({
+      width: 390,
+      height: 844,
+    });
+
+    await stubSupabase(page, {
+      profile: activeMember,
+    });
+
+    await page.goto('/leden/muziek.html');
+    await waitForSharedLayout(page);
+
+    const toggle = page.locator('[data-leden-menu-toggle]');
+    const menu = page.locator('#leden-sidebar-menu');
+    const logo = page.locator('.leden-sidebar__logo img');
+
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(menu).toBeHidden();
+
+    await expect(logo).toHaveAttribute('width', '366');
+    await expect(logo).toHaveAttribute('height', '194');
+
+    await toggle.click();
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(menu).toBeVisible();
+
+    await page.keyboard.press('Escape');
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(menu).toBeHidden();
+    await expect(toggle).toBeFocused();
   },
 );

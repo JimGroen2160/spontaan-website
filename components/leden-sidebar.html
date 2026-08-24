@@ -1,0 +1,49 @@
+<aside class="leden-sidebar" aria-label="Ledennavigatie">
+  <div class="leden-sidebar__header">
+    <a class="leden-sidebar__logo" href="/index.html">
+      <img
+        src="/images/spontaan-logo.png"
+        alt="Zanggroep Spontaan"
+        width="366"
+        height="194"
+      >
+    </a>
+
+    <button
+      type="button"
+      class="leden-sidebar__toggle"
+      data-leden-menu-toggle
+      aria-label="Menu openen"
+      aria-controls="leden-sidebar-menu"
+      aria-expanded="false"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <div class="leden-sidebar__collapsible" id="leden-sidebar-menu">
+    <p class="leden-sidebar__label">Ledenomgeving</p>
+
+  <nav class="leden-sidebar__menu" aria-label="Ledenomgeving">
+    <a href="/leden/dashboard.html" data-leden-nav="dashboard">Overzicht</a>
+    <a href="/leden/muziek.html" data-leden-nav="muziek">Muziek</a>
+    <a href="/leden/smoelenboek.html" data-leden-nav="smoelenboek">Smoelenboek</a>
+  </nav>
+
+  <div class="leden-sidebar__beheer" data-leden-beheer hidden>
+    <p class="leden-sidebar__label">Beheer</p>
+    <nav class="leden-sidebar__menu" aria-label="Beheer">
+      <a href="/admin/index.html" data-leden-nav="ledenadministratie">Ledenadministratie</a>
+      <a href="/admin/ledenportaal.html" data-leden-nav="beheer">Muziek en smoelenboek beheren</a>
+      <a href="/admin/rapportage.html" data-leden-nav="rapportage">Websiteprestaties</a>
+    </nav>
+  </div>
+
+    <div class="leden-sidebar__actions">
+      <a href="/index.html">Naar website</a>
+      <button type="button" data-leden-logout>Uitloggen</button>
+    </div>
+  </div>
+</aside>

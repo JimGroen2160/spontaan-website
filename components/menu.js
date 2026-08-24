@@ -78,7 +78,7 @@ function navigationPath(pathname) {
   ]);
 
   if (memberPortalPaths.has(normalizedPath)) {
-    return '/leden/dashboard.html';
+    return '/leden/login.html';
   }
 
   return normalizedPath;
