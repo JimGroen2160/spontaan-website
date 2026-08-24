@@ -107,7 +107,7 @@ test.describe('Rapportagepagina voor contentmanagers', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Websiteprestaties' })).toBeVisible();
     await expect(page.locator('.leden-sidebar')).toBeVisible();
     await expect(page.locator('.leden-sidebar a[aria-current="page"]')).toHaveText(/Websiteprestaties/);
-    await expect(page.locator('.rapportage-demo-banner')).toContainText('Demo-modus');
+    await expect(page.locator('.rapportage-demo-banner')).toContainText('Demonstratiegegevens');
     await expect(page.locator('#nav-placeholder')).toHaveCount(0);
     await expect(page.locator('#footer-placeholder')).toHaveCount(0);
   });
