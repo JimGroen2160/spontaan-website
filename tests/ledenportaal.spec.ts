@@ -1582,12 +1582,15 @@ test(
             content: style.content,
             height: Number.parseFloat(style.height),
             clipPath: style.clipPath,
+            maskImage: style.maskImage || style.webkitMaskImage,
           };
         });
 
       expect(wave.content).not.toBe('none');
       expect(wave.height).toBeGreaterThanOrEqual(50);
-      expect(wave.clipPath).toContain('polygon');
+      expect(wave.clipPath).toBe('none');
+      expect(wave.maskImage).not.toBe('none');
+      expect(wave.maskImage).toContain('data:image/svg+xml');
     }
   },
 );
@@ -2274,10 +2277,19 @@ test('ledenomgeving toont paarse gedeelde sidebar met alleen Naar website', asyn
       sidebar.getByRole('button', { name: 'Uitloggen' }),
     ).toHaveCount(0);
 
-    await expect(sidebar).toHaveCSS(
-      'background-color',
-      'rgb(111, 37, 174)',
-    );
+    const sidebarBackground = await sidebar.evaluate((element) => {
+      const style = getComputedStyle(element);
+
+      return {
+        backgroundColor: style.backgroundColor,
+        backgroundImage: style.backgroundImage,
+      };
+    });
+
+    expect(sidebarBackground.backgroundImage).toContain('linear-gradient');
+    expect(sidebarBackground.backgroundImage).toContain('rgb(79, 23, 127)');
+    expect(sidebarBackground.backgroundImage).toContain('rgb(111, 37, 174)');
+    expect(sidebarBackground.backgroundImage).toContain('rgb(52, 16, 79)');
 
     await expect(
       sidebar.locator('a[aria-current="page"]'),

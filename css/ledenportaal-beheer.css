@@ -608,33 +608,27 @@
 .portal-beheer-page #footer-placeholder {
   position: relative;
   margin-top: 0;
-  padding-top: clamp(52px, 6vw, 72px);
+  padding-top: 0;
   overflow: hidden;
 }
 
 .portal-beheer-page #footer-placeholder::before {
-  position: absolute;
-  inset: 0 0 auto;
-  height: clamp(52px, 6vw, 72px);
-  background:
-    linear-gradient(
-      135deg,
-      var(--color-primary-dark),
-      #34104f
-    );
+  display: block;
+  width: 100%;
+  height: clamp(58px, 6vw, 86px);
+  margin-bottom: -1px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark),
+    #34104f
+  );
   content: "";
-  clip-path:
-    polygon(
-      0 62%,
-      14% 40%,
-      31% 47%,
-      49% 66%,
-      68% 51%,
-      84% 34%,
-      100% 49%,
-      100% 100%,
-      0 100%
-    );
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 72C190 30 380 28 585 67C810 111 1025 103 1190 67C1290 45 1365 46 1440 58V120H0Z'/%3E%3C/svg%3E")
+    center bottom / 100% 100% no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 72C190 30 380 28 585 67C810 111 1025 103 1190 67C1290 45 1365 46 1440 58V120H0Z'/%3E%3C/svg%3E")
+    center bottom / 100% 100% no-repeat;
 }
 
 .portal-beheer-page #footer-placeholder .site-footer {
