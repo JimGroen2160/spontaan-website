@@ -122,9 +122,11 @@ export const LIGHTHOUSE_PAGES = Object.freeze([
     runs: 1,
     thresholds: nonPublicThresholds,
     readiness: Object.freeze({
-      selector: '#portal-destinations',
+      selector: '#status',
       requiredTables: Object.freeze(['profiles']),
       requiredRpcs: Object.freeze([]),
+      loadedTextSelector: '#status',
+      forbiddenLoadedText: 'Controleren...',
     }),
   }),
   Object.freeze({

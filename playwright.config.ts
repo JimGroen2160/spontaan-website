@@ -77,6 +77,7 @@ export default defineConfig({
       CONTACT_BUILD_FIXTURE: 'data/contact-fallback.json',
       FRIENDS_BUILD_FIXTURE: 'tests/fixtures/friends-cms.json',
       HOME_BUILD_FIXTURE: 'tests/fixtures/home-cms.json',
+      ABOUT_BUILD_FIXTURE: 'tests/fixtures/about-cms.json',
       ...playwrightSupabaseBrowserEnv,
 
     },

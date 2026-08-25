@@ -2741,3 +2741,33 @@ test('CI behoudt build, contracttest, Chrome-resolutie en rapportupload rond Lig
       index;
   }
 });
+
+test('member-dashboard readiness volgt huidige dashboard-loadstate', () => {
+  const readiness =
+    getPage('member-dashboard').readiness;
+
+  assert.equal(
+    readiness.selector,
+    '#status',
+  );
+
+  assert.deepEqual(
+    [...readiness.requiredTables],
+    ['profiles'],
+  );
+
+  assert.deepEqual(
+    [...readiness.requiredRpcs],
+    [],
+  );
+
+  assert.equal(
+    readiness.loadedTextSelector,
+    '#status',
+  );
+
+  assert.equal(
+    readiness.forbiddenLoadedText,
+    'Controleren...',
+  );
+});

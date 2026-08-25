@@ -26,14 +26,33 @@ async function openReportAsAdmin(page: Page): Promise<void> {
   await login(page, ADMIN_EMAIL!, ADMIN_PASSWORD!);
   await page.goto('/admin/index.html');
   await expect(page.locator('#ledenbeheer')).toBeVisible({ timeout: 15000 });
-  const reportLink = page.locator('#rapportage-link');
-  await expect(reportLink).toHaveAttribute('href', './rapportage.html');
+
+  const sidebar = page.locator('.leden-sidebar');
+  await expect(sidebar).toBeVisible({ timeout: 15000 });
+
+  const toggle = sidebar.locator('[data-leden-menu-toggle]');
+
+  if (await toggle.isVisible()) {
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(sidebar.locator('#leden-sidebar-menu')).toBeVisible();
+  }
+  const reportLink = sidebar.getByRole('link', {
+    name: 'Websiteprestaties',
+    exact: true,
+  });
+
+  await expect(reportLink).toHaveAttribute(
+    'href',
+    '/admin/rapportage.html',
+  );
+
   await reportLink.click();
   await expect(page).toHaveURL(/admin\/rapportage\.html/);
   await expect(page.locator('#rapportage-content')).toBeVisible({ timeout: 15000 });
   await expect(page.locator('#rapportage-status-title')).not.toContainText('wordt geladen', { timeout: 15000 });
 }
-
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
   expect(overflow).toBe(false);

@@ -1099,12 +1099,15 @@ test(
           content: style.content,
           height: Number.parseFloat(style.height),
           clipPath: style.clipPath,
+          maskImage: style.maskImage || style.webkitMaskImage,
         };
       });
 
     expect(wave.content).not.toBe('none');
     expect(wave.height).toBeGreaterThanOrEqual(50);
-    expect(wave.clipPath).toContain('polygon');
+    expect(wave.clipPath).toBe('none');
+    expect(wave.maskImage).not.toBe('none');
+    expect(wave.maskImage).toContain('data:image/svg+xml');
   },
 );
 // B4.1d APPROVED WIREFRAME NAV + FOOTER

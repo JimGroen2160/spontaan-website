@@ -407,9 +407,18 @@ async function loginAsContentmanager(page) {
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 async function waitForLedenlijstReady(page) {
-  await expect(page.locator('#ledenbeheer-toast')).toContainText('Ledenbeheer is geladen.', {
-    timeout: 15000,
-  });
+  await expect(page.locator('#ledenbeheer-result-count')).not.toContainText(
+    'Nog geen leden geladen.',
+    { timeout: 15000 },
+  );
+
+  const viewport = page.viewportSize();
+
+  if (!viewport || viewport.width > 820) {
+    await expect(page.locator('#ledenbeheer-toast')).toContainText('Ledenbeheer is geladen.', {
+      timeout: 15000,
+    });
+  }
 
   await expect(page.locator('#ledenbeheer-lijst-body')).toBeVisible();
 
@@ -441,7 +450,6 @@ async function openAdminAndWaitUntilReady(page) {
     }
   });
 
-  await expect(page.locator('#ledenbeheer-toast')).toBeVisible();
   await expect(page.locator('#ledenbeheer-lijst-body')).toBeVisible();
   await expect(page.locator('#ledenbeheer-result-count')).toBeVisible();
 
@@ -747,48 +755,66 @@ test('Ingelogde contentmanager kan beheeromgeving openen', async ({ page }) => {
   await openAdminAndWaitUntilReady(page);
 });
 
-test('Ingelogde contentmanager ziet navigatie naar beheeromgeving op dashboard', async ({ page }) => {
+test('Ingelogde contentmanager bereikt beheeromgeving via de sidebar', async ({ page }) => {
   await loginAsContentmanager(page);
 
-  await expect(page.locator('#admin-link')).toBeVisible();
-  await expect(page.locator('#admin-link')).toContainText('Naar beheeromgeving');
+  const sidebar = page.locator('.leden-sidebar');
+  await expect(sidebar).toBeVisible();
 
-  await page.click('#admin-link');
+  const beheerLink = sidebar.getByRole('link', { name: 'Ledenadministratie' });
+  await expect(beheerLink).toBeVisible();
 
-  await expect(page).toHaveURL(/admin\/index.html/);
+  await beheerLink.click();
+
+  await expect(page).toHaveURL(/admin\/index\.html/);
   await expect(page.locator('#ledenbeheer')).toBeVisible();
+
+  await expect(page.locator('#ledenportaal-beheer-link')).toHaveCount(0);
+  await expect(page.locator('#rapportage-link')).toHaveCount(0);
+  await expect(page.locator('#ledenomgeving-link')).toHaveCount(0);
 });
-test('Ingelogde admin ziet navigatie naar beheeromgeving op dashboard', async ({ page }) => {
+
+test('Ingelogde admin bereikt beheeromgeving via de sidebar', async ({ page }) => {
   await loginAsAdmin(page);
 
-  await expect(page.locator('#admin-link')).toBeVisible();
-  await expect(page.locator('#admin-link')).toContainText('Naar beheeromgeving');
+  const sidebar = page.locator('.leden-sidebar');
+  await expect(sidebar).toBeVisible();
 
-  await page.click('#admin-link');
+  const beheerLink = sidebar.getByRole('link', { name: 'Ledenadministratie' });
+  await expect(beheerLink).toBeVisible();
+
+  await beheerLink.click();
 
   await expect(page).toHaveURL(/admin\/index\.html/);
   await expect(page.locator('#ledenbeheer')).toBeVisible();
 });
 
-test('Ingelogde member ziet geen navigatie naar beheeromgeving op dashboard', async ({ page }) => {
+test('Ingelogde member ziet geen beheeropties in de sidebar', async ({ page }) => {
   await loginAsMember(page);
 
-  await expect(page.locator('#admin-link')).toBeHidden();
+  const sidebar = page.locator('.leden-sidebar');
+  await expect(sidebar).toBeVisible();
+
+  const beheer = sidebar.locator('[data-leden-beheer]');
+  await expect(beheer).toHaveCount(1);
+  await expect(beheer).toBeHidden();
 });
 
-test('Ingelogde admin ziet navigatie naar ledenomgeving op adminpagina', async ({ page }) => {
+test('Ingelogde admin bereikt ledenoverzicht vanaf adminpagina via de sidebar', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
 
-  await expect(page.locator('#ledenomgeving-link')).toBeVisible();
-  await expect(page.locator('#ledenomgeving-link')).toContainText('Naar ledenomgeving');
+  const sidebar = page.locator('.leden-sidebar');
+  await expect(sidebar).toBeVisible();
 
-  await page.click('#ledenomgeving-link');
+  const overzichtLink = sidebar.getByRole('link', { name: 'Overzicht' });
+  await expect(overzichtLink).toBeVisible();
+
+  await overzichtLink.click();
 
   await expect(page).toHaveURL(/leden\/dashboard\.html/);
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 });
-
 test('Ingelogde admin ziet ledenbeheerformulier op adminpagina', async ({ page }) => {
   await loginAsAdmin(page);
   await openAdminAndWaitUntilReady(page);
@@ -1528,11 +1554,10 @@ test('Ingelogde admin krijgt backend-foutmelding bij bestaand e-mailadres', asyn
   );
 });
 
-test('Ingelogde gebruiker kan volledig uitloggen en verliest toegang tot dashboard', async ({ page }) => {
+test('Naar website logt volledig uit en volgende login opent leeg', async ({ page }) => {
   await loginAsAdmin(page);
 
-  // Beginsituatie: gebruiker is ingelogd en heeft een werkelijke Supabase-sessie.
-  const sessionBeforeLogout = await page.evaluate(async () => {
+  const sessionBeforeExit = await page.evaluate(async () => {
     const session = await window.authHelpers.getCurrentSession();
 
     return {
@@ -1541,47 +1566,43 @@ test('Ingelogde gebruiker kan volledig uitloggen en verliest toegang tot dashboa
     };
   });
 
-  expect(sessionBeforeLogout.hasAccessToken).toBe(true);
-  expect(sessionBeforeLogout.userId).toBeTruthy();
-  await expect(page.locator('#logout')).toBeVisible();
+  expect(sessionBeforeExit.hasAccessToken).toBe(true);
+  expect(sessionBeforeExit.userId).toBeTruthy();
 
-  // Gebruikersactie: uitloggen via de zichtbare knop.
-  await page.click('#logout');
+  const sidebar = page.locator('.leden-sidebar');
+  await expect(sidebar).toBeVisible();
 
-  // Zichtbaar resultaat: gebruiker komt op de loginpagina.
-  await expect(page).toHaveURL(/login\.html/);
-  await expect(page.locator('h1')).toHaveText('Inloggen');
-  await expect(page.locator('#login-form')).toBeVisible();
+  const naarWebsite = sidebar.getByRole('link', { name: 'Naar website' });
+  await expect(naarWebsite).toBeVisible();
 
-  // Technisch resultaat: de Supabase-sessie bestaat niet meer.
-  await page.waitForFunction(async () => {
-    if (!window.authHelpers || typeof window.authHelpers.getCurrentSession !== 'function') {
-      return false;
-    }
+  await expect(sidebar.getByRole('button', { name: 'Uitloggen' })).toHaveCount(0);
 
-    try {
-      const session = await window.authHelpers.getCurrentSession();
-      return session === null;
-    } catch {
-      return false;
-    }
-  });
+  await naarWebsite.click();
 
-  const hasSessionAfterLogout = await page.evaluate(async () => {
-    const session = await window.authHelpers.getCurrentSession();
-    return Boolean(session);
-  });
+  await expect(page).toHaveURL(/\/(?:index\.html)?$/);
 
-  expect(hasSessionAfterLogout).toBe(false);
-
-  // Functionele beveiligingscontrole: dashboard rechtstreeks opnieuw openen wordt geweigerd.
   await page.goto('http://localhost:5500/leden/dashboard.html');
 
   await expect(page).toHaveURL(/login\.html/);
   await expect(page.locator('h1')).toHaveText('Inloggen');
   await expect(page.locator('#login-form')).toBeVisible();
-});
 
+  await expect(page.locator('#email')).toHaveValue('');
+  await expect(page.locator('#password')).toHaveValue('');
+
+  await page.locator('#email').fill('tijdelijk@example.test');
+  await page.locator('#password').fill('tijdelijk-wachtwoord');
+
+  await page.goto('http://localhost:5500/index.html');
+  await page.goBack();
+
+  await expect(page).toHaveURL(/login\.html/);
+  await expect(page.locator('#email')).toHaveValue('');
+  await expect(page.locator('#password')).toHaveValue('');
+
+  await page.goto('http://localhost:5500/leden/dashboard.html');
+  await expect(page).toHaveURL(/login\.html/);
+});
 
 
 test('Ingelogde admin kan pending lid opnieuw uitnodigen via opt-in test', async ({ page, browserName }) => {
