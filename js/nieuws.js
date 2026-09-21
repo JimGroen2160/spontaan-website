@@ -63,20 +63,104 @@
     };
   }
 
-  const query = `*[
-    _type == "newsItem" &&
-    isVisible == true &&
-    ($allowDemo == true || isTestData != true) &&
-    defined(slug.current)
-  ] | order(publishedAt desc) {
-    title,
-    "slug": slug.current,
-    publishedAt,
-    category,
-    summary,
-    mainImageAlt,
-    "imageUrl": mainImage.asset->url
+  const query = `{
+    "page": *[
+      _id == "newsPage-main" &&
+      _type == "newsPage"
+    ][0] {
+      heroTitle,
+      heroSubtitle,
+      "heroImageUrl": heroImage.asset->url,
+      heroGlow
+    },
+    "items": *[
+      _type == "newsItem" &&
+      isVisible == true &&
+      ($allowDemo == true || isTestData != true) &&
+      defined(slug.current)
+    ] | order(publishedAt desc) {
+      title,
+      "slug": slug.current,
+      publishedAt,
+      category,
+      summary,
+      mainImageAlt,
+      "imageUrl": mainImage.asset->url
+    }
   }`;
+
+  const allowedHeroGlow = new Set([
+    'none',
+    'light',
+    'normal',
+    'strong',
+  ]);
+
+  function normalizeHeroGlow(value) {
+    return allowedHeroGlow.has(value)
+      ? value
+      : 'normal';
+  }
+
+  function normalizeHero(value) {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    return {
+      title:
+        typeof value.heroTitle === 'string'
+          ? value.heroTitle.trim()
+          : '',
+      subtitle:
+        typeof value.heroSubtitle === 'string'
+          ? value.heroSubtitle.trim()
+          : '',
+      imageUrl: getSafeImageUrl(value.heroImageUrl),
+      glow: normalizeHeroGlow(value.heroGlow),
+    };
+  }
+
+  function applyHero(content) {
+    if (!content) {
+      return;
+    }
+
+    const hero = document.querySelector('[data-public-hero]');
+
+    if (!hero) {
+      return;
+    }
+
+    hero.dataset.heroGlow = content.glow;
+
+    const title = hero.querySelector(
+      '[data-public-hero-title]'
+    );
+
+    const subtitle = hero.querySelector(
+      '[data-public-hero-subtitle]'
+    );
+
+    if (title && content.title) {
+      title.textContent = content.title;
+    }
+
+    if (subtitle && content.subtitle) {
+      subtitle.textContent = content.subtitle;
+    }
+
+    if (!content.imageUrl) {
+      return;
+    }
+
+    const escapedUrl = content.imageUrl
+      .replaceAll('\\', '\\\\')
+      .replaceAll('"', '\\"');
+
+    hero.style.backgroundImage =
+      `url("${escapedUrl}")`;
+  }
 
   const categoryLabels = {
     optredens: 'Optredens',
@@ -252,7 +336,7 @@
     return article;
   }
 
-  async function fetchNewsItems() {
+  async function fetchNewsData() {
     const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
     const encodedAllowDemo = encodeURIComponent(
@@ -261,7 +345,8 @@
     const url =
       `https://${config.projectId}.apicdn.sanity.io/` +
       `v${config.apiVersion}/data/query/${config.dataset}` +
-      `?query=${encodedQuery}&%24allowDemo=${encodedAllowDemo}`;
+      `?query=${encodedQuery}` +
+      `&%24allowDemo=${encodedAllowDemo}`;
 
     const response = await fetch(url, {
       headers: {
@@ -277,13 +362,23 @@
 
     const data = await response.json();
 
-    if (!Array.isArray(data.result)) {
-      return [];
-    }
+    const result =
+      data.result &&
+      typeof data.result === 'object' &&
+      !Array.isArray(data.result)
+        ? data.result
+        : {};
 
-    return data.result
-      .map(normalizeNewsItem)
-      .filter((item) => item !== null);
+    const rawItems = Array.isArray(result.items)
+      ? result.items
+      : [];
+
+    return {
+      hero: normalizeHero(result.page),
+      items: rawItems
+        .map(normalizeNewsItem)
+        .filter((item) => item !== null),
+    };
   }
 
   function getCardData(card, originalIndex) {
@@ -441,7 +536,9 @@
     }
 
     try {
-      const sanityItems = await fetchNewsItems();
+      const newsData = await fetchNewsData();
+      applyHero(newsData.hero);
+      const sanityItems = newsData.items;
 
       if (sanityItems.length > 0) {
         const fragment = document.createDocumentFragment();

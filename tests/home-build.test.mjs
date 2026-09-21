@@ -70,7 +70,11 @@ test('schema en singleton registreren homePage-main', async () => {
   assert.match(structure, /HOME_PAGE_DOCUMENT_ID/);
   assert.match(
     structure,
-    /\.documentId\(HOME_PAGE_DOCUMENT_ID\)/,
+    /\.documentId\(documentId\)/,
+  );
+  assert.match(
+    structure,
+    /singletonItem\(\s*S,\s*'homePage',\s*'Homepage',\s*'homePage',\s*HOME_PAGE_DOCUMENT_ID\s*\)/,
   );
 });
 

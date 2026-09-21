@@ -16,13 +16,13 @@
 
 <div id="nav-placeholder"></div>
 
-<header class="news-hero">
-  <div class="news-hero__overlay"></div>
+<header class="news-hero" data-public-hero data-hero-glow="normal">
+  <div class="news-hero__overlay public-hero-glow" aria-hidden="true"></div>
 
   <div class="news-hero__content">
     <p class="news-hero__eyebrow">Home / Nieuws</p>
-    <h1>Nieuws uit de wereld van Spontaan</h1>
-    <p>
+    <h1 data-public-hero-title>Nieuws uit de wereld van Spontaan</h1>
+    <p data-public-hero-subtitle>
       Verhalen, optredens en meer achter de muziek.
     </p>
   </div>
@@ -261,6 +261,7 @@
 <div id="footer-placeholder"></div>
 
 <script src="../js/runtime-config.js" defer></script>
+
 <script src="../js/nieuws.js" defer></script>
 <script src="../components/menu.js" defer></script>
 

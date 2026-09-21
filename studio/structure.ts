@@ -5,13 +5,48 @@ import type {
 import {LedenadministratiePane} from './components/LedenadministratiePane'
 import {
   ABOUT_PAGE_DOCUMENT_ID,
+  AGENDA_PAGE_DOCUMENT_ID,
   CONTACT_PAGE_DOCUMENT_ID,
   FRIENDS_PAGE_DOCUMENT_ID,
   HOME_PAGE_DOCUMENT_ID,
   MEDIA_PAGE_DOCUMENT_ID,
+  NEWS_PAGE_DOCUMENT_ID,
   REPERTOIRE_PAGE_DOCUMENT_ID,
-  SINGLETON_TYPES,
 } from './singletonTypes'
+
+const singletonItem = (
+  S: StructureBuilder,
+  id: string,
+  title: string,
+  schemaType: string,
+  documentId: string
+) =>
+  S.listItem()
+    .id(id)
+    .schemaType(schemaType)
+    .title(title)
+    .child(
+      S.document()
+        .id(documentId)
+        .schemaType(schemaType)
+        .documentId(documentId)
+    )
+
+const listItem = (
+  S: StructureBuilder,
+  id: string,
+  title: string,
+  schemaType: string
+) =>
+  S.listItem()
+    .id(id)
+    .schemaType(schemaType)
+    .title(title)
+    .child(
+      S.documentTypeList(schemaType)
+        .id(`${id}-list`)
+        .title(title)
+    )
 
 export const structure: StructureResolver = (
   S: StructureBuilder
@@ -19,49 +54,90 @@ export const structure: StructureResolver = (
   S.list()
     .title('Inhoud')
     .items([
-      S.listItem()
-        .id('aboutPage')
-        .schemaType('aboutPage')
-        .title('Pagina Over Spontaan')
-        .child(
-          S.document()
-            .id(ABOUT_PAGE_DOCUMENT_ID)
-            .schemaType('aboutPage')
-            .documentId(ABOUT_PAGE_DOCUMENT_ID)
-        ),
+      singletonItem(
+        S,
+        'homePage',
+        'Homepage',
+        'homePage',
+        HOME_PAGE_DOCUMENT_ID
+      ),
 
-      S.listItem()
-        .id('homePage')
-        .schemaType('homePage')
-        .title('Homepage')
-        .child(
-          S.document()
-            .id(HOME_PAGE_DOCUMENT_ID)
-            .schemaType('homePage')
-            .documentId(HOME_PAGE_DOCUMENT_ID)
-        ),
+      singletonItem(
+        S,
+        'aboutPage',
+        'Pagina Over Spontaan',
+        'aboutPage',
+        ABOUT_PAGE_DOCUMENT_ID
+      ),
 
-      S.listItem()
-        .id('contactPage')
-        .schemaType('contactPage')
-        .title('Pagina Contact')
-        .child(
-          S.document()
-            .id(CONTACT_PAGE_DOCUMENT_ID)
-            .schemaType('contactPage')
-            .documentId(CONTACT_PAGE_DOCUMENT_ID)
-        ),
+      singletonItem(
+        S,
+        'agendaPage',
+        'Pagina Agenda',
+        'agendaPage',
+        AGENDA_PAGE_DOCUMENT_ID
+      ),
+      listItem(
+        S,
+        'eventItem',
+        'Agenda-items',
+        'eventItem'
+      ),
 
-      S.listItem()
-        .id('friendsPage')
-        .schemaType('friendsPage')
-        .title('Pagina Vrienden van Spontaan')
-        .child(
-          S.document()
-            .id(FRIENDS_PAGE_DOCUMENT_ID)
-            .schemaType('friendsPage')
-            .documentId(FRIENDS_PAGE_DOCUMENT_ID)
-        ),
+      S.divider(),
+
+      singletonItem(
+        S,
+        'mediaPage',
+        'Pagina Beeld en Geluid',
+        'mediaPage',
+        MEDIA_PAGE_DOCUMENT_ID
+      ),
+      listItem(S, 'photoAlbum', 'Fotoalbums', 'photoAlbum'),
+      listItem(S, 'audioItem', 'Muziekopnamen', 'audioItem'),
+      listItem(S, 'videoItem', 'Video’s', 'videoItem'),
+
+      S.divider(),
+
+      singletonItem(
+        S,
+        'repertoirePage',
+        'Pagina Muziek en repertoire',
+        'repertoirePage',
+        REPERTOIRE_PAGE_DOCUMENT_ID
+      ),
+      listItem(
+        S,
+        'repertoireItem',
+        'Repertoire-items',
+        'repertoireItem'
+      ),
+
+      S.divider(),
+
+      singletonItem(
+        S,
+        'newsPage',
+        'Pagina Nieuws',
+        'newsPage',
+        NEWS_PAGE_DOCUMENT_ID
+      ),
+      listItem(
+        S,
+        'newsItem',
+        'Nieuwsberichten',
+        'newsItem'
+      ),
+
+      S.divider(),
+
+      singletonItem(
+        S,
+        'friendsPage',
+        'Pagina Vrienden van Spontaan',
+        'friendsPage',
+        FRIENDS_PAGE_DOCUMENT_ID
+      ),
 
       S.listItem()
         .id('friendItem')
@@ -83,6 +159,16 @@ export const structure: StructureResolver = (
             ])
         ),
 
+      singletonItem(
+        S,
+        'contactPage',
+        'Pagina Contact',
+        'contactPage',
+        CONTACT_PAGE_DOCUMENT_ID
+      ),
+
+      S.divider(),
+
       S.listItem()
         .id('ledenadministratie')
         .title('Ledenadministratie')
@@ -91,36 +177,4 @@ export const structure: StructureResolver = (
             .id('ledenadministratie-pane')
             .title('Ledenadministratie')
         ),
-
-      S.divider(),
-
-      S.listItem()
-        .id('mediaPage')
-        .schemaType('mediaPage')
-        .title('Pagina Beeld en Geluid')
-        .child(
-          S.document()
-            .id(MEDIA_PAGE_DOCUMENT_ID)
-            .schemaType('mediaPage')
-            .documentId(MEDIA_PAGE_DOCUMENT_ID)
-        ),
-
-      S.listItem()
-        .id('repertoirePage')
-        .schemaType('repertoirePage')
-        .title('Pagina Muziek en repertoire')
-        .child(
-          S.document()
-            .id(REPERTOIRE_PAGE_DOCUMENT_ID)
-            .schemaType('repertoirePage')
-            .documentId(REPERTOIRE_PAGE_DOCUMENT_ID)
-        ),
-
-      S.divider(),
-
-      ...S.documentTypeListItems().filter(
-        (listItem) =>
-          !SINGLETON_TYPES.has(listItem.getId() ?? '') &&
-          listItem.getId() !== 'friendItem'
-      ),
     ])

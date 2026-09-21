@@ -152,7 +152,7 @@ export function runtimeConfigSource(environment = process.env) {
 
 export const MEDIA_QUERY = `{
   "page": *[_id == "mediaPage-main" && _type == "mediaPage"][0] {
-    heroTitle, heroSubtitle, heroImageAlt,
+    heroTitle, heroSubtitle, heroImageAlt, heroGlow,
     "heroImageUrl": heroImage.asset->url,
     introTitle, introText, ctaEyebrow, ctaTitle, ctaText,
     primaryButtonLabel, primaryButtonLink,
@@ -175,7 +175,7 @@ export const MEDIA_QUERY = `{
 
 export const FRIENDS_QUERY = `{
   "page": *[_id == "friendsPage-main" && _type == "friendsPage"][0] {
-    heroTitle, heroText, heroImageAlt,
+    heroTitle, heroText, heroImageAlt, heroGlow,
     "heroImageUrl": heroImage.asset->url,
     heroPrimaryButtonLabel, heroPrimaryButtonLink,
     heroSecondaryButtonLabel, heroSecondaryButtonLink,
@@ -198,7 +198,7 @@ export const FRIENDS_QUERY = `{
 
 export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0] {
   seoTitle, seoDescription,
-  heroTitle, heroSubtitle, heroImageAlt, "heroImageUrl": heroImage.asset->url,
+  heroTitle, heroSubtitle, heroImageAlt, heroGlow, "heroImageUrl": heroImage.asset->url,
   introEyebrow, introTitle, introText,
   introImageAlt, "introImageUrl": introImage.asset->url,
   timelineEyebrow, timelineTitle, timelineIntro, timelineItems[] {title, text},
@@ -213,7 +213,7 @@ export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0
 
 export const CONTACT_QUERY = `*[_id == "contactPage-main" && _type == "contactPage"][0] {
   seoTitle, seoDescription,
-  heroEyebrow, heroTitle, heroIntro, heroImageAlt,
+  heroEyebrow, heroTitle, heroIntro, heroImageAlt, heroGlow,
   "heroImageUrl": heroImage.asset->url,
   emailCtaLabel, phoneCtaLabel,
   contactTopics[] {title, text, icon, linkLabel, linkTarget},
@@ -232,7 +232,7 @@ export const CONTACT_QUERY = `*[_id == "contactPage-main" && _type == "contactPa
 
 export const REPERTOIRE_QUERY = `{
   "page": *[_id == "repertoirePage-main" && _type == "repertoirePage"][0] {
-    heroTitle, heroSubtitle, heroImageAlt,
+    heroTitle, heroSubtitle, heroImageAlt, heroGlow,
     "heroImageUrl": heroImage.asset->url,
     "featuredItemId": featuredItem->_id,
     worldsTitle, worldsIntro,
@@ -259,6 +259,21 @@ export const REPERTOIRE_QUERY = `{
 
 function text(value, maximum = 500) {
   return typeof value === 'string' ? value.trim().slice(0, maximum) : '';
+}
+
+const HERO_GLOW_VALUES = new Set([
+  'none',
+  'light',
+  'normal',
+  'strong',
+]);
+
+function normalizeHeroGlow(value) {
+  const candidate = text(value, 16);
+
+  return HERO_GLOW_VALUES.has(candidate)
+    ? candidate
+    : 'normal';
 }
 
 function safeUrl(value, kinds) {
@@ -320,6 +335,8 @@ function normalizePage(value = {}) {
     heroSubtitle: text(value.heroSubtitle, 180),
     heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
     heroImageAlt: text(value.heroImageAlt, 160),
+
+    heroGlow: normalizeHeroGlow(value.heroGlow),
     introTitle: text(value.introTitle, 120),
     introText: text(value.introText, 500),
     ctaEyebrow: text(value.ctaEyebrow, 80),
@@ -562,6 +579,8 @@ export function normalizeFriendsContent(
       heroText: text(page.heroText, 280),
       heroImageUrl: safeUrl(page.heroImageUrl, ['image', 'local']),
       heroImageAlt: text(page.heroImageAlt, 160),
+
+      heroGlow: normalizeHeroGlow(page.heroGlow),
       heroPrimaryButtonLabel: text(
         page.heroPrimaryButtonLabel,
         48,
@@ -713,6 +732,8 @@ export function normalizeAboutContent(value = {}) {
     heroSubtitle: text(value.heroSubtitle, 240),
     heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
     heroImageAlt: text(value.heroImageAlt, 160),
+
+    heroGlow: normalizeHeroGlow(value.heroGlow),
     introEyebrow: text(value.introEyebrow, 80),
     introTitle: text(value.introTitle, 120),
     introText: normalizeParagraphs(value.introText),
@@ -815,6 +836,8 @@ export function normalizeContactContent(value = {}) {
     heroIntro: text(value.heroIntro, 300),
     heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
     heroImageAlt: text(value.heroImageAlt, 160),
+
+    heroGlow: normalizeHeroGlow(value.heroGlow),
     emailCtaLabel: text(value.emailCtaLabel, 48),
     phoneCtaLabel: text(value.phoneCtaLabel, 48),
     contactTopics: normalizeContactTopics(value.contactTopics),
@@ -941,6 +964,8 @@ export function normalizeRepertoireContent(value = {}) {
       heroSubtitle: text(page.heroSubtitle, 220),
       heroImageUrl: safeUrl(page.heroImageUrl, ['image', 'local']),
       heroImageAlt: text(page.heroImageAlt, 160),
+
+      heroGlow: normalizeHeroGlow(page.heroGlow),
       featuredItemId: text(page.featuredItemId, 120),
       featuredImageUrl:
         safeUrl(page.featuredImageUrl, ['image', 'local']) ||
@@ -1004,6 +1029,7 @@ export function validateRepertoireContent(content) {
 const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
   heroTitle,
   heroSubtitle,
+  heroGlow,
   "heroImageUrl": heroImage.asset->url,
   ctaLabel,
   ctaLink,
@@ -1219,6 +1245,8 @@ export function normalizeHomeContent(value, options = {}) {
   return {
     heroTitle: text(source.heroTitle, 100),
     heroSubtitle: text(source.heroSubtitle, 180),
+
+    heroGlow: normalizeHeroGlow(source.heroGlow),
     heroImageUrl: homeProjectPath(
       source.heroImageUrl,
       'image',
@@ -1567,9 +1595,6 @@ export function renderHomePage(
   const heroStyle = content.heroImageUrl
     ? (
         ' style="background-image: ' +
-        'linear-gradient(135deg, ' +
-        'rgba(79, 23, 127, 0.78), ' +
-        'rgba(217, 13, 135, 0.57)), ' +
         `url(&quot;${escapeHtml(content.heroImageUrl)}&quot;)"`
       )
     : '';
@@ -1577,7 +1602,7 @@ export function renderHomePage(
   html = replaceRequired(
     html,
     /<header class="hero">/,
-    `<header class="hero"${heroStyle}>`,
+    `<header class="hero" data-public-hero data-hero-glow="${escapeHtml(content.heroGlow)}"${heroStyle}>`,
     'Homepage hero-afbeelding',
   );
 
@@ -1863,7 +1888,7 @@ export function renderRepertoirePage(template, originalContent, source) {
   const process = page.processSteps.map((step, index) => `<li><span aria-hidden="true">${processIcons[index]}</span><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.description)}</p></li>`).join('');
   const tags = page.selectionItemIds.map((id) => `<span>${escapeHtml(byId.get(id).title)}</span>`).join('');
   const heroDecor = '<div class="repertoire-hero__decor" aria-hidden="true"><span class="repertoire-hero__note repertoire-hero__note--one">♪</span><span class="repertoire-hero__note repertoire-hero__note--two">♫</span><span class="repertoire-hero__note repertoire-hero__note--three">♪</span><span class="repertoire-hero__waveform"></span><span class="repertoire-hero__sheet"></span></div>';
-  const header = `<header class="repertoire-hero">${image(page.heroImageUrl, page.heroImageAlt, 1920, 1080, 'eager', ' class="repertoire-hero__image" fetchpriority="high"')}${heroDecor}<div class="repertoire-hero__content"><p class="repertoire-breadcrumb">Home / Muziek en repertoire</p><h1>${escapeHtml(page.heroTitle)}</h1><p>${escapeHtml(page.heroSubtitle)}</p></div></header>`;
+  const header = `<header class="repertoire-hero" data-public-hero data-hero-glow="${escapeHtml(page.heroGlow)}"><div class="public-hero-glow" aria-hidden="true"></div>${image(page.heroImageUrl, page.heroImageAlt, 1920, 1080, 'eager', ' class="repertoire-hero__image" fetchpriority="high"')}${heroDecor}<div class="repertoire-hero__content"><p class="repertoire-breadcrumb">Home / Muziek en repertoire</p><h1>${escapeHtml(page.heroTitle)}</h1><p>${escapeHtml(page.heroSubtitle)}</p></div></header>`;
   const main = `<main class="repertoire-page">
     <section class="repertoire-feature" aria-labelledby="repertoire-feature-title"><div class="repertoire-feature__visual">${image(page.featuredImageUrl, page.featuredImageAlt, 1200, 900, 'eager')}</div><div class="repertoire-feature__content"><p class="repertoire-label">Verhaal</p><h2 id="repertoire-feature-title">Uitgelicht: muziek met een verhaal</h2><h3>${escapeHtml(featuredItem.title)}</h3><p>${escapeHtml(featuredItem.story)}</p><div class="repertoire-actions"><a class="btn" href="#muziekstuk-proces">Lees het verhaal</a><a class="btn btn--secondary" href="#onze-muziek">In ons repertoire</a></div></div></section>
     <section id="onze-muziek" class="repertoire-section" aria-labelledby="repertoire-worlds-title"><div class="repertoire-heading"><h2 id="repertoire-worlds-title">${escapeHtml(page.worldsTitle)}</h2><p>${escapeHtml(page.worldsIntro)}</p></div><div class="repertoire-worlds">${worlds}</div></section>
@@ -1983,6 +2008,12 @@ export function renderFriendsPage(template, content, source) {
 
   const {page, friends} = content;
   let html = template;
+  html = replaceRequired(
+    html,
+    /data-hero-glow="normal"/,
+    `data-hero-glow="${escapeHtml(page.heroGlow)}"`,
+    'Vrienden hero-gloed',
+  );
 
   html = replaceRequired(
     html,
@@ -2100,6 +2131,12 @@ export function renderMediaPage(template, content, source) {
   const all = [...content.photoAlbums, ...content.audioItems, ...content.videoItems];
   const selected = all.find((item) => item.isFeatured) || content.photoAlbums[0] || content.audioItems[0] || content.videoItems[0] || null;
   let html = template;
+  html = replaceRequired(
+    html,
+    /data-hero-glow="normal"/,
+    `data-hero-glow="${escapeHtml(page.heroGlow)}"`,
+    'Beeld en Geluid hero-gloed',
+  );
   html = replaceRequired(html, /<img\s+class="media-hero__image"[\s\S]*?data-media-page-hero-image[\s\S]*?>/, image(page.heroImageUrl, page.heroImageAlt, 1620, 367, 'eager', ' class="media-hero__image" data-media-page-hero-image fetchpriority="high"'), 'hero-afbeelding');
   const textFields = [['hero-title', page.heroTitle], ['hero-subtitle', page.heroSubtitle], ['intro-title', page.introTitle], ['intro-text', page.introText], ['cta-eyebrow', page.ctaEyebrow], ['cta-title', page.ctaTitle], ['cta-text', page.ctaText]];
   for (const [name, value] of textFields) html = replaceRequired(html, new RegExp(`(<[^>]+data-media-page-${name}[^>]*>)[\\s\\S]*?(</[^>]+>)`), `$1${escapeHtml(value)}$2`, name);
@@ -2137,7 +2174,7 @@ export function renderAboutPage(template, content, source) {
   html = replaceRequired(
     html,
     /<header class="about-hero" data-about-hero>/,
-    `<header class="about-hero" data-about-hero style="--about-hero-image: url(&quot;${escapeHtml(content.heroImageUrl)}&quot;)" aria-label="${escapeHtml(content.heroImageAlt)}">`,
+    `<header class="about-hero" data-about-hero data-public-hero data-hero-glow="${escapeHtml(content.heroGlow)}" style="--about-hero-image: url(&quot;${escapeHtml(content.heroImageUrl)}&quot;)" aria-label="${escapeHtml(content.heroImageAlt)}">`,
     'Over hero-afbeelding',
   );
   const textFields = [
@@ -2200,6 +2237,12 @@ function renderContactPoints(items) {
 export function renderContactPage(template, content, source) {
   validateContactContent(content);
   let html = template;
+  html = replaceRequired(
+    html,
+    /data-hero-glow="normal"/,
+    `data-hero-glow="${escapeHtml(content.heroGlow)}"`,
+    'Contact hero-gloed',
+  );
   html = replaceRequired(html, /<html lang="nl" data-contact-source="fallback">/, `<html lang="nl" data-contact-source="${source}">`, 'Contact contentbron');
   html = replaceRequired(html, /(<title data-contact-seo-title>)[\s\S]*?(<\/title>)/, `$1${escapeHtml(content.seoTitle)}$2`, 'Contact SEO-titel');
   html = replaceRequired(html, /<meta(?=[^>]*name="description")(?=[^>]*data-contact-seo-description)[^>]*>/, `<meta name="description" content="${escapeHtml(content.seoDescription)}" data-contact-seo-description>`, 'Contact SEO-beschrijving');

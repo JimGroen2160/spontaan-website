@@ -19,13 +19,13 @@
 
 <div id="nav-placeholder"></div>
 
-<header class="agenda-hero">
-  <div class="agenda-hero__overlay"></div>
+<header class="agenda-hero" data-public-hero data-hero-glow="normal">
+  <div class="agenda-hero__overlay public-hero-glow" aria-hidden="true"></div>
 
   <div class="agenda-hero__content">
-    <h1>Agenda</h1>
+    <h1 data-public-hero-title>Agenda</h1>
 
-    <p>
+    <p data-public-hero-subtitle>
       Bekijk waar en wanneer Zanggroep Spontaan te horen is.
     </p>
   </div>
@@ -311,6 +311,7 @@
 
 <script src="../components/menu.js" defer></script>
 <script src="../js/runtime-config.js" defer></script>
+
 <script src="../js/agenda.js" defer></script>
 
 </body>

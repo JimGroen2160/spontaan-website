@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 
 <head>
@@ -25,12 +25,14 @@
 
 <div id="nav-placeholder"></div>
 
-<header class="media-hero">
+<header class="media-hero" data-public-hero data-hero-glow="normal">
+  <div class="public-hero-glow" aria-hidden="true"></div>
   <img
     class="media-hero__image"
     src="../images/media/beeld-en-geluid-hero.jpg"
     alt="Microfoon en muziekweergave van Zanggroep Spontaan"
     data-media-page-hero-image
+
     width="1620"
     height="367"
     fetchpriority="high"
@@ -495,6 +497,7 @@
   ></p>
 </dialog>
 
+<script src="../js/runtime-config.js" defer></script>
 <script src="../components/menu.js" defer></script>
 <script type="module" src="../js/media.js"></script>
 

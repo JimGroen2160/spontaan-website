@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="nl">
 <head>
   <meta charset="utf-8">
@@ -18,7 +18,7 @@
 <body>
   <div id="nav-placeholder"></div>
 
-  <header class="friends-hero">
+  <header class="friends-hero" data-public-hero data-hero-glow="normal">
     <img
       class="friends-hero__image"
       src="../images/repertoire/repertoire-hero.jpg"
@@ -28,9 +28,10 @@
       loading="eager"
       fetchpriority="high"
       data-friends-hero-image
+
     >
 
-    <div class="friends-hero__overlay" aria-hidden="true"></div>
+    <div class="friends-hero__overlay public-hero-glow" aria-hidden="true"></div>
 
     <div class="friends-hero__content">
       <p class="friends-breadcrumb">
@@ -206,7 +207,8 @@
 
   <div id="footer-placeholder"></div>
 
-  <script src="../components/menu.js" defer></script>
+  <script src="../js/runtime-config.js" defer></script>
+<script src="../components/menu.js" defer></script>
   <script src="../js/friends.js" defer></script>
   <script data-friends-source-marker></script>
 </body>

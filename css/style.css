@@ -4365,3 +4365,93 @@ button.agenda-calendar__day {
     padding: clamp(1.75rem, 3vw, 2.25rem);
   }
 }
+
+
+/* === CONTENTMANAGER PUBLIC HERO CONTROL === */
+
+[data-public-hero] {
+  --public-hero-glow-opacity: 0.52;
+}
+
+[data-public-hero][data-hero-glow="none"] {
+  --public-hero-glow-opacity: 0;
+}
+
+[data-public-hero][data-hero-glow="light"] {
+  --public-hero-glow-opacity: 0.28;
+}
+
+[data-public-hero][data-hero-glow="normal"] {
+  --public-hero-glow-opacity: 0.52;
+}
+
+[data-public-hero][data-hero-glow="strong"] {
+  --public-hero-glow-opacity: 0.76;
+}
+
+[data-public-hero] > .public-hero-glow {
+  position: absolute !important;
+  z-index: 1 !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(49, 18, 105, 0.97) 0%,
+      rgba(79, 23, 127, 0.88) 40%,
+      rgba(164, 15, 128, 0.62) 72%,
+      rgba(217, 13, 135, 0.42) 100%
+    ) !important;
+  opacity: var(--public-hero-glow-opacity) !important;
+  pointer-events: none;
+}
+
+.hero[data-public-hero] .hero-content,
+.about-hero[data-public-hero] .about-hero__content,
+.agenda-hero[data-public-hero] .agenda-hero__content,
+.news-hero[data-public-hero] .news-hero__content,
+.contact-hero[data-public-hero] .contact-hero__content,
+.friends-hero[data-public-hero] .friends-hero__content,
+.repertoire-hero[data-public-hero] .repertoire-hero__content {
+  position: relative;
+  z-index: 3;
+}
+
+/* Repertoire had al een vaste donkere laag.
+   De instelbare gloed neemt die taak over. */
+.repertoire-hero[data-public-hero]::before {
+  background: transparent !important;
+}
+
+/* Beeld en Geluid gebruikt voortaan ook een vaste herohoogte.
+   Daardoor kunnen brede bronfoto's netjes met cover worden
+   uitgesneden zonder dat de hoogte van de hele hero verandert. */
+.media-hero[data-public-hero] {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(260px, 23vw, 367px);
+}
+
+.media-hero[data-public-hero] .media-hero__image {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (max-width: 700px) {
+  .media-hero[data-public-hero] {
+    min-height: 245px;
+  }
+
+  .media-hero[data-public-hero] .media-hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+}
