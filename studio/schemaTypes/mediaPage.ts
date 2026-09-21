@@ -58,7 +58,27 @@ export const mediaPage = defineType({
       validation: (rule) => rule.required().max(160),
     }),
 
+
     defineField({
+      name: 'heroGlow',
+      title: 'Gloed over foto',
+      type: 'string',
+      description:
+        'Kies hoe sterk de gekleurde gloed over de grote foto moet zijn.',
+      initialValue: 'normal',
+      options: {
+        list: [
+          {title: 'Geen', value: 'none'},
+          {title: 'Licht', value: 'light'},
+          {title: 'Normaal', value: 'normal'},
+          {title: 'Sterk', value: 'strong'},
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
+
+defineField({
       name: 'introTitle',
       title: 'Titel introductie',
       type: 'string',

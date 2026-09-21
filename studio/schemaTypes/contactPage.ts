@@ -23,7 +23,27 @@ export const contactPage = defineType({
     defineField({name: 'heroIntro', title: 'Hero-introductie', type: 'text', rows: 3, group: 'hero', validation: (rule) => rule.required().max(300)}),
     defineField({name: 'heroImage', title: 'Hero-afbeelding', type: 'image', group: 'hero', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'heroImageAlt', title: 'Alt-tekst hero', type: 'string', group: 'hero', validation: (rule) => rule.required().max(160)}),
-    defineField({name: 'emailCtaLabel', title: 'Tekst e-mailknop', type: 'string', group: 'hero', validation: (rule) => rule.required().max(48)}),
+
+    defineField({
+      name: 'heroGlow',
+      title: 'Gloed over foto',
+      type: 'string',
+      description:
+        'Kies hoe sterk de gekleurde gloed over de grote foto moet zijn.',
+      initialValue: 'normal',
+      options: {
+        list: [
+          {title: 'Geen', value: 'none'},
+          {title: 'Licht', value: 'light'},
+          {title: 'Normaal', value: 'normal'},
+          {title: 'Sterk', value: 'strong'},
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
+
+defineField({name: 'emailCtaLabel', title: 'Tekst e-mailknop', type: 'string', group: 'hero', validation: (rule) => rule.required().max(48)}),
     defineField({name: 'phoneCtaLabel', title: 'Tekst telefoonknop', type: 'string', group: 'hero', validation: (rule) => rule.required().max(48)}),
     defineField({
       name: 'contactTopics',

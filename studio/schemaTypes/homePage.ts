@@ -47,7 +47,27 @@ export const homePage = defineType({
       type: 'string',
       description: 'Korte omschrijving van de afbeelding voor toegankelijkheid.',
     }),
+
     defineField({
+      name: 'heroGlow',
+      title: 'Gloed over foto',
+      type: 'string',
+      description:
+        'Kies hoe sterk de gekleurde gloed over de grote foto moet zijn.',
+      initialValue: 'normal',
+      options: {
+        list: [
+          {title: 'Geen', value: 'none'},
+          {title: 'Licht', value: 'light'},
+          {title: 'Normaal', value: 'normal'},
+          {title: 'Sterk', value: 'strong'},
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
+
+defineField({
       name: 'ctaLabel',
       title: 'Hero knoptekst',
       type: 'string',

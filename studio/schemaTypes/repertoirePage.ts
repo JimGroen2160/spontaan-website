@@ -13,7 +13,27 @@ export const repertoirePage = defineType({
     defineField({name: 'heroSubtitle', title: 'Hero-ondertitel', type: 'text', rows: 2, validation: (rule) => rule.required().max(220)}),
     defineField({name: 'heroImage', title: 'Hero-afbeelding', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'heroImageAlt', title: 'Alt-tekst hero-afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
-    defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', to: [{type: 'repertoireItem'}], validation: (rule) => rule.required()}),
+
+    defineField({
+      name: 'heroGlow',
+      title: 'Gloed over foto',
+      type: 'string',
+      description:
+        'Kies hoe sterk de gekleurde gloed over de grote foto moet zijn.',
+      initialValue: 'normal',
+      options: {
+        list: [
+          {title: 'Geen', value: 'none'},
+          {title: 'Licht', value: 'light'},
+          {title: 'Normaal', value: 'normal'},
+          {title: 'Sterk', value: 'strong'},
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
+
+defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', to: [{type: 'repertoireItem'}], validation: (rule) => rule.required()}),
     defineField({name: 'featuredImage', title: 'Afbeelding uitgelicht lied', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'featuredImageAlt', title: 'Alt-tekst uitgelichte afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
     defineField({name: 'worldsTitle', title: 'Titel muzikale werelden', type: 'string', validation: (rule) => rule.required().max(120)}),

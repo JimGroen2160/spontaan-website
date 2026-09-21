@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   function getRuntimeConfig() {
     const candidate = window.SpontaanRuntimeConfig;
 
@@ -61,31 +61,137 @@
     };
   }
 
-  const query = `*[
-    _type == "eventItem" &&
-    isVisible == true &&
-    isPublic == true &&
-    ($allowDemo == true || isTestData != true) &&
-    eventType != "besloten" &&
-    defined(startAt) &&
-    startAt >= now()
-  ] | order(startAt asc) {
-    title,
-    startAt,
-    endAt,
-    eventType,
-    locationName,
-    city,
-    address,
-    mapUrl,
-    summary,
-    buttonLabel,
-    buttonLink,
-    isFree,
-    isFeatured,
-    mainImageAlt,
-    "imageUrl": mainImage.asset->url
+  const query = `{
+    "page": *[
+      _id == "agendaPage-main" &&
+      _type == "agendaPage"
+    ][0] {
+      heroTitle,
+      heroSubtitle,
+      "heroImageUrl": heroImage.asset->url,
+      heroGlow
+    },
+    "items": *[
+      _type == "eventItem" &&
+      isVisible == true &&
+      isPublic == true &&
+      ($allowDemo == true || isTestData != true) &&
+      eventType != "besloten" &&
+      defined(startAt) &&
+      startAt >= now()
+    ] | order(startAt asc) {
+      title,
+      startAt,
+      endAt,
+      eventType,
+      locationName,
+      city,
+      address,
+      mapUrl,
+      summary,
+      buttonLabel,
+      buttonLink,
+      isFree,
+      isFeatured,
+      mainImageAlt,
+      "imageUrl": mainImage.asset->url
+    }
   }`;
+
+  const allowedHeroGlow = new Set([
+    'none',
+    'light',
+    'normal',
+    'strong',
+  ]);
+
+  function normalizeHeroGlow(value) {
+    return allowedHeroGlow.has(value)
+      ? value
+      : 'normal';
+  }
+
+  function normalizeHero(value) {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+
+    const rawImage =
+      typeof value.heroImageUrl === 'string'
+        ? value.heroImageUrl.trim()
+        : '';
+
+    let imageUrl = '';
+
+    if (rawImage) {
+      try {
+        const parsed = new URL(rawImage);
+
+        if (
+          parsed.protocol === 'https:' &&
+          parsed.hostname === 'cdn.sanity.io'
+        ) {
+          imageUrl = parsed.href;
+        }
+      } catch {
+        imageUrl = '';
+      }
+    }
+
+    return {
+      title:
+        typeof value.heroTitle === 'string'
+          ? value.heroTitle.trim()
+          : '',
+      subtitle:
+        typeof value.heroSubtitle === 'string'
+          ? value.heroSubtitle.trim()
+          : '',
+      imageUrl,
+      glow: normalizeHeroGlow(value.heroGlow),
+    };
+  }
+
+  function applyHero(content) {
+    if (!content) {
+      return;
+    }
+
+    const hero = document.querySelector('[data-public-hero]');
+
+    if (!hero) {
+      return;
+    }
+
+    hero.dataset.heroGlow = content.glow;
+
+    const title = hero.querySelector(
+      '[data-public-hero-title]'
+    );
+
+    const subtitle = hero.querySelector(
+      '[data-public-hero-subtitle]'
+    );
+
+    if (title && content.title) {
+      title.textContent = content.title;
+    }
+
+    if (subtitle && content.subtitle) {
+      subtitle.textContent = content.subtitle;
+    }
+
+    if (!content.imageUrl) {
+      return;
+    }
+
+    const escapedUrl = content.imageUrl
+      .replaceAll('\\', '\\\\')
+      .replaceAll('"', '\\"');
+
+    hero.style.backgroundImage =
+      `url("${escapedUrl}")`;
+  }
 
   const eventTypeLabels = {
     optreden: 'Optreden',
@@ -368,7 +474,7 @@
     };
   }
 
-  async function fetchEventItems() {
+  async function fetchAgendaData() {
     const config = getRuntimeConfig();
     const encodedQuery = encodeURIComponent(query);
     const encodedAllowDemo = encodeURIComponent(
@@ -394,13 +500,23 @@
 
     const data = await response.json();
 
-    if (!Array.isArray(data.result)) {
-      return [];
-    }
+    const result =
+      data.result &&
+      typeof data.result === 'object' &&
+      !Array.isArray(data.result)
+        ? data.result
+        : {};
 
-    return data.result
-      .map(normalizeEventItem)
-      .filter(Boolean);
+    const rawItems = Array.isArray(result.items)
+      ? result.items
+      : [];
+
+    return {
+      hero: normalizeHero(result.page),
+      items: rawItems
+        .map(normalizeEventItem)
+        .filter(Boolean),
+    };
   }
 
   function createMetaItem(text) {
@@ -893,7 +1009,9 @@
 
       hideStatus(status);
     } else try {
-      items = await fetchEventItems();
+      const agendaData = await fetchAgendaData();
+      items = agendaData.items;
+      applyHero(agendaData.hero);
 
       hideStatus(status);
 

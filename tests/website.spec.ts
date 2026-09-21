@@ -334,7 +334,9 @@ test.describe('Nieuws Sanity-content en fallback', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          result: [
+          result: {
+            page: null,
+            items: [
             {
               title: 'Sanity nieuwsbericht',
               slug: 'sanity-nieuwsbericht',
@@ -345,7 +347,8 @@ test.describe('Nieuws Sanity-content en fallback', () => {
               imageUrl:
                 'https://cdn.sanity.io/images/u66p1mxm/development/news-test.jpg',
             },
-          ],
+            ],
+          },
         }),
       });
     });
@@ -546,7 +549,9 @@ test.describe('Nieuwsoverzicht unhappy flows', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          result: [
+          result: {
+            page: null,
+            items: [
             {
               title: 'Geldig Sanity-bericht',
               slug: 'geldig-sanity-bericht',
@@ -566,7 +571,8 @@ test.describe('Nieuwsoverzicht unhappy flows', () => {
               mainImageAlt: '',
               imageUrl: 'javascript:alert("xss")',
             },
-          ],
+            ],
+          },
         }),
       });
     });
@@ -965,7 +971,9 @@ test.describe('Agenda pagina unhappy flows', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          result: [
+          result: {
+            page: null,
+            items: [
             {
               title: 'Geldig voorbeeldoptreden',
               startAt: '2026-09-19T19:30:00+02:00',
@@ -1011,7 +1019,8 @@ test.describe('Agenda pagina unhappy flows', () => {
               imageUrl:
                 'https://cdn.sanity.io/images/u66p1mxm/development/test.jpg',
             },
-          ],
+            ],
+          },
         }),
       });
     });
