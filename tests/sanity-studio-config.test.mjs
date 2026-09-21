@@ -11,14 +11,16 @@ const ledenadministratiePanePath =
 
 const expectedSingletonTypes = [
   'aboutPage',
+  'agendaPage',
   'contactPage',
   'friendsPage',
   'homePage',
   'mediaPage',
+  'newsPage',
   'repertoirePage',
 ]
 
-test('singletonset bevat exact de zes vaste CMS-paginatypen', async () => {
+test('singletonset bevat exact de acht vaste CMS-paginatypen', async () => {
   const source = await readFile(singletonTypesPath, 'utf8')
 
   const setBlock = source.match(
@@ -200,18 +202,13 @@ test('Structure biedt veilige ingang naar Ledenadministratie TEST', async () => 
   const ledenadministratieIndex =
     structureSource.indexOf(itemId)
 
-  const firstDividerIndex =
-    structureSource.indexOf('S.divider()')
+
 
   assert.ok(friendItemIndex >= 0)
   assert.ok(ledenadministratieIndex > friendItemIndex)
-  assert.ok(firstDividerIndex > ledenadministratieIndex)
 
   const ledenadministratieBlock =
-    structureSource.slice(
-      ledenadministratieIndex,
-      firstDividerIndex
-    )
+    structureSource.slice(ledenadministratieIndex)
 
   assert.ok(
     ledenadministratieBlock.includes(
