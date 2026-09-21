@@ -148,7 +148,7 @@ test.describe('Interactie- en navigatieaudit — Nieuws', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          result: articles,
+          result: {page: null, items: articles},
         }),
       });
     });
