@@ -57,18 +57,6 @@
     });
   }
 
-  try {
-    const profile = await window.authHelpers?.getCurrentProfile();
-
-    if (
-      profile?.status === 'active' &&
-      ['admin', 'contentmanager'].includes(profile.role)
-    ) {
-      const beheer = placeholder.querySelector('[data-leden-beheer]');
-      if (beheer) beheer.hidden = false;
-    }
-  } catch {}
-
   const exitToWebsite = placeholder.querySelector('[data-leden-exit]');
 
   exitToWebsite?.addEventListener('click', async (event) => {
@@ -92,4 +80,17 @@
       console.error('Uitloggen mislukt:', error);
     }
   });
+
+  try {
+    const profile = await window.authHelpers?.getCurrentProfile();
+
+    if (
+      profile?.status === 'active' &&
+      ['admin', 'contentmanager'].includes(profile.role)
+    ) {
+      const beheer = placeholder.querySelector('[data-leden-beheer]');
+      if (beheer) beheer.hidden = false;
+    }
+  } catch {}
+
 })();
