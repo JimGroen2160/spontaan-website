@@ -534,6 +534,11 @@
     article.dataset.month = item.monthKey;
     article.dataset.date = item.dateKey;
 
+    if (item.isFeatured) {
+      article.classList.add('agenda-event-card--featured');
+      article.dataset.featured = 'true';
+    }
+
     const dateBlock = document.createElement('div');
     dateBlock.className = 'agenda-event-card__date';
 
@@ -549,6 +554,14 @@
 
     const content = document.createElement('div');
     content.className = 'agenda-event-card__content';
+
+    if (item.isFeatured) {
+      const featuredLabel = document.createElement('span');
+      featuredLabel.className =
+        'agenda-event-card__featured-label';
+      featuredLabel.textContent = 'Uitgelicht';
+      content.appendChild(featuredLabel);
+    }
 
     const meta = document.createElement('p');
     meta.className = 'agenda-event-card__meta';
@@ -612,12 +625,29 @@
     return article;
   }
 
+  function sortEventsForDisplay(items) {
+    return [...items].sort((itemA, itemB) => {
+      const featuredDifference =
+        Number(itemB.isFeatured) -
+        Number(itemA.isFeatured);
+
+      if (featuredDifference !== 0) {
+        return featuredDifference;
+      }
+
+      return (
+        itemA.startDate.getTime() -
+        itemB.startDate.getTime()
+      );
+    });
+  }
+
   function renderEventCards(container, items) {
     container.textContent = '';
 
     const fragment = document.createDocumentFragment();
 
-    items.forEach((item) => {
+    sortEventsForDisplay(items).forEach((item) => {
       fragment.appendChild(createEventCard(item));
     });
 
@@ -731,7 +761,9 @@
   }
 
   function renderFilteredEvents(container, items) {
-    const filteredItems = getFilteredItems(items);
+    const filteredItems = sortEventsForDisplay(
+      getFilteredItems(items)
+    );
 
     container.textContent = '';
 

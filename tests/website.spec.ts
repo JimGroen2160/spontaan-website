@@ -813,6 +813,25 @@ test.describe('Agenda pagina', () => {
     const cards = page.locator('.agenda-event-card');
     await expect(cards).toHaveCount(5);
 
+    await expect(cards.nth(0).locator('h3')).toHaveText(
+      'Zomeravondconcert',
+    );
+    await expect(cards.nth(1).locator('h3')).toHaveText(
+      'Najaarsconcert',
+    );
+    await expect(
+      page.locator('.agenda-event-card--featured'),
+    ).toHaveCount(2);
+    await expect(
+      page.locator('.agenda-event-card__featured-label'),
+    ).toHaveCount(2);
+    await expect(
+      cards.nth(0).locator('.agenda-event-card__featured-label'),
+    ).toHaveText('Uitgelicht');
+    await expect(
+      cards.nth(1).locator('.agenda-event-card__featured-label'),
+    ).toHaveText('Uitgelicht');
+
     await expect(page.getByText('Zomeravondconcert')).toBeVisible();
     await expect(page.getByText('Open repetitieavond')).toBeVisible();
     await expect(page.getByText('Najaarsconcert')).toBeVisible();
