@@ -4476,3 +4476,33 @@ button.agenda-calendar__day {
     object-position: center;
   }
 }
+
+/* =========================================================
+   PUBLIC HERO VISUAL BOUNDARY FIX — 23-09-2026
+   - houdt de instelbare gloed binnen de homepage-hero
+   - maakt de Beeld-en-Geluid-golf onafhankelijk van de CMS-foto
+   ========================================================= */
+
+.hero[data-public-hero] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.media-hero[data-public-hero]::after {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: clamp(72px, 8vw, 112px);
+  background: var(--color-background);
+  content: "";
+  pointer-events: none;
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 46C230 88 454 96 690 62C930 27 1164 8 1440 54V120H0Z'/%3E%3C/svg%3E")
+    center bottom / 100% 100% no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 46C230 88 454 96 690 62C930 27 1164 8 1440 54V120H0Z'/%3E%3C/svg%3E")
+    center bottom / 100% 100% no-repeat;
+}
