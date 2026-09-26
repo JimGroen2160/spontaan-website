@@ -1060,3 +1060,166 @@ test.describe('Agenda pagina unhappy flows', () => {
     );
   });
 });
+test.describe('Agenda CMS beeld en hero contract', () => {
+  const sanityAgendaUrl = '**/data/query/development?query=*';
+
+  test('toont CMS-poster met juiste bron en alt-tekst en laat item zonder poster intact', async ({ page }) => {
+    await page.route(sanityAgendaUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            page: null,
+            items: [
+              {
+                title: 'Korenmiddag met poster',
+                startAt: '2026-10-17T14:00:00+02:00',
+                endAt: '2026-10-17T16:00:00+02:00',
+                eventType: 'optreden',
+                locationName: 'Dorpshuis',
+                city: 'Angerlo',
+                summary: 'Agenda-item met zichtbare poster.',
+                isFree: true,
+                isFeatured: true,
+                mainImageAlt: 'Poster van de korenmiddag',
+                imageUrl:
+                  'https://cdn.sanity.io/images/u66p1mxm/development/korenmiddag-poster.jpg',
+              },
+              {
+                title: 'Optreden zonder poster',
+                startAt: '2026-10-18T14:00:00+02:00',
+                endAt: '2026-10-18T16:00:00+02:00',
+                eventType: 'concert',
+                locationName: 'Kerkzaal',
+                city: 'Zevenaar',
+                summary: 'Agenda-item zonder afbeelding.',
+                isFree: false,
+                isFeatured: false,
+                mainImageAlt: '',
+                imageUrl: '',
+              },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.goto('/pages/agenda.html');
+    await waitForSharedLayout(page);
+
+    const cards = page.locator('.agenda-event-card');
+    await expect(cards).toHaveCount(2);
+
+    const posterCard = cards.filter({ hasText: 'Korenmiddag met poster' });
+    const poster = posterCard.locator('.agenda-event-card__image img');
+
+    await expect(poster).toHaveCount(1);
+    await expect(poster).toHaveAttribute(
+      'src',
+      'https://cdn.sanity.io/images/u66p1mxm/development/korenmiddag-poster.jpg',
+    );
+    await expect(poster).toHaveAttribute(
+      'alt',
+      'Poster van de korenmiddag',
+    );
+
+    const noPosterCard = cards.filter({ hasText: 'Optreden zonder poster' });
+    await expect(noPosterCard.locator('.agenda-event-card__image')).toHaveCount(0);
+  });
+
+  test('past Agenda hero titel, ondertitel, afbeelding en gloed uit dezelfde CMS-response toe', async ({ page }) => {
+    await page.route(sanityAgendaUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            page: {
+              heroTitle: 'Agenda testtitel',
+              heroSubtitle: 'Agenda testondertitel',
+              heroImageUrl:
+                'https://cdn.sanity.io/images/u66p1mxm/development/agenda-hero-test.jpg',
+              heroGlow: 'strong',
+            },
+            items: [],
+          },
+        }),
+      });
+    });
+
+    await page.goto('/pages/agenda.html');
+    await waitForSharedLayout(page);
+
+    const hero = page.locator('.agenda-hero');
+    await expect(hero.locator('[data-public-hero-title]')).toHaveText(
+      'Agenda testtitel',
+    );
+    await expect(hero.locator('[data-public-hero-subtitle]')).toHaveText(
+      'Agenda testondertitel',
+    );
+    await expect(hero).toHaveAttribute('data-hero-glow', 'strong');
+
+    const backgroundImage = await hero.evaluate((element) =>
+      getComputedStyle(element).backgroundImage
+    );
+
+    expect(backgroundImage).toContain('agenda-hero-test.jpg');
+  });
+
+  for (const viewport of [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'mobiel', width: 390, height: 844 },
+  ]) {
+    test(`CMS-poster veroorzaakt geen horizontale overflow op ${viewport.name}`, async ({ page }) => {
+      await page.setViewportSize({
+        width: viewport.width,
+        height: viewport.height,
+      });
+
+      await page.route(sanityAgendaUrl, async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            result: {
+              page: null,
+              items: [
+                {
+                  title: 'Responsieve postercontrole',
+                  startAt: '2026-10-19T14:00:00+02:00',
+                  endAt: '2026-10-19T16:00:00+02:00',
+                  eventType: 'optreden',
+                  locationName: 'Dorpshuis',
+                  city: 'Angerlo',
+                  summary: 'Controle van posterweergave op meerdere schermen.',
+                  isFree: true,
+                  isFeatured: false,
+                  mainImageAlt: 'Staande poster voor responsieve controle',
+                  imageUrl:
+                    'https://cdn.sanity.io/images/u66p1mxm/development/responsive-poster.jpg',
+                },
+              ],
+            },
+          }),
+        });
+      });
+
+      await page.goto('/pages/agenda.html');
+      await waitForSharedLayout(page);
+
+      await expect(
+        page.locator('.agenda-event-card__image img'),
+      ).toHaveCount(1);
+
+      const dimensions = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(
+        dimensions.clientWidth,
+      );
+    });
+  }
+});
