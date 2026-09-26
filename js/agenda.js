@@ -563,6 +563,20 @@
       content.appendChild(featuredLabel);
     }
 
+    if (item.imageUrl) {
+      const media = document.createElement('div');
+      media.className = 'agenda-event-card__image';
+
+      const image = document.createElement('img');
+      image.src = item.imageUrl;
+      image.alt = item.imageAlt;
+      image.loading = 'lazy';
+      image.decoding = 'async';
+
+      media.appendChild(image);
+      content.appendChild(media);
+    }
+
     const meta = document.createElement('p');
     meta.className = 'agenda-event-card__meta';
 

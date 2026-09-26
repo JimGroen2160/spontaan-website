@@ -3880,6 +3880,23 @@ main.agenda-page {
   padding: clamp(1.25rem, 3vw, 1.75rem);
 }
 
+.agenda-event-card__image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 1rem;
+  overflow: hidden;
+  border-radius: var(--radius-small);
+  background: rgba(111, 37, 174, 0.04);
+}
+
+.agenda-event-card__image img {
+  display: block;
+  width: 100%;
+  max-height: 32rem;
+  object-fit: contain;
+}
+
 .agenda-event-card__meta {
   display: flex;
   flex-wrap: wrap;
