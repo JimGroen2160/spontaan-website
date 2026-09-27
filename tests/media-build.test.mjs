@@ -67,6 +67,51 @@ test('renderer escapt CMS-tekst en bevat geen runtime-query', async () => {
   assert.match(html, /dataset\.mediaSource="fallback"/);
 });
 
+test('media renderer places CMS hero title and subtitle in visible hero content', async () => {
+  const template = await readFile(
+    'build/media.template.html',
+    'utf8',
+  )
+
+  const content = normalizeContent(
+    JSON.parse(
+      await readFile(
+        'data/media-fallback.json',
+        'utf8',
+      ),
+    ),
+  )
+
+  content.page.heroTitle = 'CMS visible hero title'
+  content.page.heroSubtitle = 'CMS visible hero subtitle'
+
+  const html = renderMediaPage(
+    template,
+    content,
+    'cms',
+  )
+
+  assert.match(
+    html,
+    /class="media-hero__content"/,
+  )
+
+  assert.match(
+    html,
+    /<h1 data-media-page-hero-title>CMS visible hero title<\/h1>/,
+  )
+
+  assert.match(
+    html,
+    /<p data-media-page-hero-subtitle>CMS visible hero subtitle<\/p>/,
+  )
+
+  assert.doesNotMatch(
+    html,
+    /media-hero__accessible-content/,
+  )
+})
+
 test('media renderer toont positie en totaal voor audio en video', async () => {
   const template = await readFile('build/media.template.html', 'utf8');
   const content = normalizeContent(

@@ -89,6 +89,29 @@ test('Nieuws gebruikt een request voor hero en nieuwsitems', async () => {
   assert.doesNotMatch(page, /data-public-hero-document/)
 })
 
+test('media hero title and subtitle are visible content', async () => {
+  const template = await read('build/media.template.html')
+  const mediaCss = await read('css/media.css')
+  const sharedCss = await read('css/style.css')
+
+  assert.match(template, /class="media-hero__content"/)
+  assert.match(template, /data-media-page-hero-title/)
+  assert.match(template, /data-media-page-hero-subtitle/)
+  assert.doesNotMatch(template, /media-hero__accessible-content/)
+
+  assert.match(mediaCss, /\.media-hero__content\s*\{/)
+  assert.match(mediaCss, /\.media-hero__content h1\s*\{/)
+  assert.match(
+    mediaCss,
+    /\.media-hero__content\s*>\s*p:last-child\s*\{/,
+  )
+
+  assert.match(
+    sharedCss,
+    /\.media-hero\[data-public-hero\]\s+\.media-hero__content/,
+  )
+})
+
 test('runtime-heros ondersteunen vier gloedstanden en fallback', async () => {
   const agenda = await read('js/agenda.js')
   const news = await read('js/nieuws.js')
