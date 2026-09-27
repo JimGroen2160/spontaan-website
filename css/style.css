@@ -4451,6 +4451,7 @@ button.agenda-calendar__day {
 .news-hero[data-public-hero] .news-hero__content,
 .contact-hero[data-public-hero] .contact-hero__content,
 .friends-hero[data-public-hero] .friends-hero__content,
+.media-hero[data-public-hero] .media-hero__content,
 .repertoire-hero[data-public-hero] .repertoire-hero__content {
   position: relative;
   z-index: 3;
