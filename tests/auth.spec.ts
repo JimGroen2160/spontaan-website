@@ -366,7 +366,17 @@ async function loginAsAdmin(page) {
   await page.fill('#password', VALID_PASSWORD!);
   await page.click('button[type="submit"]');
 
-  await expect(page).toHaveURL(/dashboard\.html/);
+  try {
+    await expect(page).toHaveURL(/dashboard\.html/);
+  } catch (error) {
+    const visibleLoginError =
+      (await page.locator('#error').textContent())?.trim() ||
+      '<geen zichtbare foutmelding>';
+
+    console.error(`LOGIN_DIAGNOSTIEK: ${visibleLoginError}`);
+    throw error;
+  }
+
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
