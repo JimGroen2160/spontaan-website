@@ -157,6 +157,29 @@ a {
   color: var(--color-primary);
   transform: translateY(-1px);
 }
+.main-nav .nav-menu .nav-disabled {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.5rem;
+  border-radius: var(--radius-pill);
+  color: #77717d;
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (max-width: 1180px) {
+  .main-nav .nav-menu .nav-disabled {
+    justify-content: center;
+    width: 100%;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+}
 
 .main-nav .nav-menu a.active,
 .main-nav .nav-menu a[aria-current="page"] {
