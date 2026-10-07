@@ -35,6 +35,9 @@ export default defineConfig({
   testIgnore: [
     '**/*.test.mjs',
     '**/media-fallback.spec.ts',
+    ...(process.env.SKIP_LIVE_SUPABASE_E2E === 'true'
+      ? ['**/auth.spec.ts', '**/rapportage.spec.ts']
+      : []),
   ],
 
   fullyParallel: true,
