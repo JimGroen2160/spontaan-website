@@ -234,7 +234,7 @@ test(
   },
 );
 test(
-  'Vercel blokkeert automatische Git-deployments vanaf main',
+  'Vercel staat automatische Git-deployments vanaf main toe',
   () => {
     const vercelConfig = JSON.parse(
       readFileSync(
@@ -245,7 +245,7 @@ test(
 
     assert.equal(
       vercelConfig.git?.deploymentEnabled?.main,
-      false,
+      true,
     );
   },
 );

@@ -28,7 +28,6 @@ const FRIENDS_TEMPLATE = resolve(ROOT, 'build/friends.template.html');
 const ABOUT_TEMPLATE = resolve(ROOT, 'build/about.template.html');
 const CONTACT_TEMPLATE = resolve(ROOT, 'build/contact.template.html');
 const HOME_TEMPLATE = resolve(ROOT, 'build/home.template.html');
-const MAINTENANCE_TEMPLATE = resolve(ROOT, 'build/maintenance.html');
 const FRIENDS_FALLBACK = resolve(ROOT, 'data/friends-fallback.json');
 const ABOUT_FALLBACK = resolve(ROOT, 'data/about-fallback.json');
 const CONTACT_FALLBACK = resolve(ROOT, 'data/contact-fallback.json');
@@ -2964,59 +2963,6 @@ async function prepareStrictCmsContent(
   }
 }
 
-export function productionMaintenanceEnabled(
-  environment = process.env,
-) {
-  return (
-    environment.VERCEL_ENV?.trim() === 'production'
-  );
-}
-
-async function buildProductionMaintenance() {
-  await rm(
-    OUTPUT,
-    {recursive: true, force: true},
-  );
-
-  await mkdir(
-    OUTPUT,
-    {recursive: true},
-  );
-
-  const maintenanceHtml = await readFile(
-    MAINTENANCE_TEMPLATE,
-    'utf8',
-  );
-
-  assertNoMojibake(
-    maintenanceHtml,
-    'Production maintenancepagina',
-  );
-
-  await Promise.all([
-    writeFile(
-      resolve(OUTPUT, 'index.html'),
-      maintenanceHtml,
-      'utf8',
-    ),
-    writeFile(
-      resolve(OUTPUT, '404.html'),
-      maintenanceHtml,
-      'utf8',
-    ),
-    writeFile(
-      resolve(OUTPUT, 'robots.txt'),
-      'User-agent: *\nDisallow: /\n',
-      'utf8',
-    ),
-  ]);
-
-  console.log(
-    'PRODUCTION MAINTENANCE BUILD: actief -> ' +
-    configuredOutputDirectory,
-  );
-}
-
 async function copyPublicSite() {
   await rm(OUTPUT, {recursive: true, force: true});
   await mkdir(OUTPUT, {recursive: true});
@@ -3037,11 +2983,6 @@ export async function build() {
   preparedCmsContent.clear();
 
   await checkProjectEncoding(ROOT);
-
-  if (productionMaintenanceEnabled()) {
-    await buildProductionMaintenance();
-    return;
-  }
 
   const runtimeConfig = resolveRuntimeConfig();
 
