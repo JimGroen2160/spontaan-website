@@ -734,10 +734,12 @@ test.describe('Over Spontaan pagina', () => {
     );
 
     await expect(page.getByRole('heading', { name: 'Maak kennis met Spontaan' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Neem contact op' })).toHaveAttribute(
-      'href',
-      './contact.html',
-    );
+    await expect(
+      page.getByRole('link', { name: 'Neem contact op', exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('link', { name: 'Bekijk de agenda', exact: true }),
+    ).toHaveAttribute('href', './agenda.html');
 
     const contentImages = page.locator('.about-media img');
     await expect(contentImages).toHaveCount(2);
