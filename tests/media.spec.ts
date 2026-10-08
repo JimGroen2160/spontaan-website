@@ -42,8 +42,9 @@ test.describe('Beeld en Geluid - gebouwde CMS-pagina', () => {
       'Video 1 van 2',
       'Video 2 van 2',
     ]);
-    await expect(page.locator('[data-media-page-primary-button]')).toHaveAttribute('href', '/pages/contact.html');
-    await expect(page.locator('[data-media-page-secondary-button]')).toHaveAttribute('href', '/pages/agenda.html');
+    await expect(page.locator('[data-media-page-primary-button]')).toHaveAttribute('href', '/pages/agenda.html');
+    await expect(page.locator('[data-media-page-primary-button]')).toHaveText('Bekijk de agenda');
+    await expect(page.locator('[data-media-page-secondary-button]')).toHaveCount(0);
     await expect(page.locator('html')).toHaveAttribute('data-media-source', 'cms');
     await expect(page.locator('#nav-placeholder .main-nav')).toHaveCount(1);
     await expect(page.locator('#footer-placeholder .site-footer')).toHaveCount(1);

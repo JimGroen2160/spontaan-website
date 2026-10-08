@@ -25,14 +25,22 @@ test.describe('Contactpagina zonder formulier', () => {
     await expect(page.locator('#formulier')).toHaveCount(0);
   });
 
-  test('biedt geldige directe e-mail- en telefoonacties', async ({page}) => {
-    const emailLinks = page.locator('.contact-hero a[href="mailto:spontaaninfo@gmail.com"], .contact-page a[href="mailto:spontaaninfo@gmail.com"]');
-    const phoneLinks = page.locator('.contact-hero a[href="tel:+31600000000"], .contact-page a[href="tel:+31600000000"]');
-    await expect(emailLinks.first()).toHaveText('Stuur een e-mail');
-    await expect(emailLinks).toHaveCount(6);
-    await expect(phoneLinks.first()).toHaveText('Bel ons');
-    await expect(phoneLinks).toHaveCount(2);
-    await expect(page.getByText('[DEMO] +31 6 0000 0000', {exact: true})).toBeVisible();
+  test('biedt geldige directe e-mail- en telefoonacties zonder hero-CTA?s', async ({page}) => {
+    await expect(
+      page.locator('.contact-hero a[href^="mailto:"], .contact-hero a[href^="tel:"]'),
+    ).toHaveCount(0);
+
+    const emailLink = page.locator(
+      '.contact-direct-card--email a[href="mailto:spontaaninfo@gmail.com"]',
+    );
+    const phoneLink = page.locator(
+      '.contact-direct-card--phone a[href="tel:+31600000000"]',
+    );
+
+    await expect(emailLink).toHaveCount(1);
+    await expect(emailLink).toHaveText('spontaaninfo@gmail.com');
+    await expect(phoneLink).toHaveCount(1);
+    await expect(phoneLink).toHaveText('[DEMO] +31 6 0000 0000');
     await expect(page.getByText(/nog niet gepubliceerd/i)).toHaveCount(0);
   });
 

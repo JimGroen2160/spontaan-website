@@ -10,10 +10,10 @@
       "ctaEyebrow": "Kom kennismaken",
       "ctaTitle": "Zing een keer met ons mee",
       "ctaText": "Neem contact op voor meer informatie.",
-      "primaryButtonLabel": "Neem contact op",
-      "primaryButtonLink": "/pages/contact.html",
-      "secondaryButtonLabel": "Bekijk de agenda",
-      "secondaryButtonLink": "/pages/agenda.html"
+      "primaryButtonLabel": "Bekijk de agenda",
+      "primaryButtonLink": "/pages/agenda.html",
+      "secondaryButtonLabel": "Neem contact op",
+      "secondaryButtonLink": "/pages/contact.html"
     },
     "photoAlbums": [
       {
