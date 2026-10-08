@@ -117,7 +117,7 @@ jobs:
 
       - name: Run Playwright tests
         id: playwright-tests
-        run: npx playwright test --reporter=line --max-failures=1
+        run: npx playwright test
 
       - name: Run media fallback browser tests
         id: media-fallback-tests
