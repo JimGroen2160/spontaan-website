@@ -2583,6 +2583,7 @@ function productionTestDataReasons(document) {
 export function assertNoProductionTestData(
   documents,
   runtimeConfig,
+  environment = process.env,
 ) {
   if (
     runtimeConfig?.environment !== 'production'
@@ -2636,15 +2637,32 @@ export function assertNoProductionTestData(
     return documents;
   }
 
+  const violationReport = violations
+    .map(
+      ({id, type, reasons}) =>
+        `- ${id} (${type}): ` +
+        reasons.join(', '),
+    )
+    .join('\n');
+
+  const allowProductionAcceptanceData =
+    environment
+      .ALLOW_PRODUCTION_ACCEPTANCE_DATA
+      ?.trim() === 'true';
+
+  if (allowProductionAcceptanceData) {
+    console.warn(
+      'Production-testdata-guard WAARSCHUWING: ' +
+      'tijdelijke acceptatiedata toegestaan:\n' +
+      violationReport,
+    );
+
+    return documents;
+  }
+
   throw new Error(
     'Production-testdata-guard geblokkeerd:\n' +
-      violations
-        .map(
-          ({id, type, reasons}) =>
-            `- ${id} (${type}): ` +
-            reasons.join(', '),
-        )
-        .join('\n'),
+      violationReport,
   );
 }
 
@@ -2792,6 +2810,7 @@ async function enforceProductionTestDataGuard(
   assertNoProductionTestData(
     documents,
     runtimeConfig,
+    environment,
   );
 }
 

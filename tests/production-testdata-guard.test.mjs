@@ -124,6 +124,58 @@ test(
 );
 
 test(
+  'Production staat tijdelijke acceptatiedata alleen toe met expliciete vlag',
+  () => {
+    assert.doesNotThrow(() =>
+      assertNoProductionTestData(
+        [
+          {
+            _id: 'friend-demo-aurello',
+            _type: 'friendItem',
+            isTestData: true,
+          },
+        ],
+        PRODUCTION,
+        {
+          ALLOW_PRODUCTION_ACCEPTANCE_DATA:
+            'true',
+        },
+      ),
+    );
+  },
+);
+
+test(
+  'Production accepteert geen alternatieve waarde voor acceptatiedatavlag',
+  () => {
+    for (const value of [
+      'TRUE',
+      '1',
+      'yes',
+      'false',
+    ]) {
+      assert.throws(
+        () =>
+          assertNoProductionTestData(
+            [
+              {
+                _id: 'test-photoAlbum-01',
+                _type: 'photoAlbum',
+              },
+            ],
+            PRODUCTION,
+            {
+              ALLOW_PRODUCTION_ACCEPTANCE_DATA:
+                value,
+            },
+          ),
+        /Production-testdata-guard geblokkeerd/,
+      );
+    }
+  },
+);
+
+test(
   'Development blijft expliciet test- en demodata toestaan',
   () => {
     assert.doesNotThrow(() =>
