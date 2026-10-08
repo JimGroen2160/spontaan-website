@@ -14,7 +14,10 @@ test.describe('Muziek en repertoire', () => {
     await expect(page.locator('.repertoire-audio-card')).toHaveCount(3);
     await expect(page.locator('.repertoire-process li')).toHaveCount(4);
     await expect(page.getByText('[TEST] The Rose', {exact: true}).first()).toBeVisible();
-    await expect(page.locator('.nav-menu a[aria-current="page"]')).toHaveText('Muziek en repertoire');
+    const disabledRepertoireNav = page.locator('.nav-menu .nav-disabled', {hasText: /^Muziek en repertoire$/});
+    await expect(disabledRepertoireNav).toHaveCount(1);
+    await expect(disabledRepertoireNav).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('.nav-menu a', {hasText: /^Muziek en repertoire$/})).toHaveCount(0);
     await expect(page.locator('html')).toHaveAttribute('data-repertoire-source', 'cms');
 
     const colors = await page.locator('.repertoire-cta').evaluate((element) => {

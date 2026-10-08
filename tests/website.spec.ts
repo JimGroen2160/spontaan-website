@@ -135,32 +135,32 @@ test.describe('Website basis en huisstijl', () => {
 
     const hamburger = page.locator('#nav-placeholder .hamburger');
     const navMenu = page.locator('#nav-placeholder .nav-menu');
-    const navLinks = navMenu.locator('a');
+    const navItems = navMenu.locator('a, .nav-disabled');
 
     await expect(hamburger).toBeHidden();
     await expect(navMenu).toBeVisible();
-    await expect(navLinks).toHaveCount(9);
+    await expect(navItems).toHaveCount(9);
 
-    for (const link of await navLinks.all()) {
-      await expect(link).toBeVisible();
+    for (const item of await navItems.all()) {
+      await expect(item).toBeVisible();
     }
 
-    const linkRows = await navLinks.evaluateAll((links) => links.map((link) => {
-      const rectangle = link.getBoundingClientRect();
+    const itemRows = await navItems.evaluateAll((items) => items.map((item) => {
+      const rectangle = item.getBoundingClientRect();
       return {
         top: Math.round(rectangle.top),
         centerY: Math.round(rectangle.top + rectangle.height / 2),
       };
     }));
 
-    expect(new Set(linkRows.map((position) => position.centerY)).size).toBe(1);
+    expect(new Set(itemRows.map((position) => position.centerY)).size).toBe(1);
 
     await page.setViewportSize({ width: 1100, height: 900 });
 
     await expect(hamburger).toBeVisible();
     await expect(hamburger).toHaveAttribute('aria-expanded', 'false');
     await expect(navMenu).toBeHidden();
-    await expect(navLinks.first()).toBeHidden();
+    await expect(navItems.first()).toBeHidden();
   });
 
   test('publieke en ledenpagina’s hebben geen horizontale overflow op desktop, tablet en mobiel', async ({ page }) => {
@@ -201,7 +201,7 @@ test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
     await waitForSharedLayout(page);
   });
 
-  test('nieuwsbericht markeert Nieuws als actieve hoofdnavigatie', async ({ page }) => {
+  test('nieuwsbericht houdt Nieuws zichtbaar maar uitgeschakeld in de hoofdnavigatie', async ({ page }) => {
 
     await page.goto(
       '/pages/nieuwsbericht.html?slug=spontaan-zingt-tijdens-een-sfeervolle-zomeravond',
@@ -209,22 +209,23 @@ test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
 
     await waitForSharedLayout(page);
 
-    const newsLink = page.locator(
-      '#nav-placeholder .nav-menu a',
+    const disabledNewsNav = page.locator(
+      '#nav-placeholder .nav-menu .nav-disabled',
       {hasText: /^Nieuws$/},
     );
 
-    await expect(newsLink).toHaveAttribute(
-      'aria-current',
-      'page',
+    await expect(disabledNewsNav).toHaveCount(1);
+    await expect(disabledNewsNav).toHaveAttribute(
+      'aria-disabled',
+      'true',
     );
-    await expect(newsLink).toHaveClass(/active/);
 
     await expect(
       page.locator(
-        '#nav-placeholder .nav-menu a[aria-current="page"]',
+        '#nav-placeholder .nav-menu a',
+        {hasText: /^Nieuws$/},
       ),
-    ).toHaveCount(1);
+    ).toHaveCount(0);
   });
 
   test('toont zes nieuwskaarten met afzonderlijke afbeeldingen', async ({ page }) => {
