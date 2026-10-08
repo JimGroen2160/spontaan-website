@@ -367,7 +367,6 @@ async function loginAsAdmin(page) {
   await page.click('button[type="submit"]');
 
   await expect(page).toHaveURL(/dashboard\.html/);
-
   await expect(page.locator('#status')).toContainText('Je bent succesvol ingelogd');
 }
 
