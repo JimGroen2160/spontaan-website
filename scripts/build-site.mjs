@@ -1663,10 +1663,6 @@ export function renderHomePage(
       '<p class="homepage-actions" ' +
       'data-homepage-visit-cta>' +
       renderHomeButton(
-        content.visitPrimaryButtonLabel,
-        content.visitPrimaryButtonLink,
-      ) +
-      renderHomeButton(
         content.visitSecondaryButtonLabel,
         content.visitSecondaryButtonLink,
         true,
@@ -2140,7 +2136,6 @@ export function renderMediaPage(template, content, source) {
   const textFields = [['hero-title', page.heroTitle], ['hero-subtitle', page.heroSubtitle], ['intro-title', page.introTitle], ['intro-text', page.introText], ['cta-eyebrow', page.ctaEyebrow], ['cta-title', page.ctaTitle], ['cta-text', page.ctaText]];
   for (const [name, value] of textFields) html = replaceRequired(html, new RegExp(`(<[^>]+data-media-page-${name}[^>]*>)[\\s\\S]*?(</[^>]+>)`), `$1${escapeHtml(value)}$2`, name);
   html = replaceLink(html, 'data-media-page-primary-button', page.primaryButtonLink, page.primaryButtonLabel, 'primaire CTA');
-  html = replaceLink(html, 'data-media-page-secondary-button', page.secondaryButtonLink, page.secondaryButtonLabel, 'secundaire CTA');
   html = replaceRequired(html, /(<article\s+class="media-highlight-card"\s+data-media-featured[^>]*>)[\s\S]*?(<\/article>)/, `$1${featured(selected)}$2`, 'uitgelicht');
   html = replaceRequired(html, /(<div class="media-photo-grid" data-media-photo-grid>)[\s\S]*?(<\/div>\s*)(?=<\/div>\s*<\/section>)/, `$1${photoTiles(content.photoAlbums)}$2`, 'fotogrid');
   html = replaceRequired(html, /(<div class="media-audio-grid" data-media-audio-list>)[\s\S]*?(<\/div>\s*<\/section>\s*<section\s+class="media-strip media-strip--videos")/, `$1${audioTiles(content.audioItems)}$2`, 'audiolijst');
@@ -2202,7 +2197,6 @@ export function renderAboutPage(template, content, source) {
     ? `<figcaption data-about-quote-attribution>${escapeHtml(content.quoteAttribution)}</figcaption>`
     : '<figcaption data-about-quote-attribution hidden></figcaption>';
   html = replaceRequired(html, /<figcaption data-about-quote-attribution hidden><\/figcaption>/, attribution, 'Over citaatbron');
-  html = replaceLink(html, 'data-about-primary-button', content.primaryButtonLink, content.primaryButtonLabel, 'primaire Over-CTA');
   html = replaceLink(html, 'data-about-secondary-button', content.secondaryButtonLink, content.secondaryButtonLabel, 'secundaire Over-CTA');
   html = replaceRequired(html, /<main class="about-page">/, `<main class="about-page" data-content-source="${source}">`, 'Over contentbron');
   return replaceRequired(html, /<script data-about-source-marker><\/script>/, `<script>document.documentElement.dataset.aboutSource=${JSON.stringify(source)};</script>`, 'Over bronmarkering');
@@ -2293,19 +2287,11 @@ export function renderContactPage(template, content, source) {
   }
   const emailLink = `mailto:${content.emailAddress}`;
   const phoneHref = telephoneLink(content.phoneNumber);
-  const heroActions = [
-    content.emailAddress && content.emailCtaLabel
-      ? `<a class="btn" href="${escapeHtml(emailLink)}">${escapeHtml(content.emailCtaLabel)}</a>`
-      : '',
-    phoneHref && content.phoneCtaLabel
-      ? `<a class="btn btn--secondary" href="${escapeHtml(phoneHref)}">${escapeHtml(content.phoneCtaLabel)}</a>`
-      : '',
-  ].filter(Boolean).join('');
   html = replaceRequired(
     html,
     /<div class="contact-actions" data-contact-hero-actions><\/div>/,
-    heroActions ? `<div class="contact-actions" data-contact-hero-actions>${heroActions}</div>` : '',
-    'Contact hero-CTA’s',
+    '',
+    'Contact hero-CTAs',
   );
   html = replaceRequired(html, /<div class="contact-topic-grid" data-contact-topics><\/div>/, `<div class="contact-topic-grid" data-contact-topics>${renderContactTopics(content.contactTopics)}</div>`, 'Contactonderwerpen');
   html = replaceRequired(html, /<ul class="contact-points" data-contact-welcome-points><\/ul>/, `<ul class="contact-points" data-contact-welcome-points>${renderContactPoints(content.welcomePoints)}</ul>`, 'Contact welkomstkernpunten');
