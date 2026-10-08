@@ -74,7 +74,8 @@ test('renderer escapt tekst en bouwt SEO, afbeeldingen, CTA en bronmarkering', a
   assert.match(html, /Over Spontaan \| Zanggroep Spontaan/)
   assert.match(html, /over-intro-mannenkoor\.jpg/)
   assert.match(html, /over-sfeer-mannenkoor\.jpg/)
-  assert.match(html, /Neem contact op/)
+  assert.doesNotMatch(html, /Neem contact op/)
+  assert.match(html, /Bekijk de agenda/)
   assert.doesNotMatch(html, /api\.sanity\.io/)
 })
 
