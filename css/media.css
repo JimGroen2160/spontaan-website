@@ -425,6 +425,12 @@
   text-transform: uppercase;
 }
 
+.media-page--wireframe .media-wireframe-cta__content > p:not(.media-wireframe-cta__eyebrow) {
+  color: var(--color-text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
 .media-page--wireframe .media-wireframe-cta h2 {
   margin: 0;
   color: var(--color-primary-dark);
