@@ -4547,3 +4547,59 @@ button.agenda-calendar__day {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath fill='%23000' d='M0 46C230 88 454 96 690 62C930 27 1164 8 1440 54V120H0Z'/%3E%3C/svg%3E")
     center bottom / 100% 100% no-repeat;
 }
+
+/* =========================================================
+   CMS AFBEELDING-GLOED
+   Decoratieve laag, los van functionele leesbaarheidslagen.
+========================================================= */
+
+[data-image-glow] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-image-glow]::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  content: "";
+  pointer-events: none;
+}
+
+[data-image-glow="none"]::after {
+  background: transparent;
+}
+
+[data-image-glow="light"]::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(79, 23, 127, 0.39),
+      rgba(217, 13, 135, 0.27)
+    );
+}
+
+[data-image-glow="normal"]::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(79, 23, 127, 0.72),
+      rgba(217, 13, 135, 0.50)
+    );
+}
+
+[data-image-glow="strong"]::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(79, 23, 127, 0.95),
+      rgba(217, 13, 135, 0.73)
+    );
+}
+
+.news-card__image[data-image-glow]
+.news-card__category {
+  z-index: 2;
+}

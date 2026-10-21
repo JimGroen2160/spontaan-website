@@ -1051,3 +1051,33 @@
     height: 100%;
   }
 }
+
+/* CMS-afbeelding-gloed: functionele overlays blijven erboven. */
+
+.media-page--wireframe
+.media-photo-tile[data-image-glow]
+.media-photo-tile__content {
+  z-index: 2;
+}
+
+.media-page--wireframe
+.media-photo-tile[data-image-glow]
+.media-photo-tile__button {
+  z-index: 3;
+}
+
+.media-page--wireframe
+.media-video-tile__preview[data-image-glow]
+.media-video-tile__play-icon {
+  z-index: 2;
+}
+
+.media-gallery__image-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #1f1630;
+}
+
+.media-gallery__image-wrap[data-image-glow] {
+  isolation: isolate;
+}

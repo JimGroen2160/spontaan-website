@@ -1,4 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 const reference = defineArrayMember({type: 'reference', to: [{type: 'repertoireItem'}]})
 
@@ -36,6 +37,7 @@ export const repertoirePage = defineType({
 defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', to: [{type: 'repertoireItem'}], validation: (rule) => rule.required()}),
     defineField({name: 'featuredImage', title: 'Afbeelding uitgelicht lied', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'featuredImageAlt', title: 'Alt-tekst uitgelichte afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
+    imageGlowField({name: 'featuredImageGlow'}),
     defineField({name: 'worldsTitle', title: 'Titel muzikale werelden', type: 'string', validation: (rule) => rule.required().max(120)}),
     defineField({name: 'worldsIntro', title: 'Inleiding muzikale werelden', type: 'text', rows: 2, validation: (rule) => rule.required().max(300)}),
     defineField({
@@ -48,6 +50,7 @@ defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', 
           defineField({name: 'description', title: 'Beschrijving', type: 'text', rows: 2, validation: (rule) => rule.required().max(220)}),
           defineField({name: 'image', title: 'Afbeelding', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
           defineField({name: 'imageAlt', title: 'Alt-tekst afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
+          imageGlowField(),
           defineField({name: 'items', title: 'Liederen', type: 'array', of: [reference], validation: (rule) => rule.required().min(1)}),
         ],
       })],
@@ -71,6 +74,7 @@ defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', 
     defineField({name: 'quoteAttribution', title: 'Bron citaat', type: 'string', validation: (rule) => rule.required().max(100)}),
     defineField({name: 'quoteImage', title: 'Afbeelding bij citaat', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'quoteImageAlt', title: 'Alt-tekst citaatafbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
+    imageGlowField({name: 'quoteImageGlow'}),
     defineField({name: 'ctaEyebrow', title: 'Bovenregel CTA', type: 'string', validation: (rule) => rule.required().max(80)}),
     defineField({name: 'ctaTitle', title: 'Titel CTA', type: 'string', validation: (rule) => rule.required().max(120)}),
     defineField({name: 'ctaText', title: 'Tekst CTA', type: 'text', rows: 2, validation: (rule) => rule.required().max(280)}),

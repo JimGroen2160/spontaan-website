@@ -73,9 +73,23 @@
     category,
     summary,
     mainImageAlt,
+    mainImageGlow,
     "imageUrl": mainImage.asset->url,
     body
   }`;
+
+  const allowedImageGlow = new Set([
+    'none',
+    'light',
+    'normal',
+    'strong',
+  ]);
+
+  function normalizeImageGlow(value) {
+    return allowedImageGlow.has(value)
+      ? value
+      : 'none';
+  }
 
   const categoryLabels = {
     optredens: 'Optredens',
@@ -269,6 +283,8 @@
         ? item.mainImageAlt.trim()
         : '';
     const imageSrc = getSafeImageUrl(item.imageUrl);
+    const imageGlow =
+      normalizeImageGlow(item.mainImageGlow);
     const publishedDate = getValidDate(item.publishedAt);
     const body = getPortableTextParagraphs(item.body);
     const category = getCategoryLabel(item.category);
@@ -292,6 +308,7 @@
       summary,
       imageAlt,
       imageSrc,
+      imageGlow,
       publishedAt: publishedDate.toISOString(),
       body,
     };
@@ -364,6 +381,7 @@
     const date = getValidDate(item.publishedAt);
     const time = document.querySelector('[data-news-detail-date]');
     const image = document.querySelector('[data-news-detail-image]');
+    const media = document.querySelector('.news-detail__media');
 
     document.title = `${title} | Zanggroep Spontaan`;
 
@@ -379,6 +397,10 @@
     if (image) {
       image.src = item.imageSrc;
       image.alt = item.imageAlt;
+    }
+
+    if (media) {
+      media.dataset.imageGlow = item.imageGlow;
     }
 
     renderBody(item.body);

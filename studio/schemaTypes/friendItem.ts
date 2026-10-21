@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const friendItem = defineType({
   name: 'friendItem',
@@ -76,6 +77,8 @@ export const friendItem = defineType({
         'Beschrijf de afbeelding kort en duidelijk voor bezoekers die deze niet kunnen zien.',
       validation: (rule) => rule.required().max(160),
     }),
+
+    imageGlowField(),
 
     defineField({
       name: 'description',

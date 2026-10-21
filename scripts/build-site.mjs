@@ -159,16 +159,21 @@ export const MEDIA_QUERY = `{
     secondaryButtonLabel, secondaryButtonLink
   },
   "photoAlbums": *[_type == "photoAlbum" && isVisible == true] | order(eventDate desc) {
-    _id, title, eventDate, summary, isFeatured, coverImageAlt,
+    _id, title, eventDate, summary, isFeatured,
+    coverImageAlt, coverImageGlow,
     "coverImageUrl": coverImage.asset->url,
-    photos[] {alt, caption, "imageUrl": image.asset->url}
+    photos[] {
+      alt, caption, imageGlow,
+      "imageUrl": image.asset->url
+    }
   },
   "audioItems": *[_type == "audioItem" && isVisible == true] | order(recordedAt desc) {
     _id, title, recordedAt, summary, isFeatured,
     "audioUrl": audioFile.asset->url
   },
   "videoItems": *[_type == "videoItem" && isVisible == true] | order(recordedAt desc) {
-    _id, title, recordedAt, summary, isFeatured, youtubeUrl, thumbnailAlt,
+    _id, title, recordedAt, summary, isFeatured,
+    youtubeUrl, thumbnailAlt, thumbnailGlow,
     "thumbnailUrl": thumbnail.asset->url
   }
 }`;
@@ -183,13 +188,14 @@ export const FRIENDS_QUERY = `{
     supportItems[] {title, text},
     friendsTitle, friendsIntro,
     ctaTitle, ctaText, ctaBenefits,
-    ctaImageAlt,
+    ctaImageAlt, ctaImageGlow,
     "ctaImageUrl": ctaImage.asset->url,
     ctaPrimaryButtonLabel, ctaPrimaryButtonLink,
     ctaSecondaryButtonLabel, ctaSecondaryButtonLink
   },
   "friends": *[_type == "friendItem" && isVisible == true] | order(sortOrder asc, publicName asc) {
-    _id, publicName, friendType, imageDisplay, imageAlt,
+    _id, publicName, friendType, imageDisplay,
+    imageAlt, imageGlow,
     description, website, isFeatured, sortOrder,
     publishFrom, publishUntil,
     "imageUrl": image.asset->url
@@ -200,11 +206,13 @@ export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0
   seoTitle, seoDescription,
   heroTitle, heroSubtitle, heroImageAlt, heroGlow, "heroImageUrl": heroImage.asset->url,
   introEyebrow, introTitle, introText,
-  introImageAlt, "introImageUrl": introImage.asset->url,
+  introImageAlt, introImageGlow,
+  "introImageUrl": introImage.asset->url,
   timelineEyebrow, timelineTitle, timelineIntro, timelineItems[] {title, text},
   valuesEyebrow, valuesTitle, valuesItems[] {title, text},
   atmosphereEyebrow, atmosphereTitle, atmosphereText,
-  atmosphereImageAlt, "atmosphereImageUrl": atmosphereImage.asset->url,
+  atmosphereImageAlt, atmosphereImageGlow,
+  "atmosphereImageUrl": atmosphereImage.asset->url,
   quote, quoteAttribution,
   ctaEyebrow, ctaTitle, ctaText,
   primaryButtonLabel, primaryButtonLink,
@@ -217,7 +225,8 @@ export const CONTACT_QUERY = `*[_id == "contactPage-main" && _type == "contactPa
   "heroImageUrl": heroImage.asset->url,
   emailCtaLabel, phoneCtaLabel,
   contactTopics[] {title, text, icon, linkLabel, linkTarget},
-  welcomeTitle, welcomeText, welcomeImageAlt,
+  welcomeTitle, welcomeText,
+  welcomeImageAlt, welcomeImageGlow,
   "welcomeImageUrl": welcomeImage.asset->url,
   welcomePoints,
   directContactTitle, directContactText,
@@ -237,15 +246,17 @@ export const REPERTOIRE_QUERY = `{
     "featuredItemId": featuredItem->_id,
     worldsTitle, worldsIntro,
     worlds[] {
-      number, title, description, imageAlt,
+      number, title, description,
+      imageAlt, imageGlow,
       "imageUrl": image.asset->url,
       "itemIds": items[]->_id
     },
     processTitle, processSteps[] {title, description},
     selectionTitle, "selectionItemIds": selectionItems[]->_id,
-    quote, quoteAttribution, quoteImageAlt,
+    quote, quoteAttribution,
+    quoteImageAlt, quoteImageGlow,
     "quoteImageUrl": quoteImage.asset->url,
-    featuredImageAlt,
+    featuredImageAlt, featuredImageGlow,
     "featuredImageUrl": featuredImage.asset->url,
     ctaEyebrow, ctaTitle, ctaText,
     primaryButtonLabel, primaryButtonLink,
@@ -268,12 +279,16 @@ const HERO_GLOW_VALUES = new Set([
   'strong',
 ]);
 
-function normalizeHeroGlow(value) {
+function normalizeImageGlow(value, fallback = 'none') {
   const candidate = text(value, 16);
 
   return HERO_GLOW_VALUES.has(candidate)
     ? candidate
-    : 'normal';
+    : fallback;
+}
+
+function normalizeHeroGlow(value) {
+  return normalizeImageGlow(value, 'normal');
 }
 
 function safeUrl(value, kinds) {
@@ -352,7 +367,12 @@ function normalizePage(value = {}) {
 function normalizePhoto(value) {
   const imageUrl = safeUrl(value?.imageUrl, ['image', 'local']);
   if (!imageUrl) return null;
-  return {imageUrl, alt: text(value.alt, 160), caption: text(value.caption, 240)};
+  return {
+    imageUrl,
+    alt: text(value.alt, 160),
+    caption: text(value.caption, 240),
+    imageGlow: normalizeImageGlow(value.imageGlow),
+  };
 }
 
 function normalizeAlbum(value) {
@@ -369,6 +389,8 @@ function normalizeAlbum(value) {
     isFeatured: value.isFeatured === true,
     coverImageUrl,
     coverImageAlt: text(value.coverImageAlt, 160),
+    coverImageGlow:
+      normalizeImageGlow(value.coverImageGlow),
     photos: Array.isArray(value.photos) ? value.photos.map(normalizePhoto).filter(Boolean) : [],
   };
 }
@@ -387,7 +409,18 @@ function normalizeVideo(value) {
   const thumbnailUrl = safeUrl(value?.thumbnailUrl, ['image', 'local']);
   const idFromUrl = text(value?.youtubeId, 11) || youtubeId(value?.youtubeUrl);
   if (!id || !title || !thumbnailUrl || !/^[\w-]{11}$/.test(idFromUrl)) return null;
-  return {id, type: 'video', title, summary: text(value.summary, 280), date: text(value.recordedAt ?? value.date, 10), isFeatured: value.isFeatured === true, youtubeId: idFromUrl, thumbnailUrl, thumbnailAlt: text(value.thumbnailAlt, 160)};
+  return {
+    id,
+    type: 'video',
+    title,
+    summary: text(value.summary, 280),
+    date: text(value.recordedAt ?? value.date, 10),
+    isFeatured: value.isFeatured === true,
+    youtubeId: idFromUrl,
+    thumbnailUrl,
+    thumbnailAlt: text(value.thumbnailAlt, 160),
+    thumbnailGlow: normalizeImageGlow(value.thumbnailGlow),
+  };
 }
 
 export function normalizeContent(value = {}) {
@@ -538,6 +571,7 @@ function normalizeFriendItem(value, now) {
     imageDisplay,
     imageUrl,
     imageAlt,
+    imageGlow: normalizeImageGlow(value?.imageGlow),
     description: text(value?.description, 320),
     website: safeLink(value?.website),
     isFeatured: value?.isFeatured === true,
@@ -615,6 +649,8 @@ export function normalizeFriendsContent(
         ['image', 'local'],
       ),
       ctaImageAlt: text(page.ctaImageAlt, 160),
+      ctaImageGlow:
+        normalizeImageGlow(page.ctaImageGlow),
       ctaPrimaryButtonLabel: text(
         page.ctaPrimaryButtonLabel,
         48,
@@ -739,6 +775,8 @@ export function normalizeAboutContent(value = {}) {
     introText: normalizeParagraphs(value.introText),
     introImageUrl: safeUrl(value.introImageUrl, ['image', 'local']),
     introImageAlt: text(value.introImageAlt, 160),
+    introImageGlow:
+      normalizeImageGlow(value.introImageGlow),
     timelineEyebrow: text(value.timelineEyebrow, 80),
     timelineTitle: text(value.timelineTitle, 120),
     timelineIntro: text(value.timelineIntro, 300),
@@ -751,6 +789,8 @@ export function normalizeAboutContent(value = {}) {
     atmosphereText: normalizeParagraphs(value.atmosphereText),
     atmosphereImageUrl: safeUrl(value.atmosphereImageUrl, ['image', 'local']),
     atmosphereImageAlt: text(value.atmosphereImageAlt, 160),
+    atmosphereImageGlow:
+      normalizeImageGlow(value.atmosphereImageGlow),
     quote: text(value.quote, 280),
     quoteAttribution: text(value.quoteAttribution, 100),
     ctaEyebrow: text(value.ctaEyebrow, 80),
@@ -845,6 +885,8 @@ export function normalizeContactContent(value = {}) {
     welcomeText: text(value.welcomeText, 500),
     welcomeImageUrl: safeUrl(value.welcomeImageUrl, ['image', 'local']),
     welcomeImageAlt: text(value.welcomeImageAlt, 160),
+    welcomeImageGlow:
+      normalizeImageGlow(value.welcomeImageGlow),
     welcomePoints: Array.isArray(value.welcomePoints)
       ? value.welcomePoints.map((item) => text(item, 160)).filter(Boolean).slice(0, 6)
       : [],
@@ -946,6 +988,8 @@ function normalizeRepertoireWorld(value, index) {
     imageAlt:
       text(value?.imageAlt, 160) ||
       defaults.imageAlt,
+    imageGlow:
+      normalizeImageGlow(value?.imageGlow),
     itemIds: Array.isArray(value?.itemIds)
       ? value.itemIds.map((id) => text(id, 120)).filter(Boolean)
       : [],
@@ -973,6 +1017,8 @@ export function normalizeRepertoireContent(value = {}) {
       featuredImageAlt:
         text(page.featuredImageAlt, 160) ||
         REPERTOIRE_IMAGE_DEFAULTS.featuredImageAlt,
+      featuredImageGlow:
+        normalizeImageGlow(page.featuredImageGlow),
       worldsTitle: text(page.worldsTitle, 120),
       worldsIntro: text(page.worldsIntro, 300),
       worlds: Array.isArray(page.worlds) ? page.worlds.map(normalizeRepertoireWorld) : [],
@@ -988,6 +1034,8 @@ export function normalizeRepertoireContent(value = {}) {
       quoteImageAlt:
         text(page.quoteImageAlt, 160) ||
         REPERTOIRE_IMAGE_DEFAULTS.quoteImageAlt,
+      quoteImageGlow:
+        normalizeImageGlow(page.quoteImageGlow),
       ctaEyebrow: text(page.ctaEyebrow, 80),
       ctaTitle: text(page.ctaTitle, 120),
       ctaText: text(page.ctaText, 280),
@@ -1038,6 +1086,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
   quickLinks[] {
     title,
     text,
+    imageGlow,
     "imageUrl": image.asset->url,
     buttonLabel,
     buttonLink
@@ -1059,6 +1108,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     isTestData,
     summary,
     mainImageAlt,
+    mainImageGlow,
     "imageUrl": mainImage.asset->url
   },
   "automaticFeaturedNewsItems": *[
@@ -1077,6 +1127,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     isTestData,
     summary,
     mainImageAlt,
+    mainImageGlow,
     "imageUrl": mainImage.asset->url
   },
   visitTitle,
@@ -1131,6 +1182,8 @@ function normalizeHomeQuickLinks(value) {
       title: text(item?.title, 80),
       text: text(item?.text, 240),
       imageUrl: homeProjectPath(item?.imageUrl, 'image'),
+      imageGlow:
+        normalizeImageGlow(item?.imageGlow, 'normal'),
       mediaClass: text(item?.mediaClass, 40)
         .toLowerCase()
         .replace(/[^a-z0-9-]/g, ''),
@@ -1156,6 +1209,8 @@ function normalizeHomeNewsItem(value, allowDemo = false) {
   const summary = text(value.summary, 240);
   const imageUrl = homeProjectPath(value.imageUrl, 'image');
   const imageAlt = text(value.mainImageAlt, 160);
+  const imageGlow =
+    normalizeImageGlow(value.mainImageGlow);
   const publishedAt = text(value.publishedAt, 64);
 
   if (
@@ -1192,6 +1247,7 @@ function normalizeHomeNewsItem(value, allowDemo = false) {
     summary,
     imageUrl,
     imageAlt,
+    imageGlow,
     publishedAt: date.toISOString(),
     buttonLink,
   };
@@ -1384,10 +1440,15 @@ function renderHomeQuickLinks(items) {
       const imageStyle = item.imageUrl
         ? (
             ' style="background-image: ' +
-            'linear-gradient(135deg, ' +
-            'rgba(79, 23, 127, 0.72), ' +
-            'rgba(217, 13, 135, 0.5)), ' +
             `url(&quot;${escapeHtml(item.imageUrl)}&quot;)"`
+          )
+        : '';
+
+      const imageGlowAttribute = item.imageUrl
+        ? (
+            ' data-image-glow="' +
+            escapeHtml(item.imageGlow) +
+            '"'
           )
         : '';
 
@@ -1395,6 +1456,7 @@ function renderHomeQuickLinks(items) {
         '<article class="homepage-card">' +
         `<div class="homepage-card__media ` +
         `homepage-card__media--${escapeHtml(mediaModifier)}"` +
+        imageGlowAttribute +
         `${imageStyle} aria-hidden="true"></div>` +
         '<div class="homepage-card__content">' +
         `<h3>${escapeHtml(item.title)}</h3>` +
@@ -1449,7 +1511,7 @@ function renderHomeFeaturedNews(content) {
     .map(
       (item) =>
         '<article class="homepage-news-card">' +
-        '<div class="homepage-news-card__media">' +
+        `<div class="homepage-news-card__media" data-image-glow="${escapeHtml(item.imageGlow)}">` +
         `<img src="${escapeHtml(item.imageUrl)}" ` +
         `alt="${escapeHtml(item.imageAlt)}" ` +
         'loading="lazy" decoding="async">' +
@@ -1764,20 +1826,44 @@ function image(src, alt, width, height, loading = 'lazy', extra = '') {
 
 function featured(item) {
   if (!item) return '<p class="media-empty-state">Er is momenteel geen uitgelicht item beschikbaar.</p>';
-  const source = item.type === 'photo' ? item.coverImageUrl : item.thumbnailUrl;
-  const alt = item.type === 'photo' ? item.coverImageAlt : item.thumbnailAlt;
-  const visual = source ? image(source, alt || item.title, 480, 260, 'eager') : '<span class="media-featured__audio-icon" aria-hidden="true"></span>';
+  const source = item.type === 'photo'
+    ? item.coverImageUrl
+    : item.thumbnailUrl;
+
+  const alt = item.type === 'photo'
+    ? item.coverImageAlt
+    : item.thumbnailAlt;
+
+  const glow = item.type === 'photo'
+    ? item.coverImageGlow
+    : item.type === 'video'
+      ? item.thumbnailGlow
+      : 'none';
+
+  const glowAttribute = source
+    ? ` data-image-glow="${escapeHtml(glow)}"`
+    : '';
+
+  const visual = source
+    ? image(
+        source,
+        alt || item.title,
+        480,
+        260,
+        'eager',
+      )
+    : '<span class="media-featured__audio-icon" aria-hidden="true"></span>';
   const action = item.type === 'photo'
     ? `<button class="media-highlight-card__link" type="button" data-media-album-button data-media-album-id="${escapeHtml(item.id)}">Bekijk foto&#39;s &rarr;</button>`
     : item.type === 'audio'
       ? `<button class="media-highlight-card__link" type="button" data-audio-url="${escapeHtml(item.audioUrl)}" aria-pressed="false" aria-label="Speel ${escapeHtml(item.title)} af">Beluister opname &rarr;</button>`
       : `<button class="media-highlight-card__link" type="button" data-youtube-id="${escapeHtml(item.youtubeId)}" aria-label="Speel ${escapeHtml(item.title)} af">Bekijk video &rarr;</button>`;
-  return `<div class="media-highlight-card__image">${visual}</div><div class="media-highlight-card__content"><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary || 'Bekijk of beluister dit uitgelichte item.')}</p>${action}</div>`;
+  return `<div class="media-highlight-card__image"${glowAttribute}>${visual}</div><div class="media-highlight-card__content"><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.summary || 'Bekijk of beluister dit uitgelichte item.')}</p>${action}</div>`;
 }
 
 function photoTiles(items) {
   if (!items.length) return '<p class="media-empty-state">Er zijn momenteel geen fotoalbums beschikbaar.</p>';
-  return items.slice(0, 4).map((album) => `<article class="media-photo-tile">${image(album.coverImageUrl, album.coverImageAlt || album.title, 360, 240)}<div class="media-photo-tile__content"><h3>${escapeHtml(album.title)}</h3><p>${album.photos.length} foto${album.photos.length === 1 ? '' : 's'}</p></div><button class="media-photo-tile__button" type="button" data-media-album-button data-media-album-id="${escapeHtml(album.id)}" aria-label="Bekijk fotoalbum ${escapeHtml(album.title)}"></button></article>`).join('');
+  return items.slice(0, 4).map((album) => `<article class="media-photo-tile" data-image-glow="${escapeHtml(album.coverImageGlow)}">${image(album.coverImageUrl, album.coverImageAlt || album.title, 360, 240)}<div class="media-photo-tile__content"><h3>${escapeHtml(album.title)}</h3><p>${album.photos.length} foto${album.photos.length === 1 ? '' : 's'}</p></div><button class="media-photo-tile__button" type="button" data-media-album-button data-media-album-id="${escapeHtml(album.id)}" aria-label="Bekijk fotoalbum ${escapeHtml(album.title)}"></button></article>`).join('');
 }
 
 function audioTiles(items) {
@@ -1789,7 +1875,7 @@ function audioTiles(items) {
 function videoTiles(items) {
   if (!items.length) return '<p class="media-empty-state">Er zijn momenteel geen video-opnamen beschikbaar.</p>';
   const visibleItems = items.slice(0, 2);
-  return visibleItems.map((item, index) => `<article class="media-video-tile"><p class="media-item-counter media-item-counter--video">Video ${index + 1} van ${visibleItems.length}</p><button class="media-video-tile__preview" type="button" data-youtube-id="${escapeHtml(item.youtubeId)}" aria-label="Speel ${escapeHtml(item.title)} af">${image(item.thumbnailUrl, item.thumbnailAlt || item.title, 640, 360)}<span class="media-video-tile__play-icon" aria-hidden="true"></span></button><div class="media-video-tile__meta"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.date || 'Video')}</p></div></article>`).join('');
+  return visibleItems.map((item, index) => `<article class="media-video-tile"><p class="media-item-counter media-item-counter--video">Video ${index + 1} van ${visibleItems.length}</p><button class="media-video-tile__preview" type="button" data-image-glow="${escapeHtml(item.thumbnailGlow)}" data-youtube-id="${escapeHtml(item.youtubeId)}" aria-label="Speel ${escapeHtml(item.title)} af">${image(item.thumbnailUrl, item.thumbnailAlt || item.title, 640, 360)}<span class="media-video-tile__play-icon" aria-hidden="true"></span></button><div class="media-video-tile__meta"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.date || 'Video')}</p></div></article>`).join('');
 }
 
 const REPERTOIRE_WIREFRAME_PRESENTATION = {
@@ -1876,7 +1962,7 @@ export function renderRepertoirePage(template, originalContent, source) {
   const {byId, featured: featuredItem} = validateRepertoireContent(content);
   const worlds = page.worlds.map((world, index) => {
     const reverse = index % 2 === 1 ? ' repertoire-world--reverse' : '';
-    return `<article class="repertoire-world${reverse}"><div class="repertoire-world__content"><span class="repertoire-world__number">${escapeHtml(world.number)}</span><h3>${escapeHtml(world.title)}</h3><p>${escapeHtml(world.description)}</p><ul>${world.itemIds.map((id) => `<li>${escapeHtml(byId.get(id).title)}</li>`).join('')}</ul></div>${image(world.imageUrl, world.imageAlt, 1200, 900)}</article>`;
+    return `<article class="repertoire-world${reverse}"><div class="repertoire-world__content"><span class="repertoire-world__number">${escapeHtml(world.number)}</span><h3>${escapeHtml(world.title)}</h3><p>${escapeHtml(world.description)}</p><ul>${world.itemIds.map((id) => `<li>${escapeHtml(byId.get(id).title)}</li>`).join('')}</ul></div><div class="repertoire-world__visual" data-image-glow="${escapeHtml(world.imageGlow)}">${image(world.imageUrl, world.imageAlt, 1200, 900)}</div></article>`;
   }).join('');
   const audioItems = content.items.filter((item) => item.audioUrl).slice(0, 3);
   const processIcons = [
@@ -1890,12 +1976,12 @@ export function renderRepertoirePage(template, originalContent, source) {
   const heroDecor = '<div class="repertoire-hero__decor" aria-hidden="true"><span class="repertoire-hero__note repertoire-hero__note--one">♪</span><span class="repertoire-hero__note repertoire-hero__note--two">♫</span><span class="repertoire-hero__note repertoire-hero__note--three">♪</span><span class="repertoire-hero__waveform"></span><span class="repertoire-hero__sheet"></span></div>';
   const header = `<header class="repertoire-hero" data-public-hero data-hero-glow="${escapeHtml(page.heroGlow)}"><div class="public-hero-glow" aria-hidden="true"></div>${image(page.heroImageUrl, page.heroImageAlt, 1920, 1080, 'eager', ' class="repertoire-hero__image" fetchpriority="high"')}${heroDecor}<div class="repertoire-hero__content"><p class="repertoire-breadcrumb">Home / Muziek en repertoire</p><h1>${escapeHtml(page.heroTitle)}</h1><p>${escapeHtml(page.heroSubtitle)}</p></div></header>`;
   const main = `<main class="repertoire-page">
-    <section class="repertoire-feature" aria-labelledby="repertoire-feature-title"><div class="repertoire-feature__visual">${image(page.featuredImageUrl, page.featuredImageAlt, 1200, 900, 'eager')}</div><div class="repertoire-feature__content"><p class="repertoire-label">Verhaal</p><h2 id="repertoire-feature-title">Uitgelicht: muziek met een verhaal</h2><h3>${escapeHtml(featuredItem.title)}</h3><p>${escapeHtml(featuredItem.story)}</p><div class="repertoire-actions"><a class="btn" href="#muziekstuk-proces">Lees het verhaal</a><a class="btn btn--secondary" href="#onze-muziek">In ons repertoire</a></div></div></section>
+    <section class="repertoire-feature" aria-labelledby="repertoire-feature-title"><div class="repertoire-feature__visual" data-image-glow="${escapeHtml(page.featuredImageGlow)}">${image(page.featuredImageUrl, page.featuredImageAlt, 1200, 900, 'eager')}</div><div class="repertoire-feature__content"><p class="repertoire-label">Verhaal</p><h2 id="repertoire-feature-title">Uitgelicht: muziek met een verhaal</h2><h3>${escapeHtml(featuredItem.title)}</h3><p>${escapeHtml(featuredItem.story)}</p><div class="repertoire-actions"><a class="btn" href="#muziekstuk-proces">Lees het verhaal</a><a class="btn btn--secondary" href="#onze-muziek">In ons repertoire</a></div></div></section>
     <section id="onze-muziek" class="repertoire-section" aria-labelledby="repertoire-worlds-title"><div class="repertoire-heading"><h2 id="repertoire-worlds-title">${escapeHtml(page.worldsTitle)}</h2><p>${escapeHtml(page.worldsIntro)}</p></div><div class="repertoire-worlds">${worlds}</div></section>
     <section id="luister-mee" class="repertoire-section" aria-labelledby="listen-title"><div class="repertoire-heading"><h2 id="listen-title">Luister mee</h2><p>Ontdek deze greep uit ons repertoire.</p></div><div class="repertoire-audio-grid" id="featured-audio">${audioItems.map(repertoireAudioCard).join('')}</div></section>
     <section id="muziekstuk-proces" class="repertoire-section" aria-labelledby="process-title"><div class="repertoire-heading"><h2 id="process-title">${escapeHtml(page.processTitle)}</h2><p>Van eerste noot tot uitvoering op het podium.</p></div><ol class="repertoire-process">${process}</ol></section>
     <section class="repertoire-selection" aria-labelledby="selection-title"><h2 id="selection-title">${escapeHtml(page.selectionTitle)}</h2><div class="repertoire-tags" aria-label="Repertoireselectie">${tags}</div><a class="btn btn--secondary" href="./contact.html">Bekijk het volledige repertoire</a></section>
-    <figure class="repertoire-quote"><div class="repertoire-quote__content"><blockquote><p>${escapeHtml(page.quote)}</p></blockquote><figcaption>— ${escapeHtml(page.quoteAttribution)}</figcaption></div>${image(page.quoteImageUrl, page.quoteImageAlt, 1200, 900)}</figure>
+    <figure class="repertoire-quote"><div class="repertoire-quote__content"><blockquote><p>${escapeHtml(page.quote)}</p></blockquote><figcaption>— ${escapeHtml(page.quoteAttribution)}</figcaption></div><div class="repertoire-quote__visual" data-image-glow="${escapeHtml(page.quoteImageGlow)}">${image(page.quoteImageUrl, page.quoteImageAlt, 1200, 900)}</div></figure>
     <section class="repertoire-cta" aria-labelledby="repertoire-cta-title"><div class="repertoire-cta__notes" aria-hidden="true"><span>♪</span><span>♫</span></div><div><h2 id="repertoire-cta-title">${escapeHtml(page.ctaTitle)}</h2><p>${escapeHtml(page.ctaText)}</p></div><div class="repertoire-actions"><a class="btn" href="${escapeHtml(page.primaryButtonLink)}">${escapeHtml(page.primaryButtonLabel)}</a><a class="btn btn--secondary" href="${escapeHtml(page.secondaryButtonLink)}">${escapeHtml(page.secondaryButtonLabel)}</a></div></section>
   </main>`;
   let html = replaceRequired(template, /<header class="repertoire-hero">[\s\S]*?<\/header>/, header, 'repertoirehero');
@@ -1967,7 +2053,10 @@ function renderFriendCards(items) {
         class="friends-partner-card friends-partner-card--${escapeHtml(friend.imageDisplay)}"
         data-friend-id="${escapeHtml(friend.id)}"
       >
-        <div class="friends-partner-card__visual">
+        <div
+          class="friends-partner-card__visual"
+          data-image-glow="${escapeHtml(friend.imageGlow)}"
+        >
           ${image}
         </div>
         <h3>${escapeHtml(friend.publicName)}</h3>
@@ -2118,6 +2207,13 @@ export function renderFriendsPage(template, content, source) {
     'CTA-afbeelding vrienden',
   );
 
+  html = replaceRequired(
+    html,
+    /<div class="friends-cta__visual">/,
+    `<div class="friends-cta__visual" data-image-glow="${escapeHtml(page.ctaImageGlow)}">`,
+    'CTA-afbeelding vrienden gloed',
+  );
+
   return replaceRequired(
     html,
     /<script data-friends-source-marker><\/script>/,
@@ -2199,6 +2295,20 @@ export function renderAboutPage(template, content, source) {
   html = replaceRequired(html, /<div class="about-values__grid" data-about-values-items><\/div>/, `<div class="about-values__grid" data-about-values-items>${renderAboutCards(content.valuesItems, 'values')}</div>`, 'Over waarden');
   html = replaceRequired(html, /<img(?=[^>]*data-about-intro-image)[^>]*>/, image(content.introImageUrl, content.introImageAlt, 1672, 941, 'lazy', ' decoding="async" data-about-intro-image'), 'Over intro-afbeelding');
   html = replaceRequired(html, /<img(?=[^>]*data-about-atmosphere-image)[^>]*>/, image(content.atmosphereImageUrl, content.atmosphereImageAlt, 1672, 941, 'lazy', ' decoding="async" data-about-atmosphere-image'), 'Over sfeerafbeelding');
+  html = replaceRequired(
+    html,
+    /<figure class="about-media">(?=<img[^>]*data-about-intro-image)/,
+    `<figure class="about-media" data-image-glow="${escapeHtml(content.introImageGlow)}">`,
+    'Over intro-afbeelding gloed',
+  );
+
+  html = replaceRequired(
+    html,
+    /<figure class="about-media">(?=<img[^>]*data-about-atmosphere-image)/,
+    `<figure class="about-media" data-image-glow="${escapeHtml(content.atmosphereImageGlow)}">`,
+    'Over sfeerafbeelding gloed',
+  );
+
   const attribution = content.quoteAttribution
     ? `<figcaption data-about-quote-attribution>${escapeHtml(content.quoteAttribution)}</figcaption>`
     : '<figcaption data-about-quote-attribution hidden></figcaption>';
@@ -2258,6 +2368,13 @@ export function renderContactPage(template, content, source) {
     image(content.welcomeImageUrl, content.welcomeImageAlt, 1672, 941, 'lazy', ' decoding="async" data-contact-welcome-image'),
     'Contact welkomstafbeelding',
   );
+  html = replaceRequired(
+    html,
+    /<figure class="contact-welcome__visual">/,
+    `<figure class="contact-welcome__visual" data-image-glow="${escapeHtml(content.welcomeImageGlow)}">`,
+    'Contact welkomstafbeelding gloed',
+  );
+
   const textFields = [
     ['hero-title', content.heroTitle],
     ['hero-intro', content.heroIntro],

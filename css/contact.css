@@ -632,3 +632,10 @@ main.contact-page {
     transform: none;
   }
 }
+
+/* CMS-afbeelding-gloed */
+
+.contact-welcome__visual[data-image-glow] {
+  position: relative;
+  isolation: isolate;
+}
