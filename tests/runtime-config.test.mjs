@@ -230,59 +230,86 @@ test('runtimeconfig bevat geen geheime omgevingswaarden', () => {
   assert.doesNotMatch(source, /nooit-publiceren/);
 });
 
-test('build weigert een ongeldige Production-dataset voor het aanmaken van output', async () => {
-  const outputDirectory =
-    'dist-invalid-runtime-config-test';
+test(
+  'Production maintenance bouwt vóór publieke datasetvalidatie',
+  async () => {
+    const outputDirectory =
+      'test-output/test-production-maintenance-dataset-bypass';
 
-  await rm(outputDirectory, {
-    recursive: true,
-    force: true,
-  });
+    await rm(outputDirectory, {
+      recursive: true,
+      force: true,
+    });
 
-  try {
-    await assert.rejects(
-      exec(
+    try {
+      const result = await exec(
         process.execPath,
         ['scripts/build-site.mjs'],
         {
           env: {
             ...process.env,
-            SITE_OUTPUT_DIR: outputDirectory,
-            VERCEL_ENV: 'production',
-            SANITY_DATASET: 'development',
+            SITE_OUTPUT_DIR:
+              outputDirectory,
+            VERCEL_ENV:
+              'production',
+
+            /*
+             * Bewust ongeldige combinatie voor een volledige
+             * publieke Production-build.
+             *
+             * Het actuele contract is echter dat Production
+             * uitsluitend de maintenance-output bouwt en vóór
+             * publieke runtime/CMS-validatie terugkeert.
+             */
+            SANITY_DATASET:
+              'development',
+
+            SUPABASE_URL:
+              '',
+            SUPABASE_PUBLISHABLE_KEY:
+              '',
           },
         },
-      ),
-      (error) => {
-        const combinedOutput =
-          `${error.stdout || ''}\n${error.stderr || ''}`;
+      );
 
-        return (
-          error.code !== 0 &&
-          combinedOutput.includes(
-            'Ongeldige OTAP-combinatie: production vereist dataset production, niet development',
-          ) &&
-          !combinedOutput.includes('fallback gebruikt')
+      assert.match(
+        result.stdout,
+        /PRODUCTION MAINTENANCE BUILD: actief/,
+      );
+
+      assert.doesNotMatch(
+        result.stdout,
+        /BUILD: cms/,
+      );
+
+      await assert.rejects(
+        readFile(
+          `${outputDirectory}/js/runtime-config.js`,
+          'utf8',
+        ),
+        {
+          code: 'ENOENT',
+        },
+      );
+
+      const index =
+        await readFile(
+          `${outputDirectory}/index.html`,
+          'utf8',
         );
-      },
-    );
 
-    await assert.rejects(
-      readFile(
-        `${outputDirectory}/js/runtime-config.js`,
-        'utf8',
-      ),
-      {
-        code: 'ENOENT',
-      },
-    );
-  } finally {
-    await rm(outputDirectory, {
-      recursive: true,
-      force: true,
-    });
-  }
-});
+      assert.match(
+        index,
+        /Spontaan krijgt een nieuwe website/,
+      );
+    } finally {
+      await rm(outputDirectory, {
+        recursive: true,
+        force: true,
+      });
+    }
+  },
+);
 
 test('build schrijft config en scriptreferenties naar alternatieve output', async () => {
   const outputDirectory = 'dist-runtime-config-test';
@@ -423,10 +450,10 @@ const validProductionFixtures = {
 };
 
 test(
-  'Production bouwt uitsluitend met zes geldige CMS-bronnen',
+  'Production maintenance negeert publieke CMS-bronnen',
   async () => {
     const outputDirectory =
-      'test-output/test-production-cms-gate-success';
+      'test-output/test-production-maintenance-with-cms-fixtures';
 
     await rm(outputDirectory, {
       recursive: true,
@@ -440,9 +467,15 @@ test(
         {
           env: productionBuildEnvironment({
             outputDirectory,
-            fixtures: validProductionFixtures,
+            fixtures:
+              validProductionFixtures,
           }),
         },
+      );
+
+      assert.match(
+        result.stdout,
+        /PRODUCTION MAINTENANCE BUILD: actief/,
       );
 
       for (const name of [
@@ -453,7 +486,7 @@ test(
         'CONTACT',
         'HOME',
       ]) {
-        assert.match(
+        assert.doesNotMatch(
           result.stdout,
           new RegExp(
             `${name} BUILD: cms`,
@@ -461,19 +494,25 @@ test(
         );
       }
 
-      const runtimeConfig = await readFile(
-        `${outputDirectory}/js/runtime-config.js`,
-        'utf8',
+      await assert.rejects(
+        readFile(
+          `${outputDirectory}/js/runtime-config.js`,
+          'utf8',
+        ),
+        {
+          code: 'ENOENT',
+        },
       );
 
-      assert.match(
-        runtimeConfig,
-        /"dataset":"production"/,
-      );
+      const index =
+        await readFile(
+          `${outputDirectory}/index.html`,
+          'utf8',
+        );
 
       assert.match(
-        runtimeConfig,
-        /"environment":"production"/,
+        index,
+        /Spontaan krijgt een nieuwe website/,
       );
     } finally {
       await rm(outputDirectory, {
@@ -485,10 +524,10 @@ test(
 );
 
 test(
-  'Production verzamelt zes fouten en behoudt bestaande output',
+  'Production maintenance is onafhankelijk van ontbrekende CMS-bronnen',
   async () => {
     const testRoot =
-      'test-output/test-production-cms-gate-failure';
+      'test-output/test-production-maintenance-missing-cms';
 
     const outputDirectory =
       `${testRoot}/output`;
@@ -498,9 +537,6 @@ test(
 
     const sentinelFile =
       `${outputDirectory}/bestaande-output.txt`;
-
-    const sentinelText =
-      'Deze bestaande output mag niet worden gewijzigd.';
 
     await rm(testRoot, {
       recursive: true,
@@ -513,87 +549,79 @@ test(
 
     await writeFile(
       missingFixture,
-      JSON.stringify({result: null}),
+      JSON.stringify({
+        result: null,
+      }),
       'utf8',
     );
 
     await writeFile(
       sentinelFile,
-      sentinelText,
+      'oude publieke output',
       'utf8',
     );
 
     const missingFixtures =
       Object.fromEntries(
         allBuildFixtureNames.map(
-          (name) => [name, missingFixture],
+          (name) => [
+            name,
+            missingFixture,
+          ],
         ),
       );
 
     try {
-      await assert.rejects(
-        exec(
-          process.execPath,
-          ['scripts/build-site.mjs'],
-          {
-            env: productionBuildEnvironment({
-              outputDirectory,
-              fixtures: missingFixtures,
-            }),
-          },
-        ),
-        (error) => {
-          const combined =
-            `${error.stdout || ''}\n` +
-            `${error.stderr || ''}`;
-
-          assert.match(
-            combined,
-            /Production-CMS-validatie mislukt/,
-          );
-
-          for (const pageName of [
-            'Beeld en Geluid',
-            'Muziek en repertoire',
-            'Vrienden van Spontaan',
-            'Over Spontaan',
-            'Contact',
-            'Homepage',
-          ]) {
-            assert.match(
-              combined,
-              new RegExp(pageName),
-            );
-          }
-
-          assert.doesNotMatch(
-            combined,
-            /Cannot read properties of null/,
-          );
-
-          assert.doesNotMatch(
-            combined,
-            /BUILD: fallback ->/,
-          );
-
-          return true;
+      const result = await exec(
+        process.execPath,
+        ['scripts/build-site.mjs'],
+        {
+          env: productionBuildEnvironment({
+            outputDirectory,
+            fixtures:
+              missingFixtures,
+          }),
         },
       );
 
-      assert.equal(
-        await readFile(
+      assert.match(
+        result.stdout,
+        /PRODUCTION MAINTENANCE BUILD: actief/,
+      );
+
+      assert.doesNotMatch(
+        result.stdout,
+        /Production-CMS-validatie mislukt/,
+      );
+
+      assert.doesNotMatch(
+        result.stdout,
+        /BUILD: fallback/,
+      );
+
+      /*
+       * Maintenance vervangt bewust de publieke output.
+       * De oude sentinel mag dus niet blijven bestaan.
+       */
+      await assert.rejects(
+        readFile(
           sentinelFile,
           'utf8',
         ),
-        sentinelText,
+        {
+          code: 'ENOENT',
+        },
       );
 
-      await assert.rejects(
-        readFile(
-          `${outputDirectory}/js/runtime-config.js`,
+      const index =
+        await readFile(
+          `${outputDirectory}/index.html`,
           'utf8',
-        ),
-        /ENOENT/,
+        );
+
+      assert.match(
+        index,
+        /Spontaan krijgt een nieuwe website/,
       );
     } finally {
       await rm(testRoot, {
@@ -856,16 +884,20 @@ test(
 );
 
 test(
-  'Production weigert onvolledige Media-inhoud en behoudt output',
+  'Acceptatie-Preview weigert onvolledige Media-inhoud en behoudt output',
   async () => {
     const testRoot =
-      'test-output/test-production-invalid-media';
+      'test-output/test-acceptance-invalid-media';
+
     const outputDirectory =
       `${testRoot}/output`;
+
     const fixtureFile =
       `${testRoot}/media-invalid.json`;
+
     const sentinelFile =
       `${outputDirectory}/bestaande-output.txt`;
+
     const sentinelText =
       'Bestaande output blijft behouden.';
 
@@ -873,25 +905,34 @@ test(
       recursive: true,
       force: true,
     });
+
     await mkdir(outputDirectory, {
       recursive: true,
     });
 
-    const mediaFixture = JSON.parse(
-      await readFile(
-        'tests/fixtures/media-cms.json',
-        'utf8',
-      ),
-    );
+    const mediaFixture =
+      JSON.parse(
+        await readFile(
+          'tests/fixtures/media-cms.json',
+          'utf8',
+        ),
+      );
+
     const mediaDocument =
-      mediaFixture.result ?? mediaFixture;
-    mediaDocument.page.introTitle = '';
+      mediaFixture.result ??
+      mediaFixture;
+
+    mediaDocument.page.introTitle =
+      '';
 
     await writeFile(
       fixtureFile,
-      JSON.stringify(mediaFixture),
+      JSON.stringify(
+        mediaFixture,
+      ),
       'utf8',
     );
+
     await writeFile(
       sentinelFile,
       sentinelText,
@@ -904,26 +945,38 @@ test(
           process.execPath,
           ['scripts/build-site.mjs'],
           {
-            env: productionBuildEnvironment({
-              outputDirectory,
-              fixtures: {
-                ...validProductionFixtures,
-                MEDIA_BUILD_FIXTURE:
-                  fixtureFile,
-              },
-            }),
+            env:
+              productionBuildEnvironment({
+                outputDirectory,
+
+                fixtures: {
+                  ...validProductionFixtures,
+
+                  MEDIA_BUILD_FIXTURE:
+                    fixtureFile,
+                },
+
+                vercelEnvironment:
+                  'preview',
+
+                gitCommitRef:
+                  'acceptance',
+              }),
           },
         ),
+
         (error) => {
           const combined =
             `${error.stdout || ''}\n` +
             `${error.stderr || ''}`;
 
           return (
-            /Production-CMS-validatie mislukt/.test(
+            /Acceptatie-CMS-validatie mislukt/.test(
               combined,
             ) &&
-            /Beeld en Geluid/.test(combined) &&
+            /Beeld en Geluid/.test(
+              combined,
+            ) &&
             /Verplichte Beeld-en-Geluid-paginavelden ontbreken/.test(
               combined,
             )
@@ -932,7 +985,10 @@ test(
       );
 
       assert.equal(
-        await readFile(sentinelFile, 'utf8'),
+        await readFile(
+          sentinelFile,
+          'utf8',
+        ),
         sentinelText,
       );
     } finally {
@@ -945,62 +1001,100 @@ test(
 );
 
 test(
-  'Production weigert mojibake per CMS-pagina vóór outputwijziging',
+  'Acceptatie-Preview weigert mojibake per CMS-pagina vóór outputwijziging',
   async () => {
-    const brokenAccent = String.fromCharCode(
-      0x00c3,
-      0x00a9,
-    );
+    const brokenAccent =
+      String.fromCharCode(
+        0x00c3,
+        0x00a9,
+      );
+
     const cases = [
       {
-        label: 'Beeld en Geluid',
-        fixtureName: 'MEDIA_BUILD_FIXTURE',
-        source: 'tests/fixtures/media-cms.json',
+        label:
+          'Beeld en Geluid',
+
+        fixtureName:
+          'MEDIA_BUILD_FIXTURE',
+
+        source:
+          'tests/fixtures/media-cms.json',
+
         mutate(value) {
           value.page.introTitle =
             `Muziek ${brokenAccent}n beeld`;
         },
       },
       {
-        label: 'Muziek en repertoire',
-        fixtureName: 'REPERTOIRE_BUILD_FIXTURE',
-        source: 'tests/fixtures/repertoire-cms.json',
+        label:
+          'Muziek en repertoire',
+
+        fixtureName:
+          'REPERTOIRE_BUILD_FIXTURE',
+
+        source:
+          'tests/fixtures/repertoire-cms.json',
+
         mutate(value) {
           value.page.worldsIntro =
             `Muziek ${brokenAccent}n verhalen`;
         },
       },
       {
-        label: 'Vrienden van Spontaan',
-        fixtureName: 'FRIENDS_BUILD_FIXTURE',
-        source: 'tests/fixtures/friends-cms.json',
+        label:
+          'Vrienden van Spontaan',
+
+        fixtureName:
+          'FRIENDS_BUILD_FIXTURE',
+
+        source:
+          'tests/fixtures/friends-cms.json',
+
         mutate(value) {
           value.page.supportIntro =
             `Steun ${brokenAccent}n verbinding`;
         },
       },
       {
-        label: 'Over Spontaan',
-        fixtureName: 'ABOUT_BUILD_FIXTURE',
-        source: 'data/about-fallback.json',
+        label:
+          'Over Spontaan',
+
+        fixtureName:
+          'ABOUT_BUILD_FIXTURE',
+
+        source:
+          'data/about-fallback.json',
+
         mutate(value) {
           value.heroSubtitle =
             `Samen ${brokenAccent}n betrokken`;
         },
       },
       {
-        label: 'Contact',
-        fixtureName: 'CONTACT_BUILD_FIXTURE',
-        source: 'data/contact-fallback.json',
+        label:
+          'Contact',
+
+        fixtureName:
+          'CONTACT_BUILD_FIXTURE',
+
+        source:
+          'data/contact-fallback.json',
+
         mutate(value) {
           value.heroIntro =
             `Vragen ${brokenAccent}n contact`;
         },
       },
       {
-        label: 'Homepage',
-        fixtureName: 'HOME_BUILD_FIXTURE',
-        source: 'tests/fixtures/home-cms.json',
+        label:
+          'Homepage',
+
+        fixtureName:
+          'HOME_BUILD_FIXTURE',
+
+        source:
+          'tests/fixtures/home-cms.json',
+
         mutate(value) {
           value.heroSubtitle =
             `Zingen ${brokenAccent}n ontmoeten`;
@@ -1008,15 +1102,24 @@ test(
       },
     ];
 
-    for (const [index, testCase] of cases.entries()) {
+    for (
+      const [
+        index,
+        testCase,
+      ] of cases.entries()
+    ) {
       const testRoot =
-        `test-output/test-production-mojibake-${index + 1}`;
+        `test-output/test-acceptance-mojibake-${index + 1}`;
+
       const outputDirectory =
         `${testRoot}/output`;
+
       const fixtureFile =
         `${testRoot}/fixture.json`;
+
       const sentinelFile =
         `${outputDirectory}/bestaande-output.txt`;
+
       const sentinelText =
         `Bestaande output ${testCase.label}`;
 
@@ -1024,22 +1127,35 @@ test(
         recursive: true,
         force: true,
       });
+
       await mkdir(outputDirectory, {
         recursive: true,
       });
 
-      const fixture = JSON.parse(
-        await readFile(testCase.source, 'utf8'),
-      );
+      const fixture =
+        JSON.parse(
+          await readFile(
+            testCase.source,
+            'utf8',
+          ),
+        );
+
       const fixtureDocument =
-        fixture.result ?? fixture;
-      testCase.mutate(fixtureDocument);
+        fixture.result ??
+        fixture;
+
+      testCase.mutate(
+        fixtureDocument,
+      );
 
       await writeFile(
         fixtureFile,
-        JSON.stringify(fixture),
+        JSON.stringify(
+          fixture,
+        ),
         'utf8',
       );
+
       await writeFile(
         sentinelFile,
         sentinelText,
@@ -1052,32 +1168,50 @@ test(
             process.execPath,
             ['scripts/build-site.mjs'],
             {
-              env: productionBuildEnvironment({
-                outputDirectory,
-                fixtures: {
-                  ...validProductionFixtures,
-                  [testCase.fixtureName]: fixtureFile,
-                },
-              }),
+              env:
+                productionBuildEnvironment({
+                  outputDirectory,
+
+                  fixtures: {
+                    ...validProductionFixtures,
+
+                    [testCase.fixtureName]:
+                      fixtureFile,
+                  },
+
+                  vercelEnvironment:
+                    'preview',
+
+                  gitCommitRef:
+                    'acceptance',
+                }),
             },
           ),
+
           (error) => {
             const combined =
               `${error.stdout || ''}\n` +
               `${error.stderr || ''}`;
 
             return (
-              /Production-CMS-validatie mislukt/.test(
+              /Acceptatie-CMS-validatie mislukt/.test(
                 combined,
               ) &&
-              combined.includes(testCase.label) &&
-              /Mojibake aangetroffen/.test(combined)
+              combined.includes(
+                testCase.label,
+              ) &&
+              /Mojibake aangetroffen/.test(
+                combined,
+              )
             );
           },
         );
 
         assert.equal(
-          await readFile(sentinelFile, 'utf8'),
+          await readFile(
+            sentinelFile,
+            'utf8',
+          ),
           sentinelText,
         );
       } finally {
