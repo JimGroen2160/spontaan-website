@@ -1,4 +1,5 @@
 ﻿import {defineArrayMember, defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const photoAlbum = defineType({
   name: 'photoAlbum',
@@ -47,6 +48,8 @@ export const photoAlbum = defineType({
       validation: (rule) => rule.required().max(160),
     }),
 
+    imageGlowField({name: 'coverImageGlow'}),
+
     defineField({
       name: 'photos',
       title: 'Foto’s',
@@ -76,6 +79,8 @@ export const photoAlbum = defineType({
                 'Beschrijf kort wat op de foto te zien is.',
               validation: (rule) => rule.required().max(160),
             }),
+
+            imageGlowField(),
 
             defineField({
               name: 'caption',

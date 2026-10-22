@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const homePage = defineType({
   name: 'homePage',
@@ -130,6 +131,9 @@ defineField({
               name: 'imageAlt',
               title: 'Alt-tekst afbeelding',
               type: 'string',
+            }),
+            imageGlowField({
+              initialValue: 'normal',
             }),
             defineField({
               name: 'buttonLabel',

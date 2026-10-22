@@ -1,4 +1,5 @@
 ﻿import {defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const eventItem = defineType({
   name: 'eventItem',
@@ -124,6 +125,8 @@ export const eventItem = defineType({
             : 'Een alt-tekst is verplicht wanneer een afbeelding is ingesteld.'
         }).max(160),
     }),
+
+    imageGlowField({name: 'mainImageGlow'}),
 
     defineField({
       name: 'buttonLabel',

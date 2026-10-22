@@ -780,3 +780,11 @@
     transition: none;
   }
 }
+
+/* CMS-afbeelding-gloed */
+
+.friends-partner-card__visual[data-image-glow],
+.friends-cta__visual[data-image-glow] {
+  position: relative;
+  isolation: isolate;
+}

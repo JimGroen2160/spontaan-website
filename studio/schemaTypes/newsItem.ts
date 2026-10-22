@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const newsItem = defineType({
   name: 'newsItem',
@@ -66,6 +67,7 @@ export const newsItem = defineType({
       description: 'Korte omschrijving van de afbeelding voor toegankelijkheid.',
       validation: (rule) => rule.required().max(160),
     }),
+    imageGlowField({name: 'mainImageGlow'}),
     defineField({
       name: 'category',
       title: 'Categorie',

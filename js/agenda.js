@@ -94,6 +94,7 @@
       isFree,
       isFeatured,
       mainImageAlt,
+      mainImageGlow,
       "imageUrl": mainImage.asset->url
     }
   }`;
@@ -104,6 +105,12 @@
     'normal',
     'strong',
   ]);
+
+  function normalizeImageGlow(value) {
+    return allowedHeroGlow.has(value)
+      ? value
+      : 'none';
+  }
 
   function normalizeHeroGlow(value) {
     return allowedHeroGlow.has(value)
@@ -433,6 +440,8 @@
     const mapUrl = getSafeUrl(item.mapUrl);
     const buttonLink = getSafeUrl(item.buttonLink, true);
     const imageUrl = getSafeImageUrl(item.imageUrl);
+    const imageGlow =
+      normalizeImageGlow(item.mainImageGlow);
 
     if (
       !title ||
@@ -469,6 +478,7 @@
       buttonLink,
       imageUrl,
       imageAlt,
+      imageGlow,
       isFree: item.isFree === true,
       isFeatured: item.isFeatured === true,
     };
@@ -566,6 +576,7 @@
     if (item.imageUrl) {
       const media = document.createElement('div');
       media.className = 'agenda-event-card__image';
+      media.dataset.imageGlow = item.imageGlow;
 
       const image = document.createElement('img');
       image.src = item.imageUrl;
