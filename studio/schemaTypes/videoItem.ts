@@ -1,4 +1,5 @@
 ﻿import {defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const videoItem = defineType({
   name: 'videoItem',
@@ -81,6 +82,8 @@ export const videoItem = defineType({
       type: 'string',
       validation: (rule) => rule.required().max(160),
     }),
+
+    imageGlowField({name: 'thumbnailGlow'}),
 
     defineField({
       name: 'isFeatured',

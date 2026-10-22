@@ -1,4 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const friendsPage = defineType({
   name: 'friendsPage',
@@ -272,6 +273,8 @@ defineField({
       type: 'string',
       validation: (rule) => rule.required().max(160),
     }),
+
+    imageGlowField({name: 'ctaImageGlow'}),
 
     defineField({
       name: 'ctaPrimaryButtonLabel',

@@ -4,6 +4,7 @@ const SELECTORS = Object.freeze({
   dialog: '[data-media-gallery]',
   title: '[data-media-gallery-title]',
   image: '[data-media-gallery-image]',
+  imageWrap: '[data-media-gallery-image-wrap]',
   caption: '[data-media-gallery-caption]',
   counter: '[data-media-gallery-counter]',
   close: '[data-media-gallery-close]',
@@ -25,6 +26,7 @@ export function createGalleryController(root = document) {
   const elements = {
     title: dialog.querySelector(SELECTORS.title),
     image: dialog.querySelector(SELECTORS.image),
+    imageWrap: dialog.querySelector(SELECTORS.imageWrap),
     caption: dialog.querySelector(SELECTORS.caption),
     counter: dialog.querySelector(SELECTORS.counter),
     close: dialog.querySelector(SELECTORS.close),
@@ -52,6 +54,11 @@ export function createGalleryController(root = document) {
     elements.title.textContent = album.title;
     elements.image.src = photo.imageUrl;
     elements.image.alt = photo.alt || album.title;
+
+    if (elements.imageWrap) {
+      elements.imageWrap.dataset.imageGlow =
+        photo.imageGlow || 'none';
+    }
 
     if (elements.caption) {
       elements.caption.textContent = photo.caption;

@@ -1,4 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 const requiredLink = (rule: any) =>
   rule.required().uri({scheme: ['http', 'https'], allowRelative: true})
@@ -77,6 +78,7 @@ defineField({name: 'introEyebrow', title: 'Bovenregel introductie', type: 'strin
     paragraphs('introText', 'Teksten introductie', 'intro'),
     defineField({name: 'introImage', title: 'Afbeelding introductie', type: 'image', group: 'intro', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'introImageAlt', title: 'Alt-tekst introductie', type: 'string', group: 'intro', validation: (rule) => rule.required().max(160)}),
+    imageGlowField({name: 'introImageGlow', group: 'intro'}),
     defineField({name: 'timelineEyebrow', title: 'Bovenregel tijdlijn', type: 'string', group: 'timeline', validation: (rule) => rule.required().max(80)}),
     defineField({name: 'timelineTitle', title: 'Titel tijdlijn', type: 'string', group: 'timeline', validation: (rule) => rule.required().max(120)}),
     defineField({name: 'timelineIntro', title: 'Introductie tijdlijn', type: 'text', rows: 2, group: 'timeline', validation: (rule) => rule.max(300)}),
@@ -91,6 +93,7 @@ defineField({name: 'introEyebrow', title: 'Bovenregel introductie', type: 'strin
     paragraphs('atmosphereText', 'Teksten sfeer', 'atmosphere'),
     defineField({name: 'atmosphereImage', title: 'Afbeelding sfeer', type: 'image', group: 'atmosphere', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'atmosphereImageAlt', title: 'Alt-tekst sfeer', type: 'string', group: 'atmosphere', validation: (rule) => rule.required().max(160)}),
+    imageGlowField({name: 'atmosphereImageGlow', group: 'atmosphere'}),
     defineField({name: 'ctaEyebrow', title: 'Bovenregel CTA', type: 'string', group: 'cta', validation: (rule) => rule.required().max(80)}),
     defineField({name: 'ctaTitle', title: 'Titel CTA', type: 'string', group: 'cta', validation: (rule) => rule.required().max(120)}),
     defineField({name: 'ctaText', title: 'Tekst CTA', type: 'text', rows: 3, group: 'cta', validation: (rule) => rule.required().max(300)}),

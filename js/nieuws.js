@@ -85,6 +85,7 @@
       category,
       summary,
       mainImageAlt,
+      mainImageGlow,
       "imageUrl": mainImage.asset->url
     }
   }`;
@@ -100,6 +101,12 @@
     return allowedHeroGlow.has(value)
       ? value
       : 'normal';
+  }
+
+  function normalizeImageGlow(value) {
+    return allowedHeroGlow.has(value)
+      ? value
+      : 'none';
   }
 
   function normalizeHero(value) {
@@ -255,6 +262,8 @@
         ? item.mainImageAlt.trim()
         : '';
     const imageUrl = getSafeImageUrl(item.imageUrl);
+    const imageGlow =
+      normalizeImageGlow(item.mainImageGlow);
     const publishedDate = getValidDate(item.publishedAt);
     const category = getCategoryLabel(item.category);
 
@@ -275,6 +284,7 @@
       summary,
       imageAlt,
       imageUrl,
+      imageGlow,
       category,
       categoryClass: getCategoryClass(item.category),
       publishedAt: publishedDate.toISOString(),
@@ -288,6 +298,7 @@
 
     const media = document.createElement('div');
     media.className = 'news-card__image';
+    media.dataset.imageGlow = item.imageGlow;
 
     const image = document.createElement('img');
     image.src = item.imageUrl;

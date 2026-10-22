@@ -1,4 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {imageGlowField} from './imageGlow'
 
 export const contactPage = defineType({
   name: 'contactPage',
@@ -83,6 +84,10 @@ defineField({name: 'emailCtaLabel', title: 'Tekst e-mailknop', type: 'string', g
     defineField({name: 'welcomeText', title: 'Welkomsttekst', type: 'text', rows: 4, group: 'welcome', validation: (rule) => rule.required().max(500)}),
     defineField({name: 'welcomeImage', title: 'Welkomstafbeelding', type: 'image', group: 'welcome', options: {hotspot: true}, validation: (rule) => rule.required()}),
     defineField({name: 'welcomeImageAlt', title: 'Alt-tekst welkomstafbeelding', type: 'string', group: 'welcome', validation: (rule) => rule.required().max(160)}),
+    imageGlowField({
+      name: 'welcomeImageGlow',
+      group: 'welcome',
+    }),
     defineField({
       name: 'welcomePoints',
       title: 'Kernpunten',
