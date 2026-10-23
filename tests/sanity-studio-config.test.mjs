@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises'
 import test from 'node:test'
 
 const sanityConfigPath = 'studio/sanity.config.ts'
+const environmentPath = 'studio/environment.ts'
 const singletonTypesPath = 'studio/singletonTypes.ts'
 const ciPath = '.github/workflows/ci.yml'
 const structurePath = 'studio/structure.ts'
@@ -118,6 +119,39 @@ test('Vision is uitsluitend in development beschikbaar', async () => {
   )
 })
 
+test('Studio-dataset gebruikt production-build-safe statische env-toegang', async () => {
+  const source = await readFile(environmentPath, 'utf8')
+
+  assert.match(
+    source,
+    /process\.env\.SANITY_STUDIO_DATASET/,
+    'Production Studio-build moet SANITY_STUDIO_DATASET rechtstreeks via process.env lezen'
+  )
+
+  assert.doesNotMatch(
+    source,
+    /environment\s*=\s*process\.env/,
+    'process.env mag niet via een standaardparameter worden gealiast'
+  )
+
+  assert.match(
+    source,
+    /environment\?\.SANITY_STUDIO_DATASET\s*\?\?[\s\S]*?process\.env\.SANITY_STUDIO_DATASET/,
+    'Expliciete testomgeving mag worden geïnjecteerd, maar runtime fallback moet statisch process.env gebruiken'
+  )
+
+  assert.match(
+    source,
+    /configuredDataset\s*\|\|\s*'development'/,
+    'Development-fallback moet behouden blijven'
+  )
+
+  assert.match(
+    source,
+    /ALLOWED_SANITY_DATASETS\.has\(dataset\)/,
+    'Dataset-allowlist moet behouden blijven'
+  )
+})
 test('CI valideert contract en bouwt Sanity Studio', async () => {
   const source = (
     await readFile(ciPath, 'utf8')
