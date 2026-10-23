@@ -201,7 +201,22 @@ test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
     await waitForSharedLayout(page);
   });
 
-  test('nieuwsbericht houdt Nieuws zichtbaar maar uitgeschakeld in de hoofdnavigatie', async ({ page }) => {
+  test('Nieuws is via de hoofdnavigatie bereikbaar en actief op overzicht en detail', async ({ page }) => {
+    const newsLink = page.locator(
+      '#nav-placeholder .nav-menu a',
+      {hasText: /^Nieuws$/},
+    );
+
+    await expect(newsLink).toHaveCount(1);
+    await expect(newsLink).toHaveAttribute(
+      'href',
+      '../pages/nieuws.html',
+    );
+    await expect(newsLink).toHaveClass(/active/);
+    await expect(newsLink).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
 
     await page.goto(
       '/pages/nieuwsbericht.html?slug=spontaan-zingt-tijdens-een-sfeervolle-zomeravond',
@@ -209,23 +224,27 @@ test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
 
     await waitForSharedLayout(page);
 
-    const disabledNewsNav = page.locator(
-      '#nav-placeholder .nav-menu .nav-disabled',
+    const detailNewsLink = page.locator(
+      '#nav-placeholder .nav-menu a',
       {hasText: /^Nieuws$/},
     );
 
-    await expect(disabledNewsNav).toHaveCount(1);
-    await expect(disabledNewsNav).toHaveAttribute(
-      'aria-disabled',
-      'true',
+    await expect(detailNewsLink).toHaveCount(1);
+    await expect(detailNewsLink).toHaveAttribute(
+      'href',
+      '../pages/nieuws.html',
+    );
+    await expect(detailNewsLink).toHaveClass(/active/);
+    await expect(detailNewsLink).toHaveAttribute(
+      'aria-current',
+      'page',
     );
 
-    await expect(
-      page.locator(
-        '#nav-placeholder .nav-menu a',
-        {hasText: /^Nieuws$/},
-      ),
-    ).toHaveCount(0);
+    await detailNewsLink.click();
+
+    await expect(page).toHaveURL(
+      /\/pages\/nieuws\.html$/,
+    );
   });
 
   test('toont zes nieuwskaarten met afzonderlijke afbeeldingen', async ({ page }) => {
