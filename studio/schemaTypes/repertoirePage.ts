@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 const reference = defineArrayMember({type: 'reference', to: [{type: 'repertoireItem'}]})
 
@@ -12,7 +13,7 @@ export const repertoirePage = defineType({
     defineField({name: 'isTestData', title: 'Testdata', type: 'boolean', hidden: true, readOnly: true, initialValue: false}),
     defineField({name: 'heroTitle', title: 'Hero-titel', type: 'string', validation: (rule) => rule.required().max(96)}),
     defineField({name: 'heroSubtitle', title: 'Hero-ondertitel', type: 'text', rows: 2, validation: (rule) => rule.required().max(220)}),
-    defineField({name: 'heroImage', title: 'Hero-afbeelding', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'heroImage', title: 'Hero-afbeelding', required: true, altRequired: false, initialGlow: 'normal'}),
     defineField({name: 'heroImageAlt', title: 'Alt-tekst hero-afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
 
     defineField({
@@ -35,7 +36,7 @@ export const repertoirePage = defineType({
     }),
 
 defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', to: [{type: 'repertoireItem'}], validation: (rule) => rule.required()}),
-    defineField({name: 'featuredImage', title: 'Afbeelding uitgelicht lied', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'featuredImage', title: 'Afbeelding uitgelicht lied', required: true, altRequired: false}),
     defineField({name: 'featuredImageAlt', title: 'Alt-tekst uitgelichte afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
     imageGlowField({name: 'featuredImageGlow'}),
     defineField({name: 'worldsTitle', title: 'Titel muzikale werelden', type: 'string', validation: (rule) => rule.required().max(120)}),
@@ -48,7 +49,7 @@ defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', 
           defineField({name: 'number', title: 'Nummer', type: 'string', validation: (rule) => rule.required().max(3)}),
           defineField({name: 'title', title: 'Titel', type: 'string', validation: (rule) => rule.required().max(80)}),
           defineField({name: 'description', title: 'Beschrijving', type: 'text', rows: 2, validation: (rule) => rule.required().max(220)}),
-          defineField({name: 'image', title: 'Afbeelding', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
+          managedImageField({name: 'image', title: 'Afbeelding', required: true, altRequired: false}),
           defineField({name: 'imageAlt', title: 'Alt-tekst afbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
           imageGlowField(),
           defineField({name: 'items', title: 'Liederen', type: 'array', of: [reference], validation: (rule) => rule.required().min(1)}),
@@ -72,7 +73,7 @@ defineField({name: 'featuredItem', title: 'Uitgelicht lied', type: 'reference', 
     defineField({name: 'selectionItems', title: 'Repertoireselectie', type: 'array', of: [reference], validation: (rule) => rule.required().min(1)}),
     defineField({name: 'quote', title: 'Citaat', type: 'text', rows: 2, validation: (rule) => rule.required().max(280)}),
     defineField({name: 'quoteAttribution', title: 'Bron citaat', type: 'string', validation: (rule) => rule.required().max(100)}),
-    defineField({name: 'quoteImage', title: 'Afbeelding bij citaat', type: 'image', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'quoteImage', title: 'Afbeelding bij citaat', required: true, altRequired: false}),
     defineField({name: 'quoteImageAlt', title: 'Alt-tekst citaatafbeelding', type: 'string', validation: (rule) => rule.required().max(160)}),
     imageGlowField({name: 'quoteImageGlow'}),
     defineField({name: 'ctaEyebrow', title: 'Bovenregel CTA', type: 'string', validation: (rule) => rule.required().max(80)}),

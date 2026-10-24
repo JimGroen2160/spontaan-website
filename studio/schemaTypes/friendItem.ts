@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const friendItem = defineType({
   name: 'friendItem',
@@ -42,17 +43,7 @@ export const friendItem = defineType({
       validation: (rule) => rule.required(),
     }),
 
-    defineField({
-      name: 'image',
-      title: 'Logo of foto',
-      type: 'image',
-      description:
-        'Upload het bedrijfslogo of een passende foto van deze vriend van Spontaan.',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'image', title: 'Logo of foto', description: 'Upload het bedrijfslogo of een passende foto van deze vriend van Spontaan.', required: true, altRequired: false}),
 
     defineField({
       name: 'imageDisplay',

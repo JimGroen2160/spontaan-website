@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 const requiredLink = (rule: any) =>
   rule.required().uri({scheme: ['http', 'https'], allowRelative: true})
@@ -51,7 +52,7 @@ export const aboutPage = defineType({
     defineField({name: 'seoDescription', title: 'SEO-beschrijving', type: 'text', rows: 3, group: 'seo', validation: (rule) => rule.required().max(170)}),
     defineField({name: 'heroTitle', title: 'Hero-titel', type: 'string', group: 'hero', validation: (rule) => rule.required().max(96)}),
     defineField({name: 'heroSubtitle', title: 'Hero-ondertitel', type: 'text', rows: 3, group: 'hero', validation: (rule) => rule.required().max(240)}),
-    defineField({name: 'heroImage', title: 'Hero-afbeelding', type: 'image', group: 'hero', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'heroImage', title: 'Hero-afbeelding', group: 'hero', required: true, altRequired: false, initialGlow: 'normal'}),
     defineField({name: 'heroImageAlt', title: 'Alt-tekst hero', type: 'string', group: 'hero', validation: (rule) => rule.required().max(160)}),
 
     defineField({
@@ -76,7 +77,7 @@ export const aboutPage = defineType({
 defineField({name: 'introEyebrow', title: 'Bovenregel introductie', type: 'string', group: 'intro', validation: (rule) => rule.required().max(80)}),
     defineField({name: 'introTitle', title: 'Titel introductie', type: 'string', group: 'intro', validation: (rule) => rule.required().max(120)}),
     paragraphs('introText', 'Teksten introductie', 'intro'),
-    defineField({name: 'introImage', title: 'Afbeelding introductie', type: 'image', group: 'intro', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'introImage', title: 'Afbeelding introductie', group: 'intro', required: true, altRequired: false}),
     defineField({name: 'introImageAlt', title: 'Alt-tekst introductie', type: 'string', group: 'intro', validation: (rule) => rule.required().max(160)}),
     imageGlowField({name: 'introImageGlow', group: 'intro'}),
     defineField({name: 'timelineEyebrow', title: 'Bovenregel tijdlijn', type: 'string', group: 'timeline', validation: (rule) => rule.required().max(80)}),
@@ -91,7 +92,7 @@ defineField({name: 'introEyebrow', title: 'Bovenregel introductie', type: 'strin
     defineField({name: 'atmosphereEyebrow', title: 'Bovenregel sfeer', type: 'string', group: 'atmosphere', validation: (rule) => rule.required().max(80)}),
     defineField({name: 'atmosphereTitle', title: 'Titel sfeer', type: 'string', group: 'atmosphere', validation: (rule) => rule.required().max(120)}),
     paragraphs('atmosphereText', 'Teksten sfeer', 'atmosphere'),
-    defineField({name: 'atmosphereImage', title: 'Afbeelding sfeer', type: 'image', group: 'atmosphere', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'atmosphereImage', title: 'Afbeelding sfeer', group: 'atmosphere', required: true, altRequired: false}),
     defineField({name: 'atmosphereImageAlt', title: 'Alt-tekst sfeer', type: 'string', group: 'atmosphere', validation: (rule) => rule.required().max(160)}),
     imageGlowField({name: 'atmosphereImageGlow', group: 'atmosphere'}),
     defineField({name: 'ctaEyebrow', title: 'Bovenregel CTA', type: 'string', group: 'cta', validation: (rule) => rule.required().max(80)}),

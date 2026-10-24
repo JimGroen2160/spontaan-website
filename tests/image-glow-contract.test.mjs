@@ -125,12 +125,12 @@ test('build-dataflow transporteert alle niet-hero gloedwaarden', () => {
 
   assert.match(
     source,
-    /normalizeImageGlow\(item\?\.imageGlow, 'normal'\)/,
-    'Bestaande homepage quickLinks moeten standaard hun huidige gloed behouden',
+    /preferredImageGlow\(\s*item\?\.imageGlowManaged,\s*item\?\.imageGlow,\s*'normal',\s*\)/,
+    'Homepage quickLinks moeten managed glow eerst gebruiken, legacy imageGlow als fallback behouden en normal als standaard gebruiken',
   )
 })
 
-test('Nieuws en Agenda transporteren mainImageGlow tijdens runtime', () => {
+test('Nieuws en Agenda gebruiken managed-first alt en glow tijdens runtime', () => {
   for (const path of [
     'js/nieuws.js',
     'js/nieuwsbericht.js',
@@ -138,14 +138,33 @@ test('Nieuws en Agenda transporteren mainImageGlow tijdens runtime', () => {
   ]) {
     const source = read(path)
 
-    assert.ok(
-      source.includes('mainImageGlow'),
-      `${path} mist mainImageGlow`,
+    for (const marker of [
+      '"mainImageAltManaged": mainImage.alt',
+      '"mainImageGlowManaged": mainImage.glow',
+      'mainImageAlt',
+      'mainImageGlow',
+      'preferredImageAlt',
+      'preferredImageGlow',
+      'normalizeImageGlow',
+      'media.dataset.imageGlow = item.imageGlow',
+      'image.alt = item.imageAlt',
+    ]) {
+      assert.ok(
+        source.includes(marker),
+        `${path} mist runtime-contractmarker ${marker}`,
+      )
+    }
+
+    assert.match(
+      source,
+      /preferredImageAlt\(\s*item\.mainImageAltManaged,\s*item\.mainImageAlt,\s*\)/,
+      `${path} gebruikt niet managed alt met legacy fallback`,
     )
 
-    assert.ok(
-      source.includes('normalizeImageGlow'),
-      `${path} mist normalizeImageGlow`,
+    assert.match(
+      source,
+      /preferredImageGlow\(\s*item\.mainImageGlowManaged,\s*item\.mainImageGlow,\s*\)/,
+      `${path} gebruikt niet managed glow met legacy fallback`,
     )
   }
 })

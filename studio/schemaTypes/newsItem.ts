@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const newsItem = defineType({
   name: 'newsItem',
@@ -51,15 +52,7 @@ export const newsItem = defineType({
       description: 'Gebruik dit om nieuws op de homepage uit te lichten als er geen handmatige selectie is ingesteld.',
       initialValue: false,
     }),
-    defineField({
-      name: 'mainImage',
-      title: 'Hoofdafbeelding',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'mainImage', title: 'Hoofdafbeelding', required: true, altRequired: false}),
     defineField({
       name: 'mainImageAlt',
       title: 'Alt-tekst hoofdafbeelding',
