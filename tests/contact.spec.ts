@@ -26,16 +26,27 @@ test.describe('Contactpagina zonder formulier', () => {
   });
 
   test('biedt geldige directe e-mail- en telefoonacties', async ({page}) => {
-    const emailLinks = page.locator('.contact-hero a[href="mailto:spontaaninfo@gmail.com"], .contact-page a[href="mailto:spontaaninfo@gmail.com"]');
-    const phoneLinks = page.locator('.contact-hero a[href="tel:+31600000000"], .contact-page a[href="tel:+31600000000"]');
+    const emailLinks = page.locator('.contact-hero a[href="mailto:info@spontaan-angerlo.nl"], .contact-page a[href="mailto:info@spontaan-angerlo.nl"]');
+    const phoneLinks = page.locator('.contact-hero a[href^="tel:"], .contact-page a[href^="tel:"]');
     await expect(emailLinks.first()).toHaveText('Stuur een e-mail');
     await expect(emailLinks).toHaveCount(6);
-    await expect(phoneLinks.first()).toHaveText('Bel ons');
     await expect(phoneLinks).toHaveCount(2);
-    await expect(page.getByText('[DEMO] +31 6 0000 0000', {exact: true})).toBeVisible();
+    await expect(phoneLinks.first()).toBeVisible();
+    const phoneTargets = await phoneLinks.evaluateAll((links) => (
+      links.map((link) => link.getAttribute('href'))
+    ));
+    expect(phoneTargets).toHaveLength(2);
+    expect(new Set(phoneTargets).size).toBe(1);
+    for (const target of phoneTargets) {
+      expect(target).not.toBeNull();
+      expect(target ?? '').toMatch(/^tel:\+?[0-9]{7,15}$/);
+    }
+    const phoneLabels = await phoneLinks.evaluateAll((links) => (
+      links.map((link) => link.textContent?.trim() ?? '')
+    ));
+    expect(phoneLabels.every((label) => label.length > 0)).toBe(true);
     await expect(page.getByText(/nog niet gepubliceerd/i)).toHaveCount(0);
   });
-
   test('gebruikt vaste beeldafmetingen en precies één gedeelde navigatie en footer', async ({page}) => {
     const hero = page.locator('[data-contact-hero-image]');
     const welcome = page.locator('[data-contact-welcome-image]');
@@ -52,20 +63,29 @@ test.describe('Contactpagina zonder formulier', () => {
 
   test('doet geen runtime-Sanity-fetch en laadt elk contactbeeld eenmaal', async ({page}) => {
     const sanityRequests: string[] = [];
+    const heroSrc = await page.locator('[data-contact-hero-image]').getAttribute('src');
+    const welcomeSrc = await page.locator('[data-contact-welcome-image]').getAttribute('src');
+    expect(heroSrc).toBeTruthy();
+    expect(welcomeSrc).toBeTruthy();
+    const contactImageUrls = new Set([
+      new URL(heroSrc ?? '', page.url()).href,
+      new URL(welcomeSrc ?? '', page.url()).href,
+    ]);
+    expect(contactImageUrls.size).toBe(2);
     const contactImageRequests: string[] = [];
     page.on('request', (request) => {
       if (request.url().includes('.api.sanity.io/')) sanityRequests.push(request.url());
-      if (/over-(?:hero|intro)-mannenkoor\.jpg$/.test(request.url())) {
+      if (contactImageUrls.has(request.url())) {
         contactImageRequests.push(request.url());
       }
     });
     await page.reload();
     await page.locator('[data-contact-hero-image]').waitFor();
+    await page.locator('[data-contact-welcome-image]').waitFor();
     expect(sanityRequests).toEqual([]);
     expect(contactImageRequests).toHaveLength(2);
     expect(new Set(contactImageRequests).size).toBe(2);
   });
-
   test('toont een zichtbare toetsenbordfocus op contactlinks', async ({page}) => {
     const firstTopicLink = page.locator('.contact-topic-card__link').first();
     await firstTopicLink.focus();
