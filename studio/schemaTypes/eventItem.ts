@@ -1,5 +1,6 @@
 ﻿import {defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const eventItem = defineType({
   name: 'eventItem',
@@ -98,14 +99,7 @@ export const eventItem = defineType({
       validation: (rule) => rule.required().max(280),
     }),
 
-    defineField({
-      name: 'mainImage',
-      title: 'Afbeelding',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-    }),
+    managedImageField({name: 'mainImage', title: 'Afbeelding', altRequired: false}),
 
     defineField({
       name: 'mainImageAlt',

@@ -1,5 +1,6 @@
 ﻿import {defineArrayMember, defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const photoAlbum = defineType({
   name: 'photoAlbum',
@@ -29,15 +30,7 @@ export const photoAlbum = defineType({
       validation: (rule) => rule.required().max(280),
     }),
 
-    defineField({
-      name: 'coverImage',
-      title: 'Omslagafbeelding',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'coverImage', title: 'Omslagafbeelding', required: true, altRequired: false}),
 
     defineField({
       name: 'coverImageAlt',
@@ -61,15 +54,7 @@ export const photoAlbum = defineType({
           type: 'object',
 
           fields: [
-            defineField({
-              name: 'image',
-              title: 'Afbeelding',
-              type: 'image',
-              options: {
-                hotspot: true,
-              },
-              validation: (rule) => rule.required(),
-            }),
+            managedImageField({name: 'image', title: 'Afbeelding', required: true, altRequired: false}),
 
             defineField({
               name: 'alt',

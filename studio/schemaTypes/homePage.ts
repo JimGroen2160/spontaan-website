@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const homePage = defineType({
   name: 'homePage',
@@ -32,16 +33,7 @@ export const homePage = defineType({
       title: 'Hero subtitel',
       type: 'string',
     }),
-    defineField({
-      name: 'heroImage',
-      title: 'Hero achtergrondafbeelding',
-      type: 'image',
-      description:
-        'Brede foto voor de homepage-hero. Later te vervangen door een recente koorfoto in de kleuren en uitstraling van de nieuwe website.',
-      options: {
-        hotspot: true,
-      },
-    }),
+    managedImageField({name: 'heroImage', title: 'Hero achtergrondafbeelding', description: 'Brede foto voor de homepage-hero. Later te vervangen door een recente koorfoto in de kleuren en uitstraling van de nieuwe website.', altRequired: false, initialGlow: 'normal'}),
     defineField({
       name: 'heroImageAlt',
       title: 'Alt-tekst hero afbeelding',
@@ -119,14 +111,7 @@ defineField({
               rows: 3,
               validation: (rule) => rule.required(),
             }),
-            defineField({
-              name: 'image',
-              title: 'Afbeelding',
-              type: 'image',
-              options: {
-                hotspot: true,
-              },
-            }),
+            managedImageField({name: 'image', title: 'Afbeelding', altRequired: false, initialGlow: 'normal'}),
             defineField({
               name: 'imageAlt',
               title: 'Alt-tekst afbeelding',

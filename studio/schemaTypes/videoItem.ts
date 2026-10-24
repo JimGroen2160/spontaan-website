@@ -1,5 +1,6 @@
 ﻿import {defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const videoItem = defineType({
   name: 'videoItem',
@@ -64,17 +65,7 @@ export const videoItem = defineType({
           }),
     }),
 
-    defineField({
-      name: 'thumbnail',
-      title: 'Voorbeeldafbeelding',
-      type: 'image',
-      description:
-        'Deze afbeelding wordt getoond voordat de bezoeker de video afspeelt.',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'thumbnail', title: 'Voorbeeldafbeelding', description: 'Deze afbeelding wordt getoond voordat de bezoeker de video afspeelt.', required: true, altRequired: false}),
 
     defineField({
       name: 'thumbnailAlt',
