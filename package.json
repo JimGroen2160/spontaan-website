@@ -36,6 +36,9 @@
     "lighthouse": "13.4.1"
   },
   "overrides": {
-    "tmp": "0.2.7"
+    "tmp": "0.2.7",
+    "lighthouse@13.4.1": {
+      "puppeteer-core": "25.13.0"
+    }
   }
 }
