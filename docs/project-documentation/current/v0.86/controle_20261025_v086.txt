@@ -1,0 +1,12 @@
+SPONTAAN DOCUMENTATIECONTROLE 20261025 v0.86
+
+Scope: VOLLEDIG werkcheckpoint-documentatieupdate, geen repository/platformwrite.
+
+PASS - v0.85 als bron gebruikt; v0.85 niet gewijzigd.
+PASS - v0.84-historie gecorrigeerd op basis van latere directe activatie-output.
+PASS - Node 24.22.1-status gecorrigeerd: reeds uitgevoerd/gevalideerd, geen patch nodig.
+PASS - B13.4C-A 82/82 PASS verwerkt.
+PASS - B13.4C-B/B13.4C-C en eerstvolgende non-auth gate verwerkt.
+PASS - verplichte relevante-chat-terugleesgate toegevoegd aan prompt/rules/overdracht/stappenplan.
+PASS - contentmanagerhandleiding blijft DEFERRED-NOT-FORGOTTEN.
+PASS - geen commit/push/merge/deployment/Sanity/Supabase/Vercel-write.
