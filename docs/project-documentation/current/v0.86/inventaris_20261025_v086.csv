@@ -1,0 +1,17 @@
+﻿Bestand/onderdeel;Status v0.86;Toelichting
+ontwikkelprompt_20261025_v086_final.docx;UPDATED/CANONICAL;"Verplichte terugleesgate uitgebreid met relevante eerdere Spontaan-chats; patch-noodzaak vooraf bewijzen."
+rules_spontaan_20261025_v086.docx;UPDATED/CANONICAL-QUICKREF;Chat/prompt/rules/plan/repo-runtime reconciliatie als vaste gate.
+project_20261025_v086_final.docx;UPDATED/CANONICAL;"v0.84-historie gecorrigeerd; Node 24.22.1 afgerond; B13.4C-A 82/82 PASS."
+stappenplan_20261025_v086_final.docx;UPDATED/CANONICAL;"Eerstvolgend: B13.4C finale veilige non-auth gate; daarna B13.4D."
+devsecops_20261025_v086_final.docx;UPDATED/CANONICAL;Actuele Node/toolchain en teststrategie zonder permanente TEST-tenant.
+cms_acceptatiecheckpoint_20261025_v086.docx;UPDATED/CANONICAL;B13.4C split A/B/C en bewijs 82/82 verwerkt.
+technisch_ontwerp_cms_publicatieketen_20261025_v086.docx;UPDATED/CANONICAL;Managed-image/glow teststatus en toolchainbasis geactualiseerd.
+overdracht_nieuwe_chat_20261025_v086.docx;UPDATED/CANONICAL;Nieuw hervatpunt + verplichte chat-read gate.
+log_20261025_v02.docx;UPDATED;Correctie v0.84 + Node-lesson + B13.4C voortgang.
+documentatie-status.json;UPDATED/CANONICAL;"v0.86 staging; actuele status en next gate."
+inventaris_20261025_v086.csv;NEW;Volledigheidsinventaris v0.86.
+controle_20261025_v086.txt;NEW;Controlebewijs en scope.
+LEESMIJ_20261025_v086.txt;NEW;Activatie/gebruik v0.86.
+contentmanager-handleiding v1.7C / opvolger;DEFERRED-NOT-FORGOTTEN;Pas definitief na B13/main/Production Studio/live E2E.
+v0.85;HISTORICAL-RETAIN;"Actief checkpoint vóór v0.86; niet herschrijven."
+v0.84;HISTORICAL-CORRECTED;Bij v0.85-activatie rechtstreeks bewezen als voorafgaande actieve lokale set van 24-08-2026.

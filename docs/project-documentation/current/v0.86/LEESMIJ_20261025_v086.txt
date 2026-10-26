@@ -1,0 +1,17 @@
+SPONTAAN DOCUMENTATIESET 20261025 v0.86
+
+Doel
+- Werkcheckpoint na teruglees- en reconciliatiecorrectie op 25-10-2026.
+- v0.85 blijft ongewijzigd historisch checkpoint.
+
+Belangrijkste correcties
+1. v0.84 (24-08-2026) is bij de daadwerkelijke v0.85-activatie rechtstreeks bewezen als voorafgaande actieve lokale documentatieset.
+2. Node 24.22.1 was reeds op 22-10-2026 ingevoerd en gevalideerd; geen nieuwe Node-patch nodig.
+3. B13.4C-A lokale/synthetische regressie = 82/82 PASS.
+4. B13.4C-B live auth/RBAC = BLOCKED door ontbreken actuele veilige Spontaan TEST-tenant.
+5. B13.4C-C historische TEST-config = OPEN apart remediatiepunt.
+6. Eerstvolgende uitvoerende stap = finale veilige non-auth Playwright-gate.
+7. Nieuwe vaste gate: vóór iedere uitvoerende Spontaan-stap actieve documentatie + rules + prompt + relevante eerdere chats + actuele repo/runtime teruglezen en reconciliëren.
+
+Status
+Deze set is staging-gereed-voor-activatie totdat lokale activatie expliciet is uitgevoerd en bewezen.

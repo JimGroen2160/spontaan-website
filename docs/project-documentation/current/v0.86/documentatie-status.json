@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "project": "spontaan-website",
+  "documentatieSetVersie": "v0.86",
+  "documentatieDatum": "2026-10-25",
+  "documentatieStatus": "staging-gereed-voor-activatie",
+  "ontwikkelpromptBestand": "ontwikkelprompt_20261025_v086_final.docx",
+  "ontwikkelpromptVersie": "v0.86",
+  "rulesBestand": "rules_spontaan_20261025_v086.docx",
+  "stappenplanBestand": "stappenplan_20261025_v086_final.docx",
+  "repository": "C:\\Users\\jimgr\\Documents\\spontaan-website",
+  "checkpointType": "werkcheckpoint",
+  "previousActiveDocumentation": {
+    "version": "v0.85",
+    "activatedOn": "2026-10-25",
+    "previousToV085ObservedActive": "v0.84",
+    "previousToV085Date": "2026-08-24"
+  },
+  "repositoryCheckpoint": {
+    "branch": "b13/production-managed-image",
+    "head": "abbdc2592f8b515d2d78757e8831ac7a76642cf1",
+    "workingTreeClean": false,
+    "expectedStatusRecords": 27
+  },
+  "remoteMain": {
+    "head": "abbdc2592f8b515d2d78757e8831ac7a76642cf1",
+    "bewezenOp": "2026-10-25"
+  },
+  "toolchain": {
+    "node": "24.22.1",
+    "npm": "11.19.1",
+    "nodeStatus": "reeds-22-10-2026-gevalideerd-geen-nieuwe-patch",
+    "exactCiPins24221": 4,
+    "genericNode24PinsRetained": 6
+  },
+  "sanity": {
+    "projectId": "u66p1mxm",
+    "acceptanceDataset": "development",
+    "productionDataset": "production",
+    "studioHost": "https://spontaan-website.sanity.studio/",
+    "contentmanagerMode": "direct-production-live"
+  },
+  "supabase": {
+    "productionProjectRef": "wqtpngqematpnswetxxj",
+    "historicalTestProjectRef": "lldmyfvhjypomxfpltlx",
+    "historicalTestStatus": "niet-actuele-Spontaan-testomgeving",
+    "permanentSpontaanTestProject": false,
+    "rule": "Production niet impliciet gebruiken voor muterende auth/RBAC-tests"
+  },
+  "b13": {
+    "status": "in-uitvoering",
+    "b13_4c_a": "closed-pass-82-of-82-local-synthetic",
+    "b13_4c_b": "blocked-infrastructure-no-current-safe-live-test-tenant",
+    "b13_4c_c": "open-historical-test-config-remediation",
+    "b13_4c_next": "finale-veilige-non-auth-playwright-gate",
+    "b13_4d": "open-context22-data-limitation"
+  },
+  "processRuleAdded": "Voor elke uitvoerende stap actieve documentatie/rules/prompt + relevante eerdere Spontaan-chats + actuele repo/runtime teruglezen en reconciliëren; vóór patch bewijzen of wijziging nog nodig is.",
+  "laatsteGoedgekeurdeRonde": "Documentatie v0.86 bijwerken vóór verdere planning/uitvoering",
+  "volgendeGeplandeFase": "B13.4C finale veilige non-auth Playwright-gate; daarna formeel productgate-besluit",
+  "deferredDeliverables": [
+    "contentmanagerhandleiding actualiseren na B13/main/Production Studio/live publicatie-E2E",
+    "cleanup na B13",
+    "historische TEST-config remediëren buiten B13 productwrite-scope"
+  ],
+  "pakketBestand": "spontaan-documentatieset_20261025_v086.zip",
+  "hashBestand": "pakket-hash_20261025_v086.txt",
+  "gegenereerdOp": "2026-10-25T18:45:00+01:00"
+}
