@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const friendsPage = defineType({
   name: 'friendsPage',
@@ -42,17 +43,7 @@ export const friendsPage = defineType({
       validation: (rule) => rule.required().max(280),
     }),
 
-    defineField({
-      name: 'heroImage',
-      title: 'Hero-afbeelding',
-      type: 'image',
-      description:
-        'Gebruik een brede foto van Zanggroep Spontaan die aansluit op het goedgekeurde wireframe.',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'heroImage', title: 'Hero-afbeelding', description: 'Gebruik een brede foto van Zanggroep Spontaan die aansluit op het goedgekeurde wireframe.', required: true, altRequired: false, initialGlow: 'normal'}),
 
     defineField({
       name: 'heroImageAlt',
@@ -255,17 +246,7 @@ defineField({
       validation: (rule) => rule.required().min(1).max(5),
     }),
 
-    defineField({
-      name: 'ctaImage',
-      title: 'Afbeelding afsluitend blok',
-      type: 'image',
-      description:
-        'Gebruik de koorfoto uit het goedgekeurde wireframe of een overeenkomstige mannenkoorfoto.',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'ctaImage', title: 'Afbeelding afsluitend blok', description: 'Gebruik de koorfoto uit het goedgekeurde wireframe of een overeenkomstige mannenkoorfoto.', required: true, altRequired: false}),
 
     defineField({
       name: 'ctaImageAlt',

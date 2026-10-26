@@ -74,6 +74,8 @@
     summary,
     mainImageAlt,
     mainImageGlow,
+    "mainImageAltManaged": mainImage.alt,
+    "mainImageGlowManaged": mainImage.glow,
     "imageUrl": mainImage.asset->url,
     body
   }`;
@@ -89,6 +91,37 @@
     return allowedImageGlow.has(value)
       ? value
       : 'none';
+  }
+
+  function preferredImageAlt(
+    managedValue,
+    legacyValue,
+  ) {
+    const managedAlt =
+      typeof managedValue === 'string'
+        ? managedValue.trim()
+        : '';
+
+    if (managedAlt) {
+      return managedAlt;
+    }
+
+    return typeof legacyValue === 'string'
+      ? legacyValue.trim()
+      : '';
+  }
+
+  function preferredImageGlow(
+    managedValue,
+    legacyValue,
+  ) {
+    if (allowedImageGlow.has(managedValue)) {
+      return managedValue;
+    }
+
+    return normalizeImageGlow(
+      legacyValue,
+    );
   }
 
   const categoryLabels = {
@@ -279,12 +312,16 @@
     const summary =
       typeof item.summary === 'string' ? item.summary.trim() : '';
     const imageAlt =
-      typeof item.mainImageAlt === 'string'
-        ? item.mainImageAlt.trim()
-        : '';
+      preferredImageAlt(
+        item.mainImageAltManaged,
+        item.mainImageAlt,
+      );
     const imageSrc = getSafeImageUrl(item.imageUrl);
     const imageGlow =
-      normalizeImageGlow(item.mainImageGlow);
+      preferredImageGlow(
+        item.mainImageGlowManaged,
+        item.mainImageGlow,
+      );
     const publishedDate = getValidDate(item.publishedAt);
     const body = getPortableTextParagraphs(item.body);
     const category = getCategoryLabel(item.category);

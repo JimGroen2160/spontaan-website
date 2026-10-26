@@ -1,5 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {imageGlowField} from './imageGlow'
+import {managedImageField} from './managedImage'
 
 export const contactPage = defineType({
   name: 'contactPage',
@@ -22,7 +23,7 @@ export const contactPage = defineType({
     defineField({name: 'heroEyebrow', title: 'Bovenregel hero', type: 'string', group: 'hero', validation: (rule) => rule.required().max(80)}),
     defineField({name: 'heroTitle', title: 'Hero-titel', type: 'string', group: 'hero', validation: (rule) => rule.required().max(96)}),
     defineField({name: 'heroIntro', title: 'Hero-introductie', type: 'text', rows: 3, group: 'hero', validation: (rule) => rule.required().max(300)}),
-    defineField({name: 'heroImage', title: 'Hero-afbeelding', type: 'image', group: 'hero', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'heroImage', title: 'Hero-afbeelding', group: 'hero', required: true, altRequired: false, initialGlow: 'normal'}),
     defineField({name: 'heroImageAlt', title: 'Alt-tekst hero', type: 'string', group: 'hero', validation: (rule) => rule.required().max(160)}),
 
     defineField({
@@ -82,7 +83,7 @@ defineField({name: 'emailCtaLabel', title: 'Tekst e-mailknop', type: 'string', g
     }),
     defineField({name: 'welcomeTitle', title: 'Welkomsttitel', type: 'string', group: 'welcome', validation: (rule) => rule.required().max(120)}),
     defineField({name: 'welcomeText', title: 'Welkomsttekst', type: 'text', rows: 4, group: 'welcome', validation: (rule) => rule.required().max(500)}),
-    defineField({name: 'welcomeImage', title: 'Welkomstafbeelding', type: 'image', group: 'welcome', options: {hotspot: true}, validation: (rule) => rule.required()}),
+    managedImageField({name: 'welcomeImage', title: 'Welkomstafbeelding', group: 'welcome', required: true, altRequired: false}),
     defineField({name: 'welcomeImageAlt', title: 'Alt-tekst welkomstafbeelding', type: 'string', group: 'welcome', validation: (rule) => rule.required().max(160)}),
     imageGlowField({
       name: 'welcomeImageGlow',

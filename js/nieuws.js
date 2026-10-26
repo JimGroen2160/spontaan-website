@@ -86,6 +86,8 @@
       summary,
       mainImageAlt,
       mainImageGlow,
+      "mainImageAltManaged": mainImage.alt,
+      "mainImageGlowManaged": mainImage.glow,
       "imageUrl": mainImage.asset->url
     }
   }`;
@@ -107,6 +109,37 @@
     return allowedHeroGlow.has(value)
       ? value
       : 'none';
+  }
+
+  function preferredImageAlt(
+    managedValue,
+    legacyValue,
+  ) {
+    const managedAlt =
+      typeof managedValue === 'string'
+        ? managedValue.trim()
+        : '';
+
+    if (managedAlt) {
+      return managedAlt;
+    }
+
+    return typeof legacyValue === 'string'
+      ? legacyValue.trim()
+      : '';
+  }
+
+  function preferredImageGlow(
+    managedValue,
+    legacyValue,
+  ) {
+    if (allowedHeroGlow.has(managedValue)) {
+      return managedValue;
+    }
+
+    return normalizeImageGlow(
+      legacyValue,
+    );
   }
 
   function normalizeHero(value) {
@@ -258,12 +291,16 @@
     const summary =
       typeof item.summary === 'string' ? item.summary.trim() : '';
     const imageAlt =
-      typeof item.mainImageAlt === 'string'
-        ? item.mainImageAlt.trim()
-        : '';
+      preferredImageAlt(
+        item.mainImageAltManaged,
+        item.mainImageAlt,
+      );
     const imageUrl = getSafeImageUrl(item.imageUrl);
     const imageGlow =
-      normalizeImageGlow(item.mainImageGlow);
+      preferredImageGlow(
+        item.mainImageGlowManaged,
+        item.mainImageGlow,
+      );
     const publishedDate = getValidDate(item.publishedAt);
     const category = getCategoryLabel(item.category);
 

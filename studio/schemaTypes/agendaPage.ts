@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {managedImageField} from './managedImage'
 
 export const agendaPage = defineType({
   name: 'agendaPage',
@@ -32,17 +33,7 @@ export const agendaPage = defineType({
       validation: (rule) => rule.required().max(220),
     }),
 
-    defineField({
-      name: 'heroImage',
-      title: 'Hero-afbeelding',
-      type: 'image',
-      description:
-        'Gebruik een brede liggende foto. Bij voorkeur 1920 x 1080 pixels of groter. Zet belangrijke personen of onderwerpen niet tegen de randen.',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'heroImage', title: 'Hero-afbeelding', description: 'Gebruik een brede liggende foto. Bij voorkeur 1920 x 1080 pixels of groter. Zet belangrijke personen of onderwerpen niet tegen de randen.', required: true, altRequired: false, initialGlow: 'normal'}),
 
 
     defineField({
