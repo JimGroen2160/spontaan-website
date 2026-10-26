@@ -95,6 +95,8 @@
       isFeatured,
       mainImageAlt,
       mainImageGlow,
+      "mainImageAltManaged": mainImage.alt,
+      "mainImageGlowManaged": mainImage.glow,
       "imageUrl": mainImage.asset->url
     }
   }`;
@@ -110,6 +112,37 @@
     return allowedHeroGlow.has(value)
       ? value
       : 'none';
+  }
+
+  function preferredImageAlt(
+    managedValue,
+    legacyValue,
+  ) {
+    const managedAlt =
+      typeof managedValue === 'string'
+        ? managedValue.trim()
+        : '';
+
+    if (managedAlt) {
+      return managedAlt;
+    }
+
+    return typeof legacyValue === 'string'
+      ? legacyValue.trim()
+      : '';
+  }
+
+  function preferredImageGlow(
+    managedValue,
+    legacyValue,
+  ) {
+    if (allowedHeroGlow.has(managedValue)) {
+      return managedValue;
+    }
+
+    return normalizeImageGlow(
+      legacyValue,
+    );
   }
 
   function normalizeHeroGlow(value) {
@@ -430,9 +463,10 @@
         ? item.buttonLabel.trim()
         : '';
     const imageAlt =
-      typeof item.mainImageAlt === 'string'
-        ? item.mainImageAlt.trim()
-        : '';
+      preferredImageAlt(
+        item.mainImageAltManaged,
+        item.mainImageAlt,
+      );
 
     const startDate = getValidDate(item.startAt);
     const endDate = getValidDate(item.endAt);
@@ -441,7 +475,10 @@
     const buttonLink = getSafeUrl(item.buttonLink, true);
     const imageUrl = getSafeImageUrl(item.imageUrl);
     const imageGlow =
-      normalizeImageGlow(item.mainImageGlow);
+      preferredImageGlow(
+        item.mainImageGlowManaged,
+        item.mainImageGlow,
+      );
 
     if (
       !title ||

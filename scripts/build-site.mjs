@@ -152,6 +152,8 @@ export function runtimeConfigSource(environment = process.env) {
 export const MEDIA_QUERY = `{
   "page": *[_id == "mediaPage-main" && _type == "mediaPage"][0] {
     heroTitle, heroSubtitle, heroImageAlt, heroGlow,
+    "heroImageAltManaged": heroImage.alt,
+    "heroGlowManaged": heroImage.glow,
     "heroImageUrl": heroImage.asset->url,
     introTitle, introText, ctaEyebrow, ctaTitle, ctaText,
     primaryButtonLabel, primaryButtonLink,
@@ -160,9 +162,13 @@ export const MEDIA_QUERY = `{
   "photoAlbums": *[_type == "photoAlbum" && isVisible == true] | order(eventDate desc) {
     _id, title, eventDate, summary, isFeatured,
     coverImageAlt, coverImageGlow,
+    "coverImageAltManaged": coverImage.alt,
+    "coverImageGlowManaged": coverImage.glow,
     "coverImageUrl": coverImage.asset->url,
     photos[] {
       alt, caption, imageGlow,
+      "imageAltManaged": image.alt,
+      "imageGlowManaged": image.glow,
       "imageUrl": image.asset->url
     }
   },
@@ -173,6 +179,8 @@ export const MEDIA_QUERY = `{
   "videoItems": *[_type == "videoItem" && isVisible == true] | order(recordedAt desc) {
     _id, title, recordedAt, summary, isFeatured,
     youtubeUrl, thumbnailAlt, thumbnailGlow,
+    "thumbnailAltManaged": thumbnail.alt,
+    "thumbnailGlowManaged": thumbnail.glow,
     "thumbnailUrl": thumbnail.asset->url
   }
 }`;
@@ -180,6 +188,8 @@ export const MEDIA_QUERY = `{
 export const FRIENDS_QUERY = `{
   "page": *[_id == "friendsPage-main" && _type == "friendsPage"][0] {
     heroTitle, heroText, heroImageAlt, heroGlow,
+    "heroImageAltManaged": heroImage.alt,
+    "heroGlowManaged": heroImage.glow,
     "heroImageUrl": heroImage.asset->url,
     heroPrimaryButtonLabel, heroPrimaryButtonLink,
     heroSecondaryButtonLabel, heroSecondaryButtonLink,
@@ -188,6 +198,8 @@ export const FRIENDS_QUERY = `{
     friendsTitle, friendsIntro,
     ctaTitle, ctaText, ctaBenefits,
     ctaImageAlt, ctaImageGlow,
+    "ctaImageAltManaged": ctaImage.alt,
+    "ctaImageGlowManaged": ctaImage.glow,
     "ctaImageUrl": ctaImage.asset->url,
     ctaPrimaryButtonLabel, ctaPrimaryButtonLink,
     ctaSecondaryButtonLabel, ctaSecondaryButtonLink
@@ -195,6 +207,8 @@ export const FRIENDS_QUERY = `{
   "friends": *[_type == "friendItem" && isVisible == true] | order(sortOrder asc, publicName asc) {
     _id, publicName, friendType, imageDisplay,
     imageAlt, imageGlow,
+    "imageAltManaged": image.alt,
+    "imageGlowManaged": image.glow,
     description, website, isFeatured, sortOrder,
     publishFrom, publishUntil,
     "imageUrl": image.asset->url
@@ -203,14 +217,21 @@ export const FRIENDS_QUERY = `{
 
 export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0] {
   seoTitle, seoDescription,
-  heroTitle, heroSubtitle, heroImageAlt, heroGlow, "heroImageUrl": heroImage.asset->url,
+  heroTitle, heroSubtitle, heroImageAlt, heroGlow,
+  "heroImageAltManaged": heroImage.alt,
+  "heroGlowManaged": heroImage.glow,
+  "heroImageUrl": heroImage.asset->url,
   introEyebrow, introTitle, introText,
   introImageAlt, introImageGlow,
+  "introImageAltManaged": introImage.alt,
+  "introImageGlowManaged": introImage.glow,
   "introImageUrl": introImage.asset->url,
   timelineEyebrow, timelineTitle, timelineIntro, timelineItems[] {title, text},
   valuesEyebrow, valuesTitle, valuesItems[] {title, text},
   atmosphereEyebrow, atmosphereTitle, atmosphereText,
   atmosphereImageAlt, atmosphereImageGlow,
+  "atmosphereImageAltManaged": atmosphereImage.alt,
+  "atmosphereImageGlowManaged": atmosphereImage.glow,
   "atmosphereImageUrl": atmosphereImage.asset->url,
   quote, quoteAttribution,
   ctaEyebrow, ctaTitle, ctaText,
@@ -221,11 +242,15 @@ export const ABOUT_QUERY = `*[_id == "aboutPage-main" && _type == "aboutPage"][0
 export const CONTACT_QUERY = `*[_id == "contactPage-main" && _type == "contactPage"][0] {
   seoTitle, seoDescription,
   heroEyebrow, heroTitle, heroIntro, heroImageAlt, heroGlow,
+  "heroImageAltManaged": heroImage.alt,
+  "heroGlowManaged": heroImage.glow,
   "heroImageUrl": heroImage.asset->url,
   emailCtaLabel, phoneCtaLabel,
   contactTopics[] {title, text, icon, linkLabel, linkTarget},
   welcomeTitle, welcomeText,
   welcomeImageAlt, welcomeImageGlow,
+  "welcomeImageAltManaged": welcomeImage.alt,
+  "welcomeImageGlowManaged": welcomeImage.glow,
   "welcomeImageUrl": welcomeImage.asset->url,
   welcomePoints,
   directContactTitle, directContactText,
@@ -241,12 +266,16 @@ export const CONTACT_QUERY = `*[_id == "contactPage-main" && _type == "contactPa
 export const REPERTOIRE_QUERY = `{
   "page": *[_id == "repertoirePage-main" && _type == "repertoirePage"][0] {
     heroTitle, heroSubtitle, heroImageAlt, heroGlow,
+    "heroImageAltManaged": heroImage.alt,
+    "heroGlowManaged": heroImage.glow,
     "heroImageUrl": heroImage.asset->url,
     "featuredItemId": featuredItem->_id,
     worldsTitle, worldsIntro,
     worlds[] {
       number, title, description,
       imageAlt, imageGlow,
+      "imageAltManaged": image.alt,
+      "imageGlowManaged": image.glow,
       "imageUrl": image.asset->url,
       "itemIds": items[]->_id
     },
@@ -254,8 +283,12 @@ export const REPERTOIRE_QUERY = `{
     selectionTitle, "selectionItemIds": selectionItems[]->_id,
     quote, quoteAttribution,
     quoteImageAlt, quoteImageGlow,
+    "quoteImageAltManaged": quoteImage.alt,
+    "quoteImageGlowManaged": quoteImage.glow,
     "quoteImageUrl": quoteImage.asset->url,
     featuredImageAlt, featuredImageGlow,
+    "featuredImageAltManaged": featuredImage.alt,
+    "featuredImageGlowManaged": featuredImage.glow,
     "featuredImageUrl": featuredImage.asset->url,
     ctaEyebrow, ctaTitle, ctaText,
     primaryButtonLabel, primaryButtonLink,
@@ -288,6 +321,31 @@ function normalizeImageGlow(value, fallback = 'none') {
 
 function normalizeHeroGlow(value) {
   return normalizeImageGlow(value, 'normal');
+}
+
+function preferredImageAlt(managedValue, legacyValue) {
+  return (
+    text(managedValue, 160) ||
+    text(legacyValue, 160)
+  );
+}
+
+function preferredImageGlow(
+  managedValue,
+  legacyValue,
+  fallback = 'none',
+) {
+  const managedCandidate =
+    text(managedValue, 16);
+
+  if (HERO_GLOW_VALUES.has(managedCandidate)) {
+    return managedCandidate;
+  }
+
+  return normalizeImageGlow(
+    legacyValue,
+    fallback,
+  );
 }
 
 function safeUrl(value, kinds) {
@@ -348,9 +406,16 @@ function normalizePage(value = {}) {
     heroTitle: text(value.heroTitle, 96),
     heroSubtitle: text(value.heroSubtitle, 180),
     heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
-    heroImageAlt: text(value.heroImageAlt, 160),
+    heroImageAlt: preferredImageAlt(
+      value.heroImageAltManaged,
+      value.heroImageAlt,
+    ),
 
-    heroGlow: normalizeHeroGlow(value.heroGlow),
+    heroGlow: preferredImageGlow(
+      value.heroGlowManaged,
+      value.heroGlow,
+      'normal',
+    ),
     introTitle: text(value.introTitle, 120),
     introText: text(value.introText, 500),
     ctaEyebrow: text(value.ctaEyebrow, 80),
@@ -368,9 +433,15 @@ function normalizePhoto(value) {
   if (!imageUrl) return null;
   return {
     imageUrl,
-    alt: text(value.alt, 160),
+    alt: preferredImageAlt(
+      value.imageAltManaged,
+      value.alt,
+    ),
     caption: text(value.caption, 240),
-    imageGlow: normalizeImageGlow(value.imageGlow),
+    imageGlow: preferredImageGlow(
+      value.imageGlowManaged,
+      value.imageGlow,
+    ),
   };
 }
 
@@ -387,9 +458,15 @@ function normalizeAlbum(value) {
     date: /^\d{4}-\d{2}-\d{2}/.test(value.eventDate ?? value.date ?? '') ? String(value.eventDate ?? value.date).slice(0, 10) : '',
     isFeatured: value.isFeatured === true,
     coverImageUrl,
-    coverImageAlt: text(value.coverImageAlt, 160),
+    coverImageAlt: preferredImageAlt(
+      value.coverImageAltManaged,
+      value.coverImageAlt,
+    ),
     coverImageGlow:
-      normalizeImageGlow(value.coverImageGlow),
+      preferredImageGlow(
+        value.coverImageGlowManaged,
+        value.coverImageGlow,
+      ),
     photos: Array.isArray(value.photos) ? value.photos.map(normalizePhoto).filter(Boolean) : [],
   };
 }
@@ -417,8 +494,14 @@ function normalizeVideo(value) {
     isFeatured: value.isFeatured === true,
     youtubeId: idFromUrl,
     thumbnailUrl,
-    thumbnailAlt: text(value.thumbnailAlt, 160),
-    thumbnailGlow: normalizeImageGlow(value.thumbnailGlow),
+    thumbnailAlt: preferredImageAlt(
+      value.thumbnailAltManaged,
+      value.thumbnailAlt,
+    ),
+    thumbnailGlow: preferredImageGlow(
+      value.thumbnailGlowManaged,
+      value.thumbnailGlow,
+    ),
   };
 }
 
@@ -527,7 +610,10 @@ function normalizeFriendItem(value, now) {
   const id = text(value?._id ?? value?.id, 120);
   const publicName = text(value?.publicName, 120);
   const imageUrl = safeUrl(value?.imageUrl, ['image', 'local']);
-  const imageAlt = text(value?.imageAlt, 160);
+  const imageAlt = preferredImageAlt(
+    value?.imageAltManaged,
+    value?.imageAlt,
+  );
 
   if (!id || !publicName || !imageUrl || !imageAlt) return null;
 
@@ -570,7 +656,10 @@ function normalizeFriendItem(value, now) {
     imageDisplay,
     imageUrl,
     imageAlt,
-    imageGlow: normalizeImageGlow(value?.imageGlow),
+    imageGlow: preferredImageGlow(
+      value?.imageGlowManaged,
+      value?.imageGlow,
+    ),
     description: text(value?.description, 320),
     website: safeLink(value?.website),
     isFeatured: value?.isFeatured === true,
@@ -611,9 +700,16 @@ export function normalizeFriendsContent(
       heroTitle: text(page.heroTitle, 96),
       heroText: text(page.heroText, 280),
       heroImageUrl: safeUrl(page.heroImageUrl, ['image', 'local']),
-      heroImageAlt: text(page.heroImageAlt, 160),
+      heroImageAlt: preferredImageAlt(
+        page.heroImageAltManaged,
+        page.heroImageAlt,
+      ),
 
-      heroGlow: normalizeHeroGlow(page.heroGlow),
+      heroGlow: preferredImageGlow(
+        page.heroGlowManaged,
+        page.heroGlow,
+        'normal',
+      ),
       heroPrimaryButtonLabel: text(
         page.heroPrimaryButtonLabel,
         48,
@@ -647,9 +743,15 @@ export function normalizeFriendsContent(
         page.ctaImageUrl,
         ['image', 'local'],
       ),
-      ctaImageAlt: text(page.ctaImageAlt, 160),
+      ctaImageAlt: preferredImageAlt(
+        page.ctaImageAltManaged,
+        page.ctaImageAlt,
+      ),
       ctaImageGlow:
-        normalizeImageGlow(page.ctaImageGlow),
+        preferredImageGlow(
+          page.ctaImageGlowManaged,
+          page.ctaImageGlow,
+        ),
       ctaPrimaryButtonLabel: text(
         page.ctaPrimaryButtonLabel,
         48,
@@ -766,16 +868,29 @@ export function normalizeAboutContent(value = {}) {
     heroTitle: text(value.heroTitle, 96),
     heroSubtitle: text(value.heroSubtitle, 240),
     heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
-    heroImageAlt: text(value.heroImageAlt, 160),
+    heroImageAlt: preferredImageAlt(
+      value.heroImageAltManaged,
+      value.heroImageAlt,
+    ),
 
-    heroGlow: normalizeHeroGlow(value.heroGlow),
+    heroGlow: preferredImageGlow(
+      value.heroGlowManaged,
+      value.heroGlow,
+      'normal',
+    ),
     introEyebrow: text(value.introEyebrow, 80),
     introTitle: text(value.introTitle, 120),
     introText: normalizeParagraphs(value.introText),
     introImageUrl: safeUrl(value.introImageUrl, ['image', 'local']),
-    introImageAlt: text(value.introImageAlt, 160),
+    introImageAlt: preferredImageAlt(
+      value.introImageAltManaged,
+      value.introImageAlt,
+    ),
     introImageGlow:
-      normalizeImageGlow(value.introImageGlow),
+      preferredImageGlow(
+        value.introImageGlowManaged,
+        value.introImageGlow,
+      ),
     timelineEyebrow: text(value.timelineEyebrow, 80),
     timelineTitle: text(value.timelineTitle, 120),
     timelineIntro: text(value.timelineIntro, 300),
@@ -787,9 +902,15 @@ export function normalizeAboutContent(value = {}) {
     atmosphereTitle: text(value.atmosphereTitle, 120),
     atmosphereText: normalizeParagraphs(value.atmosphereText),
     atmosphereImageUrl: safeUrl(value.atmosphereImageUrl, ['image', 'local']),
-    atmosphereImageAlt: text(value.atmosphereImageAlt, 160),
+    atmosphereImageAlt: preferredImageAlt(
+      value.atmosphereImageAltManaged,
+      value.atmosphereImageAlt,
+    ),
     atmosphereImageGlow:
-      normalizeImageGlow(value.atmosphereImageGlow),
+      preferredImageGlow(
+        value.atmosphereImageGlowManaged,
+        value.atmosphereImageGlow,
+      ),
     quote: text(value.quote, 280),
     quoteAttribution: text(value.quoteAttribution, 100),
     ctaEyebrow: text(value.ctaEyebrow, 80),
@@ -874,18 +995,31 @@ export function normalizeContactContent(value = {}) {
     heroTitle: text(value.heroTitle, 96),
     heroIntro: text(value.heroIntro, 300),
     heroImageUrl: safeUrl(value.heroImageUrl, ['image', 'local']),
-    heroImageAlt: text(value.heroImageAlt, 160),
+    heroImageAlt: preferredImageAlt(
+      value.heroImageAltManaged,
+      value.heroImageAlt,
+    ),
 
-    heroGlow: normalizeHeroGlow(value.heroGlow),
+    heroGlow: preferredImageGlow(
+      value.heroGlowManaged,
+      value.heroGlow,
+      'normal',
+    ),
     emailCtaLabel: text(value.emailCtaLabel, 48),
     phoneCtaLabel: text(value.phoneCtaLabel, 48),
     contactTopics: normalizeContactTopics(value.contactTopics),
     welcomeTitle: text(value.welcomeTitle, 120),
     welcomeText: text(value.welcomeText, 500),
     welcomeImageUrl: safeUrl(value.welcomeImageUrl, ['image', 'local']),
-    welcomeImageAlt: text(value.welcomeImageAlt, 160),
+    welcomeImageAlt: preferredImageAlt(
+      value.welcomeImageAltManaged,
+      value.welcomeImageAlt,
+    ),
     welcomeImageGlow:
-      normalizeImageGlow(value.welcomeImageGlow),
+      preferredImageGlow(
+        value.welcomeImageGlowManaged,
+        value.welcomeImageGlow,
+      ),
     welcomePoints: Array.isArray(value.welcomePoints)
       ? value.welcomePoints.map((item) => text(item, 160)).filter(Boolean).slice(0, 6)
       : [],
@@ -985,10 +1119,16 @@ function normalizeRepertoireWorld(value, index) {
       safeUrl(value?.imageUrl, ['image', 'local']) ||
       defaults.imageUrl,
     imageAlt:
-      text(value?.imageAlt, 160) ||
+      preferredImageAlt(
+        value?.imageAltManaged,
+        value?.imageAlt,
+      ) ||
       defaults.imageAlt,
     imageGlow:
-      normalizeImageGlow(value?.imageGlow),
+      preferredImageGlow(
+        value?.imageGlowManaged,
+        value?.imageGlow,
+      ),
     itemIds: Array.isArray(value?.itemIds)
       ? value.itemIds.map((id) => text(id, 120)).filter(Boolean)
       : [],
@@ -1006,18 +1146,31 @@ export function normalizeRepertoireContent(value = {}) {
       heroTitle: text(page.heroTitle, 96),
       heroSubtitle: text(page.heroSubtitle, 220),
       heroImageUrl: safeUrl(page.heroImageUrl, ['image', 'local']),
-      heroImageAlt: text(page.heroImageAlt, 160),
+      heroImageAlt: preferredImageAlt(
+        page.heroImageAltManaged,
+        page.heroImageAlt,
+      ),
 
-      heroGlow: normalizeHeroGlow(page.heroGlow),
+      heroGlow: preferredImageGlow(
+        page.heroGlowManaged,
+        page.heroGlow,
+        'normal',
+      ),
       featuredItemId: text(page.featuredItemId, 120),
       featuredImageUrl:
         safeUrl(page.featuredImageUrl, ['image', 'local']) ||
         REPERTOIRE_IMAGE_DEFAULTS.featuredImageUrl,
       featuredImageAlt:
-        text(page.featuredImageAlt, 160) ||
+        preferredImageAlt(
+          page.featuredImageAltManaged,
+          page.featuredImageAlt,
+        ) ||
         REPERTOIRE_IMAGE_DEFAULTS.featuredImageAlt,
       featuredImageGlow:
-        normalizeImageGlow(page.featuredImageGlow),
+        preferredImageGlow(
+          page.featuredImageGlowManaged,
+          page.featuredImageGlow,
+        ),
       worldsTitle: text(page.worldsTitle, 120),
       worldsIntro: text(page.worldsIntro, 300),
       worlds: Array.isArray(page.worlds) ? page.worlds.map(normalizeRepertoireWorld) : [],
@@ -1031,10 +1184,16 @@ export function normalizeRepertoireContent(value = {}) {
         safeUrl(page.quoteImageUrl, ['image', 'local']) ||
         REPERTOIRE_IMAGE_DEFAULTS.quoteImageUrl,
       quoteImageAlt:
-        text(page.quoteImageAlt, 160) ||
+        preferredImageAlt(
+          page.quoteImageAltManaged,
+          page.quoteImageAlt,
+        ) ||
         REPERTOIRE_IMAGE_DEFAULTS.quoteImageAlt,
       quoteImageGlow:
-        normalizeImageGlow(page.quoteImageGlow),
+        preferredImageGlow(
+          page.quoteImageGlowManaged,
+          page.quoteImageGlow,
+        ),
       ctaEyebrow: text(page.ctaEyebrow, 80),
       ctaTitle: text(page.ctaTitle, 120),
       ctaText: text(page.ctaText, 280),
@@ -1077,6 +1236,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
   heroTitle,
   heroSubtitle,
   heroGlow,
+  "heroGlowManaged": heroImage.glow,
   "heroImageUrl": heroImage.asset->url,
   ctaLabel,
   ctaLink,
@@ -1086,6 +1246,7 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     title,
     text,
     imageGlow,
+    "imageGlowManaged": image.glow,
     "imageUrl": image.asset->url,
     buttonLabel,
     buttonLink
@@ -1108,6 +1269,8 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     summary,
     mainImageAlt,
     mainImageGlow,
+    "mainImageAltManaged": mainImage.alt,
+    "mainImageGlowManaged": mainImage.glow,
     "imageUrl": mainImage.asset->url
   },
   "automaticFeaturedNewsItems": *[
@@ -1127,6 +1290,8 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     summary,
     mainImageAlt,
     mainImageGlow,
+    "mainImageAltManaged": mainImage.alt,
+    "mainImageGlowManaged": mainImage.glow,
     "imageUrl": mainImage.asset->url
   },
   visitTitle,
@@ -1182,7 +1347,11 @@ function normalizeHomeQuickLinks(value) {
       text: text(item?.text, 240),
       imageUrl: homeProjectPath(item?.imageUrl, 'image'),
       imageGlow:
-        normalizeImageGlow(item?.imageGlow, 'normal'),
+        preferredImageGlow(
+          item?.imageGlowManaged,
+          item?.imageGlow,
+          'normal',
+        ),
       mediaClass: text(item?.mediaClass, 40)
         .toLowerCase()
         .replace(/[^a-z0-9-]/g, ''),
@@ -1207,9 +1376,15 @@ function normalizeHomeNewsItem(value, allowDemo = false) {
   const slug = text(value.slug, 96).toLowerCase();
   const summary = text(value.summary, 240);
   const imageUrl = homeProjectPath(value.imageUrl, 'image');
-  const imageAlt = text(value.mainImageAlt, 160);
+  const imageAlt = preferredImageAlt(
+    value.mainImageAltManaged,
+    value.mainImageAlt,
+  );
   const imageGlow =
-    normalizeImageGlow(value.mainImageGlow);
+    preferredImageGlow(
+      value.mainImageGlowManaged,
+      value.mainImageGlow,
+    );
   const publishedAt = text(value.publishedAt, 64);
 
   if (
@@ -1301,7 +1476,11 @@ export function normalizeHomeContent(value, options = {}) {
     heroTitle: text(source.heroTitle, 100),
     heroSubtitle: text(source.heroSubtitle, 180),
 
-    heroGlow: normalizeHeroGlow(source.heroGlow),
+    heroGlow: preferredImageGlow(
+      source.heroGlowManaged,
+      source.heroGlow,
+      'normal',
+    ),
     heroImageUrl: homeProjectPath(
       source.heroImageUrl,
       'image',

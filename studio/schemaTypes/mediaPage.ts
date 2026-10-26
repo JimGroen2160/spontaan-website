@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {managedImageField} from './managedImage'
 
 export const mediaPage = defineType({
   name: 'mediaPage',
@@ -37,17 +38,7 @@ export const mediaPage = defineType({
       validation: (rule) => rule.required().max(180),
     }),
 
-    defineField({
-      name: 'heroImage',
-      title: 'Hero-afbeelding',
-      type: 'image',
-      description:
-        'Gebruik een afbeelding die duidelijk verwijst naar foto, muziek of video.',
-      options: {
-        hotspot: true,
-      },
-      validation: (rule) => rule.required(),
-    }),
+    managedImageField({name: 'heroImage', title: 'Hero-afbeelding', description: 'Gebruik een afbeelding die duidelijk verwijst naar foto, muziek of video.', required: true, altRequired: false, initialGlow: 'normal'}),
 
     defineField({
       name: 'heroImageAlt',
