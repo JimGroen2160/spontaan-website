@@ -69,6 +69,7 @@
       heroTitle,
       heroSubtitle,
       "heroImageUrl": heroImage.asset->url,
+      "heroGlowManaged": heroImage.glow,
       heroGlow
     },
     "items": *[
@@ -188,7 +189,10 @@
           ? value.heroSubtitle.trim()
           : '',
       imageUrl,
-      glow: normalizeHeroGlow(value.heroGlow),
+      glow: preferredImageGlow(
+        value.heroGlowManaged,
+        value.heroGlow,
+      ),
     };
   }
 

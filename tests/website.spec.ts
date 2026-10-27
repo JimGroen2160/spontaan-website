@@ -345,6 +345,52 @@ test.describe('Nieuwsoverzicht en nieuwsdetail', () => {
     );
   });
 });
+test.describe('Nieuws hero managed-first contract', () => {
+  const sanityNewsUrl = '**/data/query/development**';
+
+  test('past Nieuws hero managed-first gloed toe', async ({ page }) => {
+    await page.route(sanityNewsUrl, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          result: {
+            page: {
+              heroTitle: 'Nieuws testtitel',
+              heroSubtitle: 'Nieuws testondertitel',
+              heroImageUrl:
+                'https://cdn.sanity.io/images/u66p1mxm/development/news-hero-test.jpg',
+              heroGlowManaged: 'light',
+              heroGlow: 'strong',
+            },
+            items: [],
+          },
+        }),
+      });
+    });
+
+    await page.goto('/pages/nieuws.html');
+    await waitForSharedLayout(page);
+
+    const hero = page.locator('.news-hero');
+
+    await expect(
+      hero.locator('[data-public-hero-title]')
+    ).toHaveText('Nieuws testtitel');
+
+    await expect(
+      hero.locator('[data-public-hero-subtitle]')
+    ).toHaveText('Nieuws testondertitel');
+
+    await expect(
+      hero
+    ).toHaveAttribute(
+      'data-hero-glow',
+      'light',
+    );
+  });
+});
+
 test.describe('Nieuws Sanity-content en fallback', () => {
   const sanityQueryUrl = '**/data/query/development**';
 
@@ -1162,6 +1208,7 @@ test.describe('Agenda CMS beeld en hero contract', () => {
               heroSubtitle: 'Agenda testondertitel',
               heroImageUrl:
                 'https://cdn.sanity.io/images/u66p1mxm/development/agenda-hero-test.jpg',
+              heroGlowManaged: 'light',
               heroGlow: 'strong',
             },
             items: [],
@@ -1180,7 +1227,7 @@ test.describe('Agenda CMS beeld en hero contract', () => {
     await expect(hero.locator('[data-public-hero-subtitle]')).toHaveText(
       'Agenda testondertitel',
     );
-    await expect(hero).toHaveAttribute('data-hero-glow', 'strong');
+    await expect(hero).toHaveAttribute('data-hero-glow', 'light');
 
     const backgroundImage = await hero.evaluate((element) =>
       getComputedStyle(element).backgroundImage
