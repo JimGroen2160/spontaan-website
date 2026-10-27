@@ -3218,13 +3218,6 @@ main.news-detail-page {
   padding: clamp(2.5rem, 5vw, 4.5rem) 1.5rem clamp(5.5rem, 8vw, 7rem);
   overflow: hidden;
   background:
-    linear-gradient(
-      100deg,
-      rgba(49, 18, 105, 0.97) 0%,
-      rgba(79, 23, 127, 0.88) 38%,
-      rgba(164, 15, 128, 0.62) 68%,
-      rgba(217, 13, 135, 0.40) 100%
-    ),
     var(--about-hero-image, url("../images/about/over-hero-mannenkoor.jpg")) 58% center / cover no-repeat;
   color: #ffffff;
 }
