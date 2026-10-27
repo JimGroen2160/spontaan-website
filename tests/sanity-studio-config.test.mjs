@@ -142,14 +142,26 @@ test('Studio-dataset gebruikt production-build-safe statische env-toegang', asyn
 
   assert.match(
     source,
-    /configuredDataset\s*\|\|\s*'development'/,
-    'Development-fallback moet behouden blijven'
+    /nodeEnvironment\s*===\s*'production'/,
+    'Production Studio moet afzonderlijk worden herkend'
   )
 
   assert.match(
     source,
-    /ALLOWED_SANITY_DATASETS\.has\(dataset\)/,
-    'Dataset-allowlist moet behouden blijven'
+    /SANITY_STUDIO_DATASET ontbreekt voor Production Studio/,
+    'Production zonder expliciete Studio-dataset moet fail-fast stoppen'
+  )
+
+  assert.match(
+    source,
+    /return\s+'development'/,
+    'Development-fallback moet buiten Production behouden blijven'
+  )
+
+  assert.match(
+    source,
+    /ALLOWED_SANITY_DATASETS\.has\(configuredDataset\)/,
+    'Expliciet ingestelde dataset moet via de allowlist worden gevalideerd'
   )
 })
 test('CI valideert contract en bouwt Sanity Studio', async () => {

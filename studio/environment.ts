@@ -10,11 +10,26 @@ export function resolveStudioDataset(
     process.env.SANITY_STUDIO_DATASET
   )?.trim()
 
-  const dataset = configuredDataset || 'development'
+  const nodeEnvironment = (
+    environment?.NODE_ENV ??
+    process.env.NODE_ENV
+  )?.trim()
 
-  if (!ALLOWED_SANITY_DATASETS.has(dataset)) {
-    throw new Error(`Ongeldige Sanity Studio-dataset: ${dataset}`)
+  if (configuredDataset) {
+    if (!ALLOWED_SANITY_DATASETS.has(configuredDataset)) {
+      throw new Error(
+        `Ongeldige Sanity Studio-dataset: ${configuredDataset}`
+      )
+    }
+
+    return configuredDataset
   }
 
-  return dataset
+  if (nodeEnvironment === 'production') {
+    throw new Error(
+      'SANITY_STUDIO_DATASET ontbreekt voor Production Studio'
+    )
+  }
+
+  return 'development'
 }
