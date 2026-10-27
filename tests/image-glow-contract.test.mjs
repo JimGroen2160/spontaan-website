@@ -169,6 +169,31 @@ test('Nieuws en Agenda gebruiken managed-first alt en glow tijdens runtime', () 
   }
 })
 
+test('Nieuws en Agenda gebruiken managed-first hero-gloed tijdens runtime', () => {
+  for (const path of [
+    'js/nieuws.js',
+    'js/agenda.js',
+  ]) {
+    const source = read(path)
+
+    assert.ok(
+      source.includes('"heroGlowManaged": heroImage.glow'),
+      `${path} vraagt managed hero-gloed niet op`,
+    )
+
+    assert.ok(
+      source.includes('heroGlow'),
+      `${path} behoudt legacy heroGlow niet als fallback`,
+    )
+
+    assert.match(
+      source,
+      /preferredImageGlow\(\s*value\.heroGlowManaged,\s*value\.heroGlow,\s*\)/,
+      `${path} gebruikt niet managed-first hero-gloed met legacy fallback`,
+    )
+  }
+})
+
 test('bestaande hero-gloed blijft beschikbaar', () => {
   const build = read('scripts/build-site.mjs')
 
