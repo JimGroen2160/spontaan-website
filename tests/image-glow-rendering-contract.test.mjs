@@ -209,3 +209,27 @@ test('Hero glow blijft een apart contract', () => {
     /\[data-image-glow="normal"\]::after/,
   )
 })
+test('Over hero gebruikt geen vaste gekleurde gradient buiten hero-glowcontract', () => {
+  const css = read('css/style.css')
+
+  const aboutHero = css.match(
+    /\.about-hero\s*\{([\s\S]*?)\n\}/,
+  )
+
+  assert.ok(
+    aboutHero,
+    'CSS-blok .about-hero ontbreekt',
+  )
+
+  assert.doesNotMatch(
+    aboutHero[1],
+    /(?:linear|radial)-gradient\(/,
+    'Over hero mag geen eigen vaste gradient naast de centrale CMS-gloed bevatten',
+  )
+
+  assert.match(
+    aboutHero[1],
+    /var\(--about-hero-image/,
+    'Over hero moet de beheerde hero-afbeelding behouden',
+  )
+})
