@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "project": "spontaan-website",
+  "documentatieSetVersie": "v0.87",
+  "documentatieDatum": "2026-10-27",
+  "documentatieStatus": "volledig-werkcheckpoint-gegenereerd-en-gevalideerd-buiten-git",
+  "previousCanonicalDocumentation": "v0.86",
+  "ontwikkelpromptBestand": "ontwikkelprompt_20261027_v087_final.docx",
+  "ontwikkelpromptVersie": "v0.87",
+  "rulesBestand": "rules_spontaan_20261027_v087.docx",
+  "stappenplanBestand": "stappenplan_20261027_v087_final.docx",
+  "checkpointType": "werkcheckpoint",
+  "repositoryCheckpoint": {
+    "branch": "feat/hero-crop-hotspot",
+    "head": "2b51562081869c193a06e95a30e28cb6a72d24a9",
+    "remoteMain": "2b51562081869c193a06e95a30e28cb6a72d24a9",
+    "productWriteSinceP1B": false,
+    "expectedLocalFoundationFiles": [
+      "js/sanity-hero-image.js",
+      "tests/hero-crop-hotspot-contract.test.mjs"
+    ]
+  },
+  "recentMergedPullRequests": [
+    {
+      "number": 101,
+      "title": "fix: borg production dataset voor Sanity Studio",
+      "mergeCommit": "4b4ecb93b2ec6fc678e26e7404e54aede21a5ae7",
+      "mergedAt": "2026-10-27T15:37:09Z"
+    },
+    {
+      "number": 102,
+      "title": "fix: gebruik managed hero glow voor agenda en nieuws",
+      "mergeCommit": "2b51562081869c193a06e95a30e28cb6a72d24a9",
+      "mergedAt": "2026-10-27T17:21:18Z"
+    }
+  ],
+  "sanity": {
+    "projectId": "u66p1mxm",
+    "productionDataset": "production",
+    "developmentDataset": "development",
+    "studioHost": "https://spontaan-website.sanity.studio/",
+    "productionStudioDatasetFix": "pass",
+    "cmsPublishLiveE2E": "pass"
+  },
+  "heroCropHotspot": {
+    "branch": "feat/hero-crop-hotspot",
+    "p0": "closed-pass",
+    "p1": "closed-pass",
+    "p1a": "closed-pass",
+    "p1b": "closed-pass-14-of-14",
+    "p2": "blocked-until-v087-checkpoint-placement-and-prewrite-inventory",
+    "p3": "not-started",
+    "foundationHelperSha256": "A455DBD9F72405F23A53BE947D3FB3ECA4CE47627446A205F21D4B888E8D6ED1",
+    "buildSitePreimageSha256": "A65A12134490F43DB5AB2C76D1DDB591394D38F545F7D5FD16272786A1D3B9AE",
+    "agendaPreimageSha256": "0FCFE71CDF42DD6A6FB1A914A74666274B90C6F68DFF1887895ABAC382DA0BEB",
+    "nieuwsPreimageSha256": "7D923A00D4EE139F21482437DF532AAA39D796267415F7E405864C192CA99E7C"
+  },
+  "manual": {
+    "current": "Contentmanager-handleiding_v1.7M.pdf",
+    "status": "unchanged"
+  },
+  "nextGate": "Plaats en valideer v0.87 lokaal als actief werkcheckpoint; daarna P2 read-only contextinventarisatie en één deterministische patch.",
+  "generatedAt": "2026-10-27"
+}

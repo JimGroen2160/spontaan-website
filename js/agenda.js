@@ -1,4 +1,26 @@
 (() => {
+  function getHeroImagePresentation(options) {
+    const helper =
+      window.SpontaanSanityHeroImage;
+
+    if (
+      !helper ||
+      typeof helper.buildSanityHeroImagePresentation !==
+        'function'
+    ) {
+      return {
+        url: options?.url || '',
+        position: {x: 0.5, y: 0.5},
+        hasCrop: false,
+        hasHotspot: false,
+      };
+    }
+
+    return helper.buildSanityHeroImagePresentation(
+      options,
+    );
+  }
+
   function getRuntimeConfig() {
     const candidate = window.SpontaanRuntimeConfig;
 
@@ -69,6 +91,9 @@
       heroTitle,
       heroSubtitle,
       "heroImageUrl": heroImage.asset->url,
+      "heroImageDimensions": heroImage.asset->metadata.dimensions,
+      "heroImageCrop": heroImage.crop,
+      "heroImageHotspot": heroImage.hotspot,
       "heroGlowManaged": heroImage.glow,
       heroGlow
     },
@@ -179,6 +204,22 @@
       }
     }
 
+    const presentation =
+      getHeroImagePresentation({
+        url: imageUrl,
+        dimensions: value.heroImageDimensions,
+        crop: value.heroImageCrop,
+        hotspot: value.heroImageHotspot,
+      });
+
+    const positionCss =
+      presentation.hasHotspot
+        ? (
+            `${Math.round(presentation.position.x * 10000) / 100}% ` +
+            `${Math.round(presentation.position.y * 10000) / 100}%`
+          )
+        : '';
+
     return {
       title:
         typeof value.heroTitle === 'string'
@@ -188,7 +229,8 @@
         typeof value.heroSubtitle === 'string'
           ? value.heroSubtitle.trim()
           : '',
-      imageUrl,
+      imageUrl: presentation.url || imageUrl,
+      positionCss,
       glow: preferredImageGlow(
         value.heroGlowManaged,
         value.heroGlow,
@@ -235,6 +277,11 @@
 
     hero.style.backgroundImage =
       `url("${escapedUrl}")`;
+
+    if (content.positionCss) {
+      hero.style.backgroundPosition =
+        content.positionCss;
+    }
   }
 
   const eventTypeLabels = {
