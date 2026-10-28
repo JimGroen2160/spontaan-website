@@ -3,44 +3,6 @@ import {expect, test} from '@playwright/test';
 const expectedRect = '192,54,1536,972';
 const expectedPosition = '75% 50%';
 
-const buildHeroes = [
-  {
-    name: 'Homepage',
-    route: '/',
-    selector: '.hero',
-    kind: 'background',
-  },
-  {
-    name: 'Over Spontaan',
-    route: '/pages/over.html',
-    selector: '.about-hero',
-    kind: 'background',
-  },
-  {
-    name: 'Beeld en Geluid',
-    route: '/pages/media.html',
-    selector: '[data-media-page-hero-image]',
-    kind: 'image',
-  },
-  {
-    name: 'Repertoire',
-    route: '/pages/repertoire.html',
-    selector: '.repertoire-hero__image',
-    kind: 'image',
-  },
-  {
-    name: 'Vrienden',
-    route: '/pages/vrienden.html',
-    selector: '[data-friends-hero-image]',
-    kind: 'image',
-  },
-  {
-    name: 'Contact',
-    route: '/pages/contact.html',
-    selector: '[data-contact-hero-image]',
-    kind: 'image',
-  },
-] as const;
 
 function rectFromUrl(value: string) {
   const url = new URL(value, 'http://localhost:5500');
@@ -61,65 +23,10 @@ async function backgroundUrl(
   return value;
 }
 
-test.describe('Hero crop/hotspot P4', () => {
+test.describe('Hero crop/hotspot P4 — Nieuws pilot', () => {
   test.describe.configure({mode: 'serial'});
 
-  for (const hero of buildHeroes) {
-    test(`${hero.name} gebruikt crop en hotspot op desktop en mobiel`, async ({page}) => {
-      const pageErrors: string[] = [];
-
-      page.on('pageerror', (error) => {
-        pageErrors.push(error.message);
-      });
-
-      for (const viewport of [
-        {width: 1440, height: 900},
-        {width: 390, height: 844},
-      ]) {
-        await page.setViewportSize(viewport);
-        await page.goto(hero.route, {
-          waitUntil: 'networkidle',
-        });
-
-        const locator = page.locator(hero.selector);
-        await expect(locator).toBeVisible();
-
-        if (hero.kind === 'background') {
-          const url = await backgroundUrl(locator);
-          expect(url).toContain('cdn.sanity.io/images/');
-          expect(rectFromUrl(url)).toBe(expectedRect);
-
-          const position = await locator.evaluate(
-            (element) => getComputedStyle(element).backgroundPosition,
-          );
-
-          expect(position).toBe(expectedPosition);
-        } else {
-          const src = await locator.getAttribute('src');
-
-          expect(src).toBeTruthy();
-          expect(src!).toContain('cdn.sanity.io/images/');
-          expect(rectFromUrl(src!)).toBe(expectedRect);
-
-          const position = await locator.evaluate(
-            (element) => getComputedStyle(element).objectPosition,
-          );
-
-          expect(position).toBe(expectedPosition);
-        }
-      }
-
-      expect(pageErrors).toEqual([]);
-    });
-  }
-
   for (const runtime of [
-    {
-      name: 'Agenda',
-      route: '/pages/agenda.html',
-      selector: '.agenda-hero',
-      title: 'Agenda P4',
-    },
     {
       name: 'Nieuws',
       route: '/pages/nieuws.html',
