@@ -61,6 +61,67 @@ test.describe('Website basis en huisstijl', () => {
     }
   });
 
+  test('gedeelde footer toont contactadres en blijft responsive', async ({ page }) => {
+    for (const viewport of [
+      { name: 'desktop', width: 1440, expectedColumns: 3 },
+      { name: 'tablet', width: 820, expectedColumns: 2 },
+      { name: 'mobiel', width: 390, expectedColumns: 1 },
+    ]) {
+      await page.setViewportSize({
+        width: viewport.width,
+        height: 900,
+      });
+
+      await page.goto('/');
+      await waitForSharedLayout(page);
+
+      const footer = page.locator(
+        '#footer-placeholder .site-footer',
+      );
+
+      const blocks = footer.locator(
+        '.site-footer__inner > div',
+      );
+
+      const contact = blocks.nth(2);
+
+      const contactLink = contact.locator(
+        'a[href="mailto:info@spontaan-angerlo.nl"]',
+      );
+
+      await expect(footer).toBeVisible();
+      await expect(blocks).toHaveCount(3);
+      await expect(contact).toContainText('Contact');
+      await expect(contactLink).toHaveCount(1);
+
+      await expect(contactLink).toHaveText(
+        'info@spontaan-angerlo.nl',
+      );
+
+      const columns = await footer
+        .locator('.site-footer__inner')
+        .evaluate((element) => (
+          getComputedStyle(element)
+            .gridTemplateColumns
+            .split(' ')
+            .filter(Boolean)
+            .length
+        ));
+
+      expect(columns).toBe(viewport.expectedColumns);
+
+      const layout = await page.evaluate(() => ({
+        scrollWidth:
+          document.documentElement.scrollWidth,
+        clientWidth:
+          document.documentElement.clientWidth,
+      }));
+
+      expect(layout.scrollWidth).toBeLessThanOrEqual(
+        layout.clientWidth + 1,
+      );
+    }
+  });
   test('navigatie werkt en markeert de actuele pagina toegankelijk', async ({ page }) => {
     await page.goto('/');
     await waitForSharedLayout(page);
