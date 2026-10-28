@@ -1,0 +1,19 @@
+SPONTAAN DOCUMENTATIESET 20261027 v0.87
+
+Doel
+- VOLLEDIG werkcheckpoint na governance-reset en reconciliatie op 27-10-2026.
+- Vorige canonieke repositoryset v0.86 blijft historisch ongewijzigd.
+- Geen productcode-, Git-, Sanity-, Supabase-, Vercel- of deploymentwrite in deze checkpointgeneratie.
+
+Belangrijkste actualisaties
+1. Actuele remote main = 2b51562081869c193a06e95a30e28cb6a72d24a9.
+2. PR #101 en PR #102 zijn gemerged en verwerkt.
+3. Production Studio gebruikt production; CMS → Publish → live is functioneel bewezen.
+4. Hero crop/hotspot: P0/P1/P1A/P1B PASS; P1B 14/14 contracttests PASS.
+5. P2 is NIET uitgevoerd; twee pogingen stopten vóór productwrite.
+6. Eerstvolgende technische stap na lokale checkpointplaatsing: read-only inventarisatie van exact zes build-time contexts, daarna één deterministische P2-patch.
+7. Geen trial-and-error; relevante chats/documentatie/repo opnieuw controleren vóór uitvoering.
+
+Status
+Deze set is gegenereerd en inhoudelijk/visueel gevalideerd buiten Git.
+Lokale plaatsing/activatie in de Spontaan-repository moet nog afzonderlijk worden bewezen voordat P2 wordt hervat.

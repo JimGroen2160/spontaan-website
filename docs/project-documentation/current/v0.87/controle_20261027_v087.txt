@@ -1,0 +1,16 @@
+SPONTAAN DOCUMENTATIECONTROLE 20261027 v0.87
+
+Scope: VOLLEDIG werkcheckpoint; documentatie-only; geen productcode/Git/platformwrite.
+
+PASS - vorige canonieke set v0.86 historisch behouden.
+PASS - actuele main opnieuw vastgesteld: 2b51562081869c193a06e95a30e28cb6a72d24a9.
+PASS - PR #101 merged verwerkt.
+PASS - PR #102 merged verwerkt.
+PASS - Production Studio production-datasetfix verwerkt.
+PASS - CMS Publish → live E2E verwerkt.
+PASS - crop/hotspot P0/P1/P1A/P1B verwerkt.
+PASS - P2 expliciet NIET als uitgevoerd vastgelegd.
+PASS - twee P2 pre-write stops verwerkt zonder productwrite te suggereren.
+PASS - Agenda/Nieuws blijven buiten P2.
+PASS - contentmanagerhandleiding v1.7M ongewijzigd.
+PASS - volgende gate expliciet: lokale plaatsing/validatie v0.87, daarna read-only P2-contextinventarisatie.

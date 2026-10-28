@@ -1,0 +1,14 @@
+﻿Bestand/onderdeel;Status v0.87;Toelichting
+ontwikkelprompt_20261027_v087_final.docx;UPDATED/CANONICAL;Governance, actuele main en crop/hotspot hervatregels.
+rules_spontaan_20261027_v087.docx;UPDATED/CANONICAL-QUICKREF;"Geen trial-and-error; expliciete poorten; P2 hervatregel."
+project_20261027_v087_final.docx;UPDATED/CANONICAL;PR #101/#102, Production E2E en crop/hotspotstatus.
+stappenplan_20261027_v087_final.docx;UPDATED/CANONICAL;G0/G1/G2 en P0-P6 actuele planning.
+devsecops_20261027_v087_final.docx;UPDATED/CANONICAL;Production/configuratie, checks en crop/hotspot kwaliteitsgrenzen.
+cms_acceptatiecheckpoint_20261027_v087.docx;UPDATED/CANONICAL;CMS→live bewijs en crop/hotspot acceptatiecriteria.
+technisch_ontwerp_cms_publicatieketen_20261027_v087.docx;UPDATED/CANONICAL;Responsive crop/hotspot architectuur.
+overdracht_nieuwe_chat_20261027_v087.docx;UPDATED/CANONICAL;Exact hervatpunt en hashes.
+log_20261027_v03.docx;UPDATED;Governance-reset, merges en P2 veilige stops.
+documentatie-status.json;UPDATED/CANONICAL;v0.87 volledig werkcheckpoint buiten Git.
+inventaris_20261027_v087.csv;NEW;Volledigheidsinventaris v0.87.
+controle_20261027_v087.txt;NEW;Controlebewijs en scope.
+LEESMIJ_20261027_v087.txt;NEW;Gebruik en plaatsingsstatus v0.87.
