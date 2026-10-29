@@ -31,14 +31,14 @@ test.describe('Contactpagina zonder formulier', () => {
     ).toHaveCount(0);
 
     const emailLink = page.locator(
-      '.contact-direct-card--email a[href="mailto:spontaaninfo@gmail.com"]',
+      '.contact-direct-card--email a[href="mailto:info@spontaan-angerlo.nl"]',
     );
     const phoneLink = page.locator(
       '.contact-direct-card--phone a[href="tel:+31600000000"]',
     );
 
     await expect(emailLink).toHaveCount(1);
-    await expect(emailLink).toHaveText('spontaaninfo@gmail.com');
+    await expect(emailLink).toHaveText('info@spontaan-angerlo.nl');
     await expect(phoneLink).toHaveCount(1);
     await expect(phoneLink).toHaveText('[DEMO] +31 6 0000 0000');
     await expect(page.getByText(/nog niet gepubliceerd/i)).toHaveCount(0);
