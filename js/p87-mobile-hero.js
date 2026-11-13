@@ -15,8 +15,8 @@
     if (!element) return null;
 
     const background =
-      element.style.backgroundImage ||
-      getComputedStyle(element).backgroundImage;
+      getComputedStyle(element).backgroundImage ||
+      element.style.backgroundImage;
 
     const match = background.match(/url\(["']?(.+?)["']?\)/);
     return match ? match[1] : null;
