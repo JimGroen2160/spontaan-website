@@ -3627,6 +3627,44 @@ export async function build() {
     'utf8',
   );
 
+  // P8.7K3: voeg mobiele hero-assets toe aan de acht pagina's.
+  for (const [page, prefix] of [
+    ['index.html', ''],
+    ['pages/over.html', '../'],
+    ['pages/agenda.html', '../'],
+    ['pages/nieuws.html', '../'],
+    ['pages/media.html', '../'],
+    ['pages/vrienden.html', '../'],
+    ['pages/contact.html', '../'],
+    ['pages/repertoire.html', '../']
+  ]) {
+    const path = resolve(OUTPUT, page);
+    let html = await readFile(path, 'utf8');
+
+    if (!html.includes('p87-mobile-hero.css')) {
+      if (!html.includes('</head>')) {
+        throw new Error(`P8.7K3: head ontbreekt in ${page}`);
+      }
+
+      html = html.replace(
+        '</head>',
+        `<link rel="stylesheet" href="${prefix}css/p87-mobile-hero.css">\n</head>`
+      );
+    }
+
+    if (!html.includes('p87-mobile-hero.js')) {
+      if (!html.includes('</body>')) {
+        throw new Error(`P8.7K3: body ontbreekt in ${page}`);
+      }
+
+      html = html.replace(
+        '</body>',
+        `<script defer src="${prefix}js/p87-mobile-hero.js"></script>\n</body>`
+      );
+    }
+
+    await writeFile(path, html, 'utf8');
+  }
   console.log(`MEDIA BUILD: ${source} -> dist/pages/media.html`);
   console.log(`REPERTOIRE BUILD: ${repertoireSource} -> dist/pages/repertoire.html`);
   console.log(`FRIENDS BUILD: ${friendsSource} -> dist/pages/vrienden.html`);

@@ -1,0 +1,105 @@
+/* P8.7K3 - mobile hero option A */
+/* Desktop blijft onaangetast. */
+
+.p87-mobile-photo {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .p87-option-a {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background-image: none !important;
+  }
+
+  .p87-option-a::before,
+  .p87-option-a::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .p87-option-a > .p87-mobile-photo {
+    display: block !important;
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    filter: none !important;
+    flex: 0 0 auto !important;
+  }
+
+  .p87-option-a > [class*="hero__image"],
+  .p87-option-a > [class*="hero__overlay"],
+  .p87-option-a > [class*="hero__wave"],
+  .p87-option-a > [class*="hero__decor"],
+  .p87-option-a > .public-hero-glow {
+    display: none !important;
+  }
+
+  .p87-option-a > .hero-content,
+  .p87-option-a > [class*="hero__content"] {
+    display: flex !important;
+    position: relative !important;
+    inset: auto !important;
+    z-index: 2 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1.5rem 1.15rem 1.75rem !important;
+    text-align: center !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: #351b50 !important;
+    color: #fff !important;
+  }
+
+  .p87-option-a > .hero-content *,
+  .p87-option-a > [class*="hero__content"] * {
+    color: inherit;
+  }
+
+  .p87-option-a > .hero-content h1,
+  .p87-option-a > [class*="hero__content"] h1 {
+    color: #fff !important;
+    text-shadow: none !important;
+    max-width: 100% !important;
+  }
+
+  .p87-option-a > .hero-content p,
+  .p87-option-a > [class*="hero__content"] p {
+    color: #fff !important;
+    text-shadow: none !important;
+    max-width: 100% !important;
+  }
+
+  .p87-option-a .btn,
+  .p87-option-a a {
+    position: relative;
+    z-index: 3;
+  }
+}

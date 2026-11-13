@@ -35,6 +35,24 @@ test.describe('Hero crop/hotspot P4 — Nieuws pilot', () => {
     },
   ]) {
     test(`${runtime.name} gebruikt runtime crop hotspot en managed glow`, async ({page}) => {
+      // P87K3_IMAGE_FIXTURE:
+      // De Sanity API-response is synthetisch; de afbeelding
+      // moet daarom ook lokaal worden gesimuleerd.
+      await page.route(
+        '**/p4-runtime-1920x1080.jpg*',
+        async (route) => {
+          const png = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lZkAAAAASUVORK5CYII=',
+            'base64',
+          );
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'image/png',
+            body: png,
+          });
+        },
+      );
       await page.route(
         '**/data/query/development**',
         async (route) => {
@@ -89,20 +107,85 @@ test.describe('Hero crop/hotspot P4 — Nieuws pilot', () => {
           'light',
         );
 
-        const url = await backgroundUrl(hero);
+        if (viewport.width > 768) {
+          // Desktop: bestaande Sanity-crop en hotspot behouden.
+          await expect.poll(() => backgroundUrl(hero))
+            .toContain('cdn.sanity.io/images/');
 
-        expect(url).toContain('cdn.sanity.io/images/');
-        expect(rectFromUrl(url)).toBe(expectedRect);
+          const url = await backgroundUrl(hero);
+          expect(rectFromUrl(url)).toBe(expectedRect);
 
-        const position = await hero.evaluate(
-          (element) => getComputedStyle(element).backgroundPosition,
-        );
+          const position = await hero.evaluate(
+            (element) => getComputedStyle(element).backgroundPosition,
+          );
 
-        expect(position).toBe(expectedPosition);
+          expect(position).toBe(expectedPosition);
+        } else {
+          // Mobiel optie A: volledige foto, zonder Sanity-rect.
+          const photo = hero.locator(':scope > .p87-mobile-photo');
+
+          await expect(photo).toBeVisible();
+
+          await expect.poll(async () =>
+            photo.getAttribute('src')
+          ).toContain('cdn.sanity.io/images/');
+
+          const mobileUrl = await photo.getAttribute('src');
+          expect(mobileUrl).not.toBeNull();
+          expect(rectFromUrl(mobileUrl!)).toBeNull();
+
+          const content = hero.locator(
+            ':scope > .news-hero__content',
+          );
+
+          await expect(content).toBeVisible();
+
+          const photoBox = await photo.boundingBox();
+          const contentBox = await content.boundingBox();
+
+          expect(photoBox).not.toBeNull();
+          expect(contentBox).not.toBeNull();
+
+          // Tekst moet onder de foto beginnen.
+          expect(contentBox!.y).toBeGreaterThanOrEqual(
+            photoBox!.y + photoBox!.height - 2,
+          );
+
+          const imageStyle = await photo.evaluate((element) => {
+            const style = getComputedStyle(element);
+            return {
+              fit: style.objectFit,
+              width: element.getBoundingClientRect().width,
+              height: element.getBoundingClientRect().height,
+            };
+          });
+
+          expect(imageStyle.fit).toBe('contain');
+          expect(imageStyle.width).toBeGreaterThan(0);
+          expect(imageStyle.height).toBeGreaterThan(0);
+        }
       }
     });
 
     test(`${runtime.name} crop zonder hotspot behoudt CSS-brandpunt`, async ({page}) => {
+      // P87K3_IMAGE_FIXTURE:
+      // De Sanity API-response is synthetisch; de afbeelding
+      // moet daarom ook lokaal worden gesimuleerd.
+      await page.route(
+        '**/p4-runtime-1920x1080.jpg*',
+        async (route) => {
+          const png = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lZkAAAAASUVORK5CYII=',
+            'base64',
+          );
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'image/png',
+            body: png,
+          });
+        },
+      );
       await page.route(
         '**/data/query/development**',
         async (route) => {
@@ -158,6 +241,24 @@ test.describe('Hero crop/hotspot P4 — Nieuws pilot', () => {
     });
 
     test(`${runtime.name} hotspot zonder crop gebruikt positie zonder rect`, async ({page}) => {
+      // P87K3_IMAGE_FIXTURE:
+      // De Sanity API-response is synthetisch; de afbeelding
+      // moet daarom ook lokaal worden gesimuleerd.
+      await page.route(
+        '**/p4-runtime-1920x1080.jpg*',
+        async (route) => {
+          const png = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lZkAAAAASUVORK5CYII=',
+            'base64',
+          );
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'image/png',
+            body: png,
+          });
+        },
+      );
       await page.route(
         '**/data/query/development**',
         async (route) => {
@@ -208,6 +309,24 @@ test.describe('Hero crop/hotspot P4 — Nieuws pilot', () => {
     });
 
     test(`${runtime.name} crop zonder dimensions wordt niet half toegepast`, async ({page}) => {
+      // P87K3_IMAGE_FIXTURE:
+      // De Sanity API-response is synthetisch; de afbeelding
+      // moet daarom ook lokaal worden gesimuleerd.
+      await page.route(
+        '**/p4-runtime-1920x1080.jpg*',
+        async (route) => {
+          const png = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lZkAAAAASUVORK5CYII=',
+            'base64',
+          );
+
+          await route.fulfill({
+            status: 200,
+            contentType: 'image/png',
+            body: png,
+          });
+        },
+      );
       await page.route(
         '**/data/query/development**',
         async (route) => {
