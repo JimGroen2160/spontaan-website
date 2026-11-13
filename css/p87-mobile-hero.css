@@ -34,7 +34,7 @@
     max-width: 100% !important;
     max-height: none !important;
     min-height: 0 !important;
-    aspect-ratio: auto !important;
+    aspect-ratio: var(--p87-photo-ratio, auto) !important;
     object-fit: contain !important;
     object-position: center !important;
     margin: 0 !important;
