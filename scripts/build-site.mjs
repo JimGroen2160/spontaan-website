@@ -1352,27 +1352,6 @@ const HOME_QUERY = `*[_id == "homePage-main" && _type == "homePage"][0] {
     "mainImageGlowManaged": mainImage.glow,
     "imageUrl": mainImage.asset->url
   },
-  "automaticFeaturedNewsItems": *[
-    _type == "newsItem" &&
-    isVisible == true &&
-    ($allowDemo == true || isTestData != true) &&
-    isFeatured == true &&
-    defined(slug.current) &&
-    defined(publishedAt)
-  ] | order(publishedAt desc) [0...3] {
-    _id,
-    title,
-    "slug": slug.current,
-    publishedAt,
-    isVisible,
-    isTestData,
-    summary,
-    mainImageAlt,
-    mainImageGlow,
-    "mainImageAltManaged": mainImage.alt,
-    "mainImageGlowManaged": mainImage.glow,
-    "imageUrl": mainImage.asset->url
-  },
   visitTitle,
   visitText,
   visitPrimaryButtonLabel,
@@ -1452,7 +1431,7 @@ function normalizeHomeNewsItem(value, allowDemo = false) {
   }
 
   const title = text(value.title, 96);
-  const slug = text(value.slug, 96).toLowerCase();
+  const slug = text(value.slug, 96);
   const summary = text(value.summary, 240);
   const imageUrl = homeProjectPath(value.imageUrl, 'image');
   const imageAlt = preferredImageAlt(
@@ -1469,7 +1448,7 @@ function normalizeHomeNewsItem(value, allowDemo = false) {
   if (
     !title ||
     !slug ||
-    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
+    /[\u0000-\u001f\u007f]/.test(slug) ||
     !summary ||
     !imageUrl ||
     !imageAlt ||
@@ -1514,32 +1493,9 @@ function normalizeHomeFeaturedNews(source, allowDemo = false) {
         .slice(0, 3)
     : [];
 
-  if (manual.length) {
-    return {
-      selectionMode: 'manual',
-      items: manual,
-    };
-  }
-
-  const automatic = Array.isArray(
-    source?.automaticFeaturedNewsItems,
-  )
-    ? source.automaticFeaturedNewsItems
-        .map((item) => normalizeHomeNewsItem(item, allowDemo))
-        .filter(Boolean)
-        .sort(
-          (left, right) =>
-            Date.parse(right.publishedAt) -
-            Date.parse(left.publishedAt),
-        )
-        .slice(0, 3)
-    : [];
-
   return {
-    selectionMode: automatic.length
-      ? 'featured'
-      : 'empty',
-    items: automatic,
+    selectionMode: manual.length ? 'manual' : 'empty',
+    items: manual,
   };
 }
 

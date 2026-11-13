@@ -21,6 +21,15 @@ export const newsItem = defineType({
       options: {
         source: 'title',
         maxLength: 96,
+        slugify: (input) =>
+          input
+            .toLowerCase()
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 96)
+            .replace(/-+$/g, ''),
       },
       validation: (rule) => rule.required(),
     }),
@@ -44,13 +53,6 @@ export const newsItem = defineType({
       initialValue: false,
       hidden: true,
       readOnly: true,
-    }),
-    defineField({
-      name: 'isFeatured',
-      title: 'Uitgelicht op homepage',
-      type: 'boolean',
-      description: 'Gebruik dit om nieuws op de homepage uit te lichten als er geen handmatige selectie is ingesteld.',
-      initialValue: false,
     }),
     managedImageField({name: 'mainImage', title: 'Hoofdafbeelding', required: true, altRequired: false}),
     defineField({

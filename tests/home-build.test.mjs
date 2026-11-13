@@ -304,57 +304,51 @@ test('Homepage beperkt handmatige nieuwsselectie tot drie items', () => {
   );
 });
 
-test('Homepage gebruikt automatische featured fallback nieuwste eerst', () => {
+test('Homepage toont geen automatisch nieuws zonder expliciete selectie', () => {
   const content = normalizeHomeContent({
     ...fallback,
+    featuredNewsTitle: 'Uitgelicht nieuws',
     manualFeaturedNewsItems: [],
-    automaticFeaturedNewsItems: [
-      {
-        _id: 'news-oud',
-        title: 'Ouder uitgelicht bericht',
-        slug: 'ouder-uitgelicht-bericht',
-        publishedAt: '2026-07-20T10:00:00.000Z',
-        isVisible: true,
-        summary: 'Ouder bericht.',
-        mainImageAlt: 'Ouder optreden',
-        imageUrl: 'images/news/nieuws-terugblik-optreden.webp',
-      },
-      {
-        _id: 'news-nieuw',
-        title: 'Nieuwste uitgelicht bericht',
-        slug: 'nieuwste-uitgelicht-bericht',
-        publishedAt: '2026-08-06T10:00:00.000Z',
-        isVisible: true,
-        summary: 'Nieuwste bericht.',
-        mainImageAlt: 'Nieuw optreden',
-        imageUrl: 'images/news/nieuws-optreden-voorbereiden.webp',
-      },
-      {
-        _id: 'news-midden',
-        title: 'Middelste uitgelicht bericht',
-        slug: 'middelste-uitgelicht-bericht',
-        publishedAt: '2026-08-01T10:00:00.000Z',
-        isVisible: true,
-        summary: 'Middelste bericht.',
-        mainImageAlt: 'Middelste optreden',
-        imageUrl: 'images/news/nieuws-terugblik-optreden.webp',
-      },
-    ],
+    automaticFeaturedNewsItems: [{
+      _id: 'oud-automatisch',
+      title: 'Niet handmatig gekozen',
+      slug: 'niet-gekozen',
+      publishedAt: '2026-08-06T10:00:00.000Z',
+      isVisible: true,
+      summary: 'Mag niet verschijnen.',
+      mainImageAlt: 'Afbeelding',
+      imageUrl: 'images/news/nieuws-terugblik-optreden.webp',
+    }],
   });
+  assert.equal(content.featuredNews.selectionMode, 'empty');
+  assert.deepEqual(content.featuredNews.items, []);
+  const html = renderHomePage(template, content, 'cms');
+  assert.match(html, /data-homepage-featured-news hidden/);
+  assert.doesNotMatch(html, /Niet handmatig gekozen/);
+});
 
-  assert.equal(content.featuredNews.selectionMode, 'featured');
+test('Homepage bewaart bestaande slugs exact in detail-links', () => {
+  const makeItem = (slug) => ({
+    _id: `news-${slug}`,
+    title: 'Historisch nieuwsbericht',
+    slug,
+    publishedAt: '2026-08-06T10:00:00.000Z',
+    isVisible: true,
+    summary: 'Een bestaand nieuwsbericht.',
+    mainImageAlt: 'Afbeelding',
+    imageUrl: 'images/news/nieuws-terugblik-optreden.webp',
+  });
+  const content = normalizeHomeContent({
+    ...fallback,
+    manualFeaturedNewsItems: [makeItem('Galluskerk'), makeItem('Laatste korendag')],
+  });
   assert.deepEqual(
-    content.featuredNews.items.map((item) => item.slug),
+    content.featuredNews.items.map((item) => item.buttonLink),
     [
-      'nieuwste-uitgelicht-bericht',
-      'middelste-uitgelicht-bericht',
-      'ouder-uitgelicht-bericht',
+      'pages/nieuwsbericht.html?slug=Galluskerk',
+      'pages/nieuwsbericht.html?slug=Laatste%20korendag',
     ],
   );
-
-  const html = renderHomePage(template, content, 'cms');
-
-  assert.match(html, /data-homepage-featured-news-mode="featured"/);
 });
 
 test('Homepage filtert onzichtbare en onvolledige nieuwsitems', () => {
@@ -382,26 +376,10 @@ test('Homepage filtert onzichtbare en onvolledige nieuwsitems', () => {
         imageUrl: '',
       },
     ],
-    automaticFeaturedNewsItems: [
-      {
-        _id: 'news-geldig',
-        title: 'Geldig automatisch bericht',
-        slug: 'geldig-automatisch-bericht',
-        publishedAt: '2026-08-03T10:00:00.000Z',
-        isVisible: true,
-        summary: 'Dit item is volledig.',
-        mainImageAlt: 'Zanggroep tijdens een optreden',
-        imageUrl: 'images/news/nieuws-terugblik-optreden.webp',
-      },
-    ],
   });
 
-  assert.equal(content.featuredNews.selectionMode, 'featured');
-  assert.equal(content.featuredNews.items.length, 1);
-  assert.equal(
-    content.featuredNews.items[0].slug,
-    'geldig-automatisch-bericht',
-  );
+  assert.equal(content.featuredNews.selectionMode, 'empty');
+  assert.deepEqual(content.featuredNews.items, []);
 });
 
 test('Homepage verbergt nieuwssectie wanneer geen bruikbaar nieuws bestaat', () => {
@@ -557,11 +535,11 @@ test('Homepage laat testnieuws alleen toe wanneer allowDemo expliciet aan staat'
 
   assert.equal(
     previewAutomatic.featuredNews.selectionMode,
-    'featured',
+    'empty',
   );
   assert.equal(
     previewAutomatic.featuredNews.items.length,
-    1,
+    0,
   );
 
   const hiddenPreview = normalizeHomeContent(
@@ -618,10 +596,8 @@ test('Homepage CMS-query zet allowDemo expliciet per OTAP-omgeving', async () =>
 
     const previewUrl = decodeURIComponent(capturedUrl);
 
-    assert.match(
-      previewUrl,
-      /\(\$allowDemo == true \|\| isTestData != true\)/,
-    );
+    assert.match(previewUrl, /manualFeaturedNewsItems/);
+    assert.doesNotMatch(previewUrl, /automaticFeaturedNewsItems/);
     assert.match(
       previewUrl,
       /\$allowDemo=true/,
@@ -634,10 +610,8 @@ test('Homepage CMS-query zet allowDemo expliciet per OTAP-omgeving', async () =>
 
     const productionUrl = decodeURIComponent(capturedUrl);
 
-    assert.match(
-      productionUrl,
-      /\(\$allowDemo == true \|\| isTestData != true\)/,
-    );
+    assert.match(productionUrl, /manualFeaturedNewsItems/);
+    assert.doesNotMatch(productionUrl, /automaticFeaturedNewsItems/);
     assert.match(
       productionUrl,
       /\$allowDemo=false/,
@@ -707,4 +681,17 @@ test('renderer weigert mojibake in gerenderde inhoud', () => {
     () => renderHomePage(template, content, 'cms'),
     /encoding|mojibake|UTF-8/i,
   );
+});
+
+
+test('Sanity nieuwsselectie is uitsluitend via Homepage beschikbaar', async () => {
+  const [newsSchema, homeSchema, buildSource] = await Promise.all([
+    readFile('studio/schemaTypes/newsItem.ts', 'utf8'),
+    readFile('studio/schemaTypes/homePage.ts', 'utf8'),
+    readFile('scripts/build-site.mjs', 'utf8'),
+  ]);
+  assert.doesNotMatch(newsSchema, /name: 'isFeatured'/);
+  assert.match(homeSchema, /name: 'featuredNewsItems'/);
+  assert.match(homeSchema, /Zonder selectie verschijnt er geen nieuwssectie/);
+  assert.doesNotMatch(buildSource, /automaticFeaturedNewsItems/);
 });

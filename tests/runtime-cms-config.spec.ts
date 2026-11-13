@@ -149,7 +149,7 @@ test.describe('Centrale runtime-CMS-configuratie', () => {
 
     await expect(
       page.locator('[data-news-detail-title]'),
-    ).toHaveText('Nieuwsbericht niet gevonden');
+    ).toHaveText('Nieuwsbericht tijdelijk niet beschikbaar');
 
     await expect(
       page.locator('.news-detail__media'),
