@@ -40,6 +40,12 @@
     "@vercel/frameworks": {
       "smol-toml": "1.9.1",
       "js-yaml": "3.15.2"
+    },
+    "@oclif/core": {
+      "minimatch": "^11.0.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
     }
   }
 }
