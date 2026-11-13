@@ -33,6 +33,38 @@ async function waitForSharedLayout(page: Page) {
 }
 
 test.describe('Website basis en huisstijl', () => {
+  test('Vrienden is via de hoofdnavigatie bereikbaar', async ({ page }) => {
+    await page.goto('/');
+    await waitForSharedLayout(page);
+
+    const link = page.locator(
+      '#nav-placeholder .nav-menu a',
+      {hasText: /^Vrienden van Spontaan$/},
+    );
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', '../pages/vrienden.html');
+
+    await link.click();
+    await expect(page).toHaveURL(/\/pages\/vrienden\.html$/);
+    await waitForSharedLayout(page);
+
+    await expect(link).toHaveAttribute('aria-current', 'page');
+    await expect(link).toHaveClass(/active/);
+
+    await expect(
+      page.locator('#nav-placeholder .nav-menu .nav-disabled', {
+        hasText: /^Muziek en repertoire$/,
+      }),
+    ).toHaveCount(1);
+
+    await expect(
+      page.locator('#nav-placeholder .nav-menu .nav-disabled', {
+        hasText: /^Leden$/,
+      }),
+    ).toHaveCount(1);
+  });
+
   test('homepage opent met zichtbaar en geladen Spontaan-logo', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Spontaan/);
