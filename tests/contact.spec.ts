@@ -58,22 +58,34 @@ test.describe('Contactpagina zonder formulier', () => {
     await expect(page.locator('#footer-placeholder .site-footer')).toHaveCount(1);
   });
 
-  test('doet geen runtime-Sanity-fetch en laadt elk contactbeeld eenmaal', async ({page}) => {
+  test('doet geen runtime-Sanity-fetch en laadt beide contactbeelden', async ({page}) => {
     const sanityRequests: string[] = [];
-    const contactImageRequests: string[] = [];
+
     page.on('request', (request) => {
-      if (request.url().includes('.api.sanity.io/')) sanityRequests.push(request.url());
-      if (/over-(?:hero|intro)-mannenkoor\.jpg$/.test(request.url())) {
-        contactImageRequests.push(request.url());
+      if (request.url().includes('.api.sanity.io/')) {
+        sanityRequests.push(request.url());
       }
     });
-    await page.reload();
-    await page.locator('[data-contact-hero-image]').waitFor();
-    expect(sanityRequests).toEqual([]);
-    expect(contactImageRequests).toHaveLength(2);
-    expect(new Set(contactImageRequests).size).toBe(2);
-  });
 
+    await page.reload();
+
+    const hero = page.locator('[data-contact-hero-image]');
+    const welcome = page.locator('[data-contact-welcome-image]');
+
+    await expect(hero).toHaveCount(1);
+    await expect(welcome).toHaveCount(1);
+
+    for (const image of [hero, welcome]) {
+      await image.scrollIntoViewIfNeeded();
+
+      await expect.poll(async () => image.evaluate(
+        (element: HTMLImageElement) =>
+          element.complete && element.naturalWidth > 0
+      )).toBe(true);
+    }
+
+    expect(sanityRequests).toEqual([]);
+  });
   test('toont een zichtbare toetsenbordfocus op contactlinks', async ({page}) => {
     const firstTopicLink = page.locator('.contact-topic-card__link').first();
     await firstTopicLink.focus();
