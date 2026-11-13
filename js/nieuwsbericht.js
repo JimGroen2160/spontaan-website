@@ -468,6 +468,26 @@
     ]);
   }
 
+  function renderLoadError() {
+    setText('[data-news-detail-title]', 'Nieuwsbericht tijdelijk niet beschikbaar');
+    setText('[data-news-detail-category]', 'Nieuws');
+    setText(
+      '[data-news-detail-summary]',
+      'Het nieuwsbericht kan momenteel niet worden geladen. Probeer het later opnieuw.'
+    );
+
+    const time = document.querySelector('[data-news-detail-date]');
+    const media = document.querySelector('.news-detail__media');
+    if (time) {
+      time.hidden = true;
+      time.previousElementSibling?.setAttribute('hidden', '');
+    }
+    if (media) media.hidden = true;
+    renderBody([
+      'Je kunt teruggaan naar het nieuwsoverzicht en het later opnieuw proberen.',
+    ]);
+  }
+
   async function initNewsDetail() {
     const slug = getSlug();
 
@@ -501,7 +521,7 @@
       );
 
       if (!useStaticFallback) {
-        renderNotFound();
+        renderLoadError();
         return;
       }
     }

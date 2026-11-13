@@ -179,10 +179,10 @@ defineField({
     }),
     defineField({
       name: 'featuredNewsItems',
-      title: 'Handmatig uitgelichte nieuwsberichten',
+      title: 'Nieuwsberichten op homepage',
       type: 'array',
       description:
-        'Kies maximaal drie nieuwsberichten. Als dit leeg blijft, kan de website later automatisch de nieuwste zichtbare berichten tonen.',
+        'Selecteer maximaal drie nieuwsberichten die op de homepage moeten verschijnen. Zonder selectie verschijnt er geen nieuwssectie op de homepage.',
       validation: (rule) => rule.max(3),
       of: [
         {
