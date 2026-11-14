@@ -121,48 +121,46 @@ test.describe('Hero crop/hotspot P4 — Nieuws pilot', () => {
 
           expect(position).toBe(expectedPosition);
         } else {
-          // Mobiel optie A: volledige foto, zonder Sanity-rect.
+          // P8.7 keuze A: goedgekeurde lokale Nieuws-foto.
+          // Desktop Sanity-crop/hotspot wordt hierboven getest.
           const photo = hero.locator(':scope > .p87-mobile-photo');
 
-          await expect(photo).toBeVisible();
+          await expect(photo).toBeHidden();
 
           await expect.poll(async () =>
-            photo.getAttribute('src')
-          ).toContain('cdn.sanity.io/images/');
+            hero.evaluate((element) => {
+              const style = getComputedStyle(element, '::before');
+              return style.backgroundImage;
+            })
+          ).toContain('nieuws-goedgekeurd.png');
 
-          const mobileUrl = await photo.getAttribute('src');
-          expect(mobileUrl).not.toBeNull();
-          expect(rectFromUrl(mobileUrl!)).toBeNull();
+          const geometry = await hero.evaluate((element) => {
+            const photoStyle = getComputedStyle(element, '::before');
+            const heroBox = element.getBoundingClientRect();
+            const content = element.querySelector('.news-hero__content');
+            const contentBox = content?.getBoundingClientRect();
 
-          const content = hero.locator(
-            ':scope > .news-hero__content',
-          );
-
-          await expect(content).toBeVisible();
-
-          const photoBox = await photo.boundingBox();
-          const contentBox = await content.boundingBox();
-
-          expect(photoBox).not.toBeNull();
-          expect(contentBox).not.toBeNull();
-
-          // Tekst moet onder de foto beginnen.
-          expect(contentBox!.y).toBeGreaterThanOrEqual(
-            photoBox!.y + photoBox!.height - 2,
-          );
-
-          const imageStyle = await photo.evaluate((element) => {
-            const style = getComputedStyle(element);
             return {
-              fit: style.objectFit,
-              width: element.getBoundingClientRect().width,
-              height: element.getBoundingClientRect().height,
+              photoDisplay: photoStyle.display,
+              photoHeight: parseFloat(photoStyle.height),
+              photoWidth: parseFloat(photoStyle.width),
+              photoFit: photoStyle.backgroundSize,
+              contentTop: contentBox?.top ?? 0,
+              heroTop: heroBox.top,
             };
           });
 
-          expect(imageStyle.fit).toBe('contain');
-          expect(imageStyle.width).toBeGreaterThan(0);
-          expect(imageStyle.height).toBeGreaterThan(0);
+          expect(geometry.photoDisplay).not.toBe('none');
+          expect(geometry.photoWidth).toBeGreaterThan(0);
+          expect(geometry.photoHeight).toBeGreaterThan(0);
+          expect(geometry.photoFit).toBe('contain');
+          expect(geometry.contentTop).toBeGreaterThan(
+            geometry.heroTop + geometry.photoHeight - 2
+          );
+
+          await expect(
+            hero.locator(':scope > .news-hero__content')
+          ).toBeVisible();
         }
       }
     });
