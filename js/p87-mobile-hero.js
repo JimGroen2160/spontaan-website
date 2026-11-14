@@ -23,6 +23,26 @@
   }
 
   function sourceImage(hero) {
+    if (hero.matches('.agenda-hero, .news-hero')) {
+      const cmsUrl = hero.dataset.heroImageUrl || '';
+
+      try {
+        const url = new URL(cmsUrl);
+
+        if (
+          url.protocol === 'https:' &&
+          url.hostname === 'cdn.sanity.io' &&
+          url.pathname.startsWith('/images/')
+        ) {
+          return url.href;
+        }
+      } catch {
+        // CMS image not yet available.
+      }
+
+      return null;
+    }
+
     const image = Array.from(hero.children).find(
       element => element.matches('img[class*="hero__image"]')
     );
@@ -245,7 +265,7 @@
 
           observer.observe(hero, {
             attributes: true,
-            attributeFilter: ['style', 'src'],
+            attributeFilter: ['style', 'src', 'data-hero-image-url'],
             subtree: true
           });
         }
@@ -265,4 +285,49 @@
 
   mobile.addEventListener('change', update);
   window.addEventListener('load', update);
+})();
+/*
+ * P8.7 - Sanity mobile hero image binding.
+ * De desktopachtergrond blijft ongewijzigd.
+ */
+(function () {
+  function syncMobileHeroImages() {
+    document.querySelectorAll('.news-hero, .agenda-hero').forEach(function (hero) {
+      const imageUrl = hero.dataset.heroImageUrl;
+
+      if (!imageUrl) {
+        hero.style.removeProperty('--p87-mobile-hero-image');
+        return;
+      }
+
+      try {
+        const url = new URL(imageUrl, window.location.href);
+
+        if (url.protocol !== 'https:' ||
+            url.hostname !== 'cdn.sanity.io') {
+          return;
+        }
+
+        const safeUrl = url.href.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+
+        hero.style.setProperty(
+          '--p87-mobile-hero-image',
+          'url("' + safeUrl + '")'
+        );
+      } catch (_) {
+        hero.style.removeProperty('--p87-mobile-hero-image');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', syncMobileHeroImages);
+
+  new MutationObserver(syncMobileHeroImages).observe(
+    document.documentElement,
+    {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-hero-image-url']
+    }
+  );
 })();

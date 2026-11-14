@@ -203,7 +203,8 @@
         typeof value.heroSubtitle === 'string'
           ? value.heroSubtitle.trim()
           : '',
-      imageUrl: presentation.url || imageUrl,
+      imageUrl: imageUrl,
+      desktopImageUrl: presentation.url,
       positionCss,
       glow: preferredImageGlow(
         value.heroGlowManaged,
@@ -240,22 +241,27 @@
     if (subtitle && content.subtitle) {
       subtitle.textContent = content.subtitle;
     }
-
     if (!content.imageUrl) {
       return;
     }
 
-    const escapedUrl = content.imageUrl
+    const desktopImageUrl = content.desktopImageUrl || content.imageUrl;
+
+
+    const escapedUrl = desktopImageUrl
       .replaceAll('\\', '\\\\')
       .replaceAll('"', '\\"');
+
+    hero.dataset.heroImageUrl = content.imageUrl;
 
     hero.style.backgroundImage =
       `url("${escapedUrl}")`;
 
     if (content.positionCss) {
-      hero.style.backgroundPosition =
-        content.positionCss;
+      hero.style.backgroundPosition = content.positionCss;
     }
+    hero.style.backgroundSize = 'cover';
+    hero.style.backgroundRepeat = 'no-repeat';
   }
 
   const categoryLabels = {
