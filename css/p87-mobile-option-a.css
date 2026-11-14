@@ -55,7 +55,7 @@
 
   .agenda-hero::before {
     aspect-ratio: 1592 / 705 !important;
-    background-image: url("../images/approved-heroes/agenda-goedgekeurd.png") !important;
+    background-image: url("../images/approved-heroes/agenda-goedgekeurd.webp") !important;
   }
 
   .news-hero::after,

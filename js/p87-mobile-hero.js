@@ -119,6 +119,9 @@
   }
 
   function updateHero(hero) {
+    // Nieuws en Agenda gebruiken goedgekeurde lokale mobiele heroes.
+    // De overige heroes blijven de bestaande P8.7-verwerking gebruiken.
+    if (hero.matches('.news-hero, .agenda-hero')) return;
     if (!mobile.matches) return;
 
     const detected = sourceImage(hero);
