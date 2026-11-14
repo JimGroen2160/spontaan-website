@@ -203,8 +203,7 @@
         typeof value.heroSubtitle === 'string'
           ? value.heroSubtitle.trim()
           : '',
-      imageUrl: imageUrl,
-      desktopImageUrl: presentation.url,
+      imageUrl: presentation.url || imageUrl,
       positionCss,
       glow: preferredImageGlow(
         value.heroGlowManaged,
@@ -245,10 +244,7 @@
       return;
     }
 
-    const desktopImageUrl = content.desktopImageUrl || content.imageUrl;
-
-
-    const escapedUrl = desktopImageUrl
+    const escapedUrl = content.imageUrl
       .replaceAll('\\', '\\\\')
       .replaceAll('"', '\\"');
 
@@ -260,8 +256,7 @@
     if (content.positionCss) {
       hero.style.backgroundPosition = content.positionCss;
     }
-    hero.style.backgroundSize = 'cover';
-    hero.style.backgroundRepeat = 'no-repeat';
+
   }
 
   const categoryLabels = {

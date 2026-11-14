@@ -4,17 +4,6 @@
  * Mobiel: foto volledig boven tekstvlak
  */
 
-/* Desktop */
-@media (min-width: 769px) {
-  .news-hero {
-    background-image: url("../images/approved-heroes/nieuws-goedgekeurd.png") !important;
-  }
-
-  .agenda-hero {
-    background-image: url("../images/approved-heroes/agenda-goedgekeurd.png") !important;
-  }
-}
-
 /* Mobiel */
 @media (max-width: 768px) {
   .news-hero,
