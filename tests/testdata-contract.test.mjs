@@ -46,7 +46,7 @@ test('publieke runtimequeries sluiten technisch gemarkeerde testdata uit', async
   }
 })
 
-test('Homepage-query sluit automatische testdata uit en haalt handmatige markering op', async () => {
+test('Homepage-query gebruikt uitsluitend handmatige nieuwsselectie met testdatamarkering', async () => {
   const source = await readFile(
     'scripts/build-site.mjs',
     'utf8',
@@ -57,13 +57,13 @@ test('Homepage-query sluit automatische testdata uit en haalt handmatige markeri
     /"manualFeaturedNewsItems":[\s\S]*?isTestData,/,
   )
 
-  assert.match(
+  assert.doesNotMatch(
     source,
-    /"automaticFeaturedNewsItems":[\s\S]*?isTestData\s*!=\s*true/,
+    /"automaticFeaturedNewsItems":/,
   )
 })
 
-test('Homepage weigert handmatig geselecteerde testdata', () => {
+test('Homepage weigert handmatig geselecteerde testdata zonder automatische terugval', () => {
   const content = normalizeHomeContent({
     manualFeaturedNewsItems: [
       validNewsItem({
@@ -78,16 +78,36 @@ test('Homepage weigert handmatig geselecteerde testdata', () => {
         slug: 'geldig-automatisch',
       }),
     ],
-  })
+  }, { allowDemo: false })
 
-  assert.equal(content.featuredNews.selectionMode, 'featured')
+  assert.equal(content.featuredNews.selectionMode, 'empty')
+  assert.deepEqual(content.featuredNews.items, [])
+})
+
+test('Homepage toont uitsluitend geldig handmatig geselecteerd nieuws', () => {
+  const content = normalizeHomeContent({
+    manualFeaturedNewsItems: [
+      validNewsItem({
+        _id: 'news-geldig-handmatig',
+        slug: 'geldig-handmatig',
+        isTestData: false,
+      }),
+    ],
+    automaticFeaturedNewsItems: [
+      validNewsItem({
+        _id: 'news-niet-geselecteerd',
+        slug: 'niet-geselecteerd',
+      }),
+    ],
+  }, { allowDemo: false })
+
+  assert.equal(content.featuredNews.selectionMode, 'manual')
   assert.equal(content.featuredNews.items.length, 1)
   assert.equal(
     content.featuredNews.items[0].slug,
-    'geldig-automatisch',
+    'geldig-handmatig',
   )
 })
-
 test('Homepage weigert automatische testdata', () => {
   const content = normalizeHomeContent({
     manualFeaturedNewsItems: [],

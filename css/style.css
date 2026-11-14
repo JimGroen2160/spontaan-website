@@ -4635,3 +4635,118 @@ button.agenda-calendar__day {
 .news-card__category {
   z-index: 2;
 }
+
+/* ==========================================================
+   SPONTAAN P8.7F RESPONSIVE HERO HARDENING
+   Mobile presentation only. Preserve Sanity crop/hotspots.
+   ========================================================== */
+
+@media (max-width: 768px) {
+  .hero[data-public-hero],
+  .about-hero[data-public-hero],
+  .agenda-hero[data-public-hero],
+  .news-hero[data-public-hero],
+  .contact-hero[data-public-hero],
+  .friends-hero[data-public-hero],
+  .media-hero[data-public-hero],
+  .repertoire-hero[data-public-hero] {
+    box-sizing: border-box;
+  }
+
+  .hero[data-public-hero] h1,
+  .about-hero[data-public-hero] h1,
+  .agenda-hero[data-public-hero] h1,
+  .news-hero[data-public-hero] h1,
+  .contact-hero[data-public-hero] h1,
+  .friends-hero[data-public-hero] h1,
+  .media-hero[data-public-hero] h1,
+  .repertoire-hero[data-public-hero] h1 {
+    max-width: 100%;
+    font-size: clamp(2rem, 8vw, 3rem);
+    line-height: 1.12;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .hero[data-public-hero] p,
+  .about-hero[data-public-hero] p,
+  .agenda-hero[data-public-hero] p,
+  .news-hero[data-public-hero] p,
+  .contact-hero[data-public-hero] p,
+  .friends-hero[data-public-hero] p,
+  .media-hero[data-public-hero] p,
+  .repertoire-hero[data-public-hero] p {
+    overflow-wrap: break-word;
+  }
+
+  .hero[data-public-hero] .hero-content {
+    width: min(100%, 38rem);
+    box-sizing: border-box;
+    padding: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .friends-hero[data-public-hero] {
+    height: auto;
+    min-height: 0;
+  }
+
+  .friends-hero[data-public-hero] .friends-hero__content {
+    box-sizing: border-box;
+    min-height: 0;
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .contact-hero[data-public-hero] {
+    min-height: 0;
+  }
+
+  .contact-hero[data-public-hero] .contact-hero__content {
+    box-sizing: border-box;
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .repertoire-hero[data-public-hero] .repertoire-hero__decor {
+    opacity: 0.35;
+  }
+
+  .hero[data-public-hero] .hero-actions,
+  .friends-hero[data-public-hero] .friends-actions,
+  .contact-hero[data-public-hero] .contact-actions {
+    max-width: 100%;
+  }
+
+  .hero[data-public-hero] .btn,
+  .friends-hero[data-public-hero] .btn,
+  .contact-hero[data-public-hero] .btn {
+    box-sizing: border-box;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero[data-public-hero] h1,
+  .about-hero[data-public-hero] h1,
+  .agenda-hero[data-public-hero] h1,
+  .news-hero[data-public-hero] h1,
+  .contact-hero[data-public-hero] h1,
+  .friends-hero[data-public-hero] h1,
+  .media-hero[data-public-hero] h1,
+  .repertoire-hero[data-public-hero] h1 {
+    font-size: clamp(1.9rem, 8.5vw, 2.5rem);
+  }
+
+  .repertoire-hero[data-public-hero] .repertoire-hero__decor {
+    opacity: 0.2;
+  }
+
+  .hero[data-public-hero] .hero-content {
+    border-radius: 16px;
+  }
+}
+
+/* END SPONTAAN P8.7F RESPONSIVE HERO HARDENING */

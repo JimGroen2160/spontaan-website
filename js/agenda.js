@@ -266,7 +266,6 @@
     if (subtitle && content.subtitle) {
       subtitle.textContent = content.subtitle;
     }
-
     if (!content.imageUrl) {
       return;
     }
@@ -274,6 +273,8 @@
     const escapedUrl = content.imageUrl
       .replaceAll('\\', '\\\\')
       .replaceAll('"', '\\"');
+
+    hero.dataset.heroImageUrl = content.imageUrl;
 
     hero.style.backgroundImage =
       `url("${escapedUrl}")`;

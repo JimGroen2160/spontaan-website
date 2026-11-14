@@ -1,0 +1,37 @@
+/*
+ * Spontaan P8.7 - goedgekeurde afbeeldingen
+ * Desktop: oorspronkelijke hero-indeling behouden
+ * Mobiel: foto volledig boven tekstvlak
+ */
+
+/* Mobiel */
+@media (max-width: 768px) {
+  .news-hero,
+  .agenda-hero {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: auto !important;
+    background-image: none !important;
+  }
+
+  .news-hero::before,
+  .agenda-hero::before {
+    content: "" !important;
+    display: block !important;
+    width: 100% !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+  }
+
+  .news-hero::before {
+    aspect-ratio: 4 / 3 !important;
+    background-image: url("../images/approved-heroes/nieuws-goedgekeurd.png") !important;
+  }
+
+  .agenda-hero::before {
+    aspect-ratio: 1592 / 705 !important;
+    background-image: url("../images/approved-heroes/agenda-goedgekeurd.png") !important;
+  }
+}
