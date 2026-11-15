@@ -240,7 +240,6 @@
     if (subtitle && content.subtitle) {
       subtitle.textContent = content.subtitle;
     }
-
     if (!content.imageUrl) {
       return;
     }
@@ -249,13 +248,15 @@
       .replaceAll('\\', '\\\\')
       .replaceAll('"', '\\"');
 
+    hero.dataset.heroImageUrl = content.imageUrl;
+
     hero.style.backgroundImage =
       `url("${escapedUrl}")`;
 
     if (content.positionCss) {
-      hero.style.backgroundPosition =
-        content.positionCss;
+      hero.style.backgroundPosition = content.positionCss;
     }
+
   }
 
   const categoryLabels = {

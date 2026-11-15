@@ -1,0 +1,40 @@
+/*
+ * P8.7L-U
+ * News card rendering correction.
+ * No Sanity image replacement.
+ */
+
+@media (max-width: 768px) {
+
+  .news-card__image {
+    position: relative;
+    overflow: hidden;
+    background: transparent !important;
+  }
+
+  .news-card__image img {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    filter: none !important;
+    transform: none !important;
+    position: relative;
+    z-index: 2;
+  }
+
+  .news-card__image::before,
+  .news-card__image::after {
+    pointer-events: none;
+  }
+}
+/* P8.7L-X DESKTOP HERO */
+@media (min-width: 769px) {
+  .news-hero {
+    /* Desktophoogte: oorspronkelijke stylesheet leidend */
+    background-size: cover !important;
+    background-position: center center;
+  }
+}
