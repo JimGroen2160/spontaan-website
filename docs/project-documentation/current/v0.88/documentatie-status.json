@@ -1,0 +1,12 @@
+﻿{
+    "schemaVersion":  1,
+    "project":  "spontaan-website",
+    "documentatieSetVersie":  "v0.88",
+    "documentatieDatum":  "2026-11-15",
+    "previousDocumentation":  "v0.87",
+    "repositoryCheckpoint":  "dce0caf0074f881ad386e2fb3706beed160a6100",
+    "documentatieStatus":  "gegenereerd-voor-github-review",
+    "contentmanagerHandleiding":  "v1.7M",
+    "liveDeploymentVerified":  false,
+    "projectClosureVerified":  false
+}
