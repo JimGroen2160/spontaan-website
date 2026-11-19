@@ -1,5 +1,5 @@
-const LEDENADMINISTRATIE_TEST_URL =
-  'https://spontaan-website-git-acceptance-jimgroen2160s-projects.vercel.app/leden/login.html'
+const LEDENADMINISTRATIE_URL =
+  'https://spontaan-angerlo.nl/admin/index.html'
 
 export function LedenadministratiePane() {
   return (
@@ -19,7 +19,7 @@ export function LedenadministratiePane() {
           textTransform: 'uppercase',
         }}
       >
-        TEST / FAT/GAT
+        PRODUCTIE
       </p>
 
       <h1
@@ -50,12 +50,12 @@ export function LedenadministratiePane() {
           margin: '0 0 1.5rem',
         }}
       >
-        Tijdens FAT/GAT opent onderstaande knop uitsluitend de
-        Ledenadministratie TEST op de acceptance-omgeving.
+        Onderstaande knop opent de beveiligde ledenadministratie
+        van Spontaan in de productieomgeving.
       </p>
 
       <a
-        href={LEDENADMINISTRATIE_TEST_URL}
+        href={LEDENADMINISTRATIE_URL}
         target="_blank"
         rel="noopener noreferrer"
         style={{
@@ -68,7 +68,7 @@ export function LedenadministratiePane() {
           textDecoration: 'none',
         }}
       >
-        Open Ledenadministratie TEST
+        Open Ledenadministratie
       </a>
 
       <p
@@ -81,7 +81,7 @@ export function LedenadministratiePane() {
       >
         De ledenadministratie opent in een nieuw tabblad.
         Gebruik daarvoor het afzonderlijke Ledenadministratie
-        TEST-account; de Sanity-login is hiervan gescheiden.
+        account; de Sanity-login is hiervan gescheiden.
       </p>
     </main>
   )
