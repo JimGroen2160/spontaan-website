@@ -221,7 +221,7 @@ test('repertoirePage vereist alt-tekst voor verplichte hero-afbeelding', async (
   )
 })
 
-test('Structure biedt veilige ingang naar Ledenadministratie TEST', async () => {
+test('Structure biedt veilige ingang naar Ledenadministratie PRODUCTIE', async () => {
   const [structureSource, paneSource] = await Promise.all([
     readFile(structurePath, 'utf8'),
     readFile(ledenadministratiePanePath, 'utf8'),
@@ -275,11 +275,11 @@ test('Structure biedt veilige ingang naar Ledenadministratie TEST', async () => 
   )
 
   const expectedUrl =
-    'https://spontaan-website-git-acceptance-jimgroen2160s-projects.vercel.app/leden/login.html'
+    'https://spontaan-angerlo.nl/admin/index.html'
 
   assert.ok(
     paneSource.includes(expectedUrl),
-    'Exacte acceptance-ledenlogin ontbreekt'
+    'Exacte productieledenadministratie-URL ontbreekt'
   )
 
   assert.ok(
@@ -299,7 +299,7 @@ test('Structure biedt veilige ingang naar Ledenadministratie TEST', async () => 
 
   assert.match(
     paneSource,
-    /TEST \/ FAT\/GAT/
+    /PRODUCTIE/
   )
 
   assert.doesNotMatch(
